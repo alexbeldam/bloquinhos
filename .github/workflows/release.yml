@@ -1,0 +1,107 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - 'release/v*'
+
+jobs:
+  build:
+    name: Build for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact_name: linux
+            asset_name: tetris-linux-x64.tar.gz
+          - os: windows-latest
+            artifact_name: windows
+            asset_name: tetris-win64.zip
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Create .env file from Secrets
+        shell: bash
+        run: echo "${{ secrets.ENV_FILE_CONTENT }}" > .env
+
+      - name: Debug Environment Loading
+        shell: bash
+        run: |
+          echo "🔍 Verificando variáveis de ambiente para o build:"
+          grep "DB_HOST" .env || echo "⚠️ DB_HOST não encontrado no arquivo .env"
+
+      - name: Build with PyInstaller (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          pyinstaller --onefile --windowed --name "tetris" --icon="assets/img/icon.ico" --add-data ".env;." src/main.py
+          mkdir dist_zip
+          cp dist/tetris.exe dist_zip/
+          cp -r assets dist_zip/
+          compress-archive -Path dist_zip/* -DestinationPath ${{ matrix.asset_name }}
+
+      - name: Build with PyInstaller (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          pyinstaller --onefile --windowed --name "tetris" --add-data ".env:." src/main.py
+          mkdir dist_tar
+          cp dist/tetris dist_tar/
+          cp -r assets dist_tar/
+          chmod +x dist_tar/tetris
+          tar -czf ${{ matrix.asset_name }} -C dist_tar .
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: ${{ matrix.asset_name }}
+
+  create_release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Get version from branch
+        shell: bash
+        run: echo "VERSION=${GITHUB_REF#refs/heads/release/v}" >> $GITHUB_ENV
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: Tetris - v${{ env.VERSION }}
+          generate_release_notes: true
+          body: |
+            ## 🎮 Como Jogar
+            1. Baixe o pacote correspondente ao seu sistema operacional abaixo.
+            2. Extraia os arquivos.
+            3. Execute o arquivo `tetris` (Linux) ou `tetris.exe` (Windows).
+          files: |
+            linux/tetris-linux-x64.tar.gz
+            windows/tetris-win64.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete Release Branch
+        if: success()
+        uses: dawidd6/action-delete-branch@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branches: ${{ github.ref_name }}

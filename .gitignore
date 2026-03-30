@@ -1,0 +1,41 @@
+# --- Python Core ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+releases/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# --- Environments & Secrets ---
+.env
+.venv
+env/
+venv/
+ENV/
+*.bak/
+/data/
+
+# --- Logs ---
+*.log
+
+# --- IDEs ---
+.idea/
+*.iml
+*.iws
+.vscode/

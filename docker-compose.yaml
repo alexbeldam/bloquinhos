@@ -1,0 +1,17 @@
+services:
+  tetrisdb:
+    build: .
+    image: tetrisdb
+    container_name: tetrisdb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
+      MONGO_INITDB_DATABASE: ${DB_NAME}
+    volumes:
+      - mongodb_data:/data/db
+
+volumes:
+  mongodb_data:
