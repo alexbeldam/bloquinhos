@@ -38,10 +38,16 @@ jobs:
         shell: bash
         run: echo "${{ secrets.ENV_FILE_CONTENT }}" > .env
 
+      - name: Debug Environment Loading
+        shell: bash
+        run: |
+          echo "🔍 Verificando variáveis de ambiente para o build:"
+          grep "DB_HOST" .env || echo "⚠️ DB_HOST não encontrado no arquivo .env"
+
       - name: Build with PyInstaller (Windows)
         if: matrix.os == 'windows-latest'
         run: |
-          pyinstaller --onefile --windowed --name "tetris" --icon="assets/icon.ico" --add-data ".env;." src/main.py
+          pyinstaller --onefile --windowed --name "tetris" --icon="assets/img/icon.ico" --add-data ".env;." src/main.py
           mkdir dist_zip
           cp dist/tetris.exe dist_zip/
           cp -r assets dist_zip/
