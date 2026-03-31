@@ -1,3 +1,5 @@
+ENV_NAME = tetris_env
+
 .PHONY: setup run
 
 setup:
@@ -5,4 +7,4 @@ setup:
 	@./scripts/setup.sh
 
 run:
-	@source .venv/bin/activate && python src/main.py
+	@conda run --no-capture-output -n $(ENV_NAME) python src/main.py
