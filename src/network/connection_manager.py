@@ -1,6 +1,7 @@
 import threading
 import time
 import urllib.parse
+import certifi
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure, ServerSelectionTimeoutError
 from dotenv import dotenv_values
@@ -38,13 +39,15 @@ class NetworkManager:
         while True:
             try:
                 if not client:
-                    client = MongoClient(self.mongo_uri, serverSelectionTimeoutMS=2000)
+                    client = MongoClient(
+                        self.mongo_uri, tls=True, tlsCAFile=certifi.where(),
+                        serverSelectionTimeoutMS=2000)
                 
                 client.admin.command('ping')
                 self.is_online = True
                 self.db = client.get_database()
                 
-            except Exception as e:
+            except Exception:
                 self.is_online = False
                 client = None
 
@@ -52,4 +55,3 @@ class NetworkManager:
                 self._ready_event.set()
             
             time.sleep(30)
-    
