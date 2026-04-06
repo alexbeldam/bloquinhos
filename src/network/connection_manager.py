@@ -4,27 +4,27 @@ import urllib.parse
 import certifi
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure, ServerSelectionTimeoutError
-from dotenv import dotenv_values
-from utils.path_manager import get_env_path
+from utils.env_manager import get_env
+from utils.logger import log
 
 class NetworkManager:
     def __init__(self):
         self.is_online = False
         self.db = None
+        self._use_tls = False
         self._ready_event = threading.Event()
         
-        config = dotenv_values(get_env_path())
-        
-        user = config.get("DB_USER")
-        password = urllib.parse.quote_plus(config.get("DB_PASSWORD", ""))
-        host = config.get("DB_HOST")
-        port = config.get("DB_PORT")
-        db_name = config.get("DB_NAME")
+        user = get_env("DB_USER")
+        password = urllib.parse.quote_plus(get_env("DB_PASSWORD", ""))
+        host = get_env("DB_HOST")
+        port = get_env("DB_PORT")
+        self.db_name = get_env("DB_NAME")
 
         if ".net" in host.lower():
-            self.mongo_uri = f"mongodb+srv://{user}:{password}@{host}/{db_name}?retryWrites=true&w=majority"
+            self.mongo_uri = f"mongodb+srv://{user}:{password}@{host}/{self.db_name}?retryWrites=true&w=majority"
+            self._use_tls = True
         else:
-            self.mongo_uri = f"mongodb://{user}:{password}@{host}:{port}/{db_name}?authSource=admin"
+            self.mongo_uri = f"mongodb://{user}:{password}@{host}:{port}/{self.db_name}?authSource=admin"
 
         self.thread = threading.Thread(target=self._check_connection_loop, daemon=True)
         self.thread.start()
@@ -36,22 +36,41 @@ class NetworkManager:
 
     def _check_connection_loop(self):
         client = None
+        first_attempt = True
+
         while True:
             try:
                 if not client:
-                    client = MongoClient(
-                        self.mongo_uri, tls=True, tlsCAFile=certifi.where(),
-                        serverSelectionTimeoutMS=2000)
+                    mongo_args = {
+                        "host": self.mongo_uri,
+                        "serverSelectionTimeoutMS": 2000,
+                        "tls": self._use_tls
+                    }
+
+                    if self._use_tls:
+                        mongo_args["tlsCAFile"] = certifi.where()
+
+                    client = MongoClient(**mongo_args)
                 
                 client.admin.command('ping')
                 self.is_online = True
-                self.db = client.get_database()
+                self.db = client[self.db_name]
                 
-            except Exception:
+                if first_attempt:
+                    log.info("🔌 Database: Connection established (Online Mode).")
+                    first_attempt = False
+
+            except Exception as e:
+                if self.is_online or first_attempt:
+                    log.error(f"🌐 Network: Lost connection or failed to connect. {e}")
+                
                 self.is_online = False
+                self.db = None
                 client = None
+                first_attempt = False
 
             finally:
-                self._ready_event.set()
+                if not self._ready_event.is_set():
+                    self._ready_event.set()
             
             time.sleep(30)

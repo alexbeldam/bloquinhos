@@ -8,6 +8,7 @@ build/
 develop-eggs/
 dist/
 releases/
+release/
 downloads/
 eggs/
 .eggs/
@@ -20,6 +21,7 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+*.spec
 MANIFEST
 
 # --- Environments & Secrets ---
@@ -32,6 +34,7 @@ ENV/
 /data/
 
 # --- Logs ---
+logs/
 *.log
 
 # --- IDEs ---

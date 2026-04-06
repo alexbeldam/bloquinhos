@@ -25,6 +25,9 @@ def get_user_save_path():
 def get_preferences_path():
     return get_data_path(_PATHS.PREFS_FILE)
 
+def get_log_path():
+    return _get_abs_path(_PATHS.LOG_DIR, _PATHS.LOG_FILE)
+
 def _get_base_path(bundled):
     if getattr(sys, 'frozen', False):
         return sys._MEIPASS if bundled else os.path.dirname(sys.executable)

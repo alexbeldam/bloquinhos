@@ -53,6 +53,8 @@ class PathConfig:
     PREFS_FILE: str = "preferences.json"
     IMG_DIR: str = "img"
     AUD_DIR: str = "aud"
+    LOG_DIR: str = "logs"          
+    LOG_FILE: str = "game.log"
 
 @dataclass(frozen=True)
 class Settings:

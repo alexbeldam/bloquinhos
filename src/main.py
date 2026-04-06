@@ -1,13 +1,31 @@
-from utils.path_manager import get_image_path
 from settings import SETTINGS
 from network.connection_manager import NetworkManager
+from utils.path_manager import get_image_path
+import utils.env_manager as env
+from utils.logger import log
+import random
 
-_TETROMINO_ASSETS = SETTINGS.ASSETS.TETROMINO_ASSETS
+_ASSETS = SETTINGS.ASSETS.TETROMINO_ASSETS
 
-print("Hello World!")
-print("The O tetromino has the image with path:", get_image_path(_TETROMINO_ASSETS['O']))
+def bootstrap():
+    env.load_env_vars()
 
-manager = NetworkManager()
-online = manager.wait_for_connection(timeout=5.0)
+    log.info("🚀 Starting application...")
 
-print("Is online?", online)
+    net = NetworkManager()
+
+    log.info("🔌 Waiting for network connection...")
+
+    if not net.wait_for_connection(timeout=5.0):
+        log.warning("⚠️ Network connection not established. Continuing offline.")
+
+    tetromino = random.choice(list(_ASSETS.keys()))
+
+    log.info(f"🎲 Randomly selected tetromino: {tetromino}")
+
+    img_path = get_image_path(_ASSETS[tetromino])
+    
+    log.info(f"📁 Image path for {tetromino}: {img_path}")
+
+if __name__ == "__main__":
+    bootstrap()

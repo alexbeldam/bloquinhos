@@ -41,20 +41,20 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: |
           pyinstaller --onefile --windowed --name "bloquinhos" --paths src --icon="assets/img/icon.ico" --add-data ".env;." src/main.py
-          mkdir dist_zip
-          cp dist/bloquinhos.exe dist_zip/
-          cp -r assets dist_zip/
-          compress-archive -Path dist_zip/* -DestinationPath ${{ matrix.asset_name }}
+          mkdir release
+          cp dist/bloquinhos.exe release/
+          cp -r assets release/
+          compress-archive -Path release/* -DestinationPath ${{ matrix.asset_name }}
 
       - name: Build with PyInstaller (Linux)
         if: matrix.os == 'ubuntu-latest'
         run: |
           pyinstaller --onefile --windowed --name "bloquinhos" --paths src --add-data ".env:." src/main.py
-          mkdir dist_tar
-          cp dist/bloquinhos dist_tar/
-          cp -r assets dist_tar/
-          chmod +x dist_tar/bloquinhos
-          tar -czf ${{ matrix.asset_name }} -C dist_tar .
+          mkdir release
+          cp dist/bloquinhos release/
+          cp -r assets release/
+          chmod +x release/bloquinhos
+          tar -czf ${{ matrix.asset_name }} -C release .
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
