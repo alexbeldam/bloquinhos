@@ -1,11 +1,13 @@
-import utils.path_manager as pm
-import network.connection_manager as cm
-from constants import TETROMINO_ASSETS
+from utils.path_manager import get_image_path
+from settings import SETTINGS
+from network.connection_manager import NetworkManager
+
+_TETROMINO_ASSETS = SETTINGS.ASSETS.TETROMINO_ASSETS
 
 print("Hello World!")
-print("The O tetromino has the image with path:", pm.get_image_path(TETROMINO_ASSETS['O']))
+print("The O tetromino has the image with path:", get_image_path(_TETROMINO_ASSETS['O']))
 
-manager = cm.NetworkManager()
+manager = NetworkManager()
 online = manager.wait_for_connection(timeout=5.0)
 
 print("Is online?", online)
