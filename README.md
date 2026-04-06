@@ -62,9 +62,9 @@ Se você não deseja configurar o ambiente Python manualmente, pode utilizar os 
 
 ### Pré-requisitos
 
-- **Python 3.11+**
+- **Anaconda**
 - **Docker & Docker Compose**
-- **Make** (opcional)
+- **Make**
 
 ### Passos para rodar
 
@@ -81,24 +81,10 @@ Se você não deseja configurar o ambiente Python manualmente, pode utilizar os 
    make setup
    ```
 
-   _ou_
-
-   ```bash
-   chmod +x scripts/setup.sh
-   .scripts/setup.sh
-   ```
-
 3. **Inicie o jogo:**
 
    ```bash
    make run
-   ```
-
-   _ou_
-
-   ```bash
-   source .venv/bin/activate
-   python src/main.py
    ```
 
 ---
