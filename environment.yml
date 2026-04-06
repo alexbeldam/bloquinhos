@@ -1,4 +1,4 @@
-name: tetris_env
+name: block_env
 channels:
   - conda-forge
   - defaults
