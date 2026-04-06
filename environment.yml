@@ -9,3 +9,4 @@ dependencies:
     - pygame
     - pymongo
     - python-dotenv
+    - cryptography

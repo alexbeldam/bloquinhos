@@ -4,7 +4,7 @@ GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
-ENV_NAME="tetris_env"
+ENV_NAME="block_env"
 
 clear
 echo -e "${BLUE}🚀 Iniciando setup do ambiente...${NC}\n"
@@ -12,7 +12,7 @@ echo -e "${BLUE}🚀 Iniciando setup do ambiente...${NC}\n"
 if [ ! -f .env ]; then
     echo -e "${YELLOW}⚙️ Gerando arquivo .env...${NC}"
     cat <<EOF > .env
-DB_NAME=tetrisdb
+DB_NAME=blockdb
 DB_USER=admin
 DB_PASSWORD=password
 DB_HOST=localhost

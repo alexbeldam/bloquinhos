@@ -1,8 +1,8 @@
 services:
-  tetrisdb:
+  blockdb:
     build: .
-    image: tetrisdb
-    container_name: tetrisdb
+    image: blockdb
+    container_name: blockdb
     restart: unless-stopped
     ports:
       - "27017:27017"

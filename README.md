@@ -2,7 +2,7 @@
   <img src="assets/img/logo.png" alt="Game Icon" width="70" />
 </p>
 
-<h1 align="center"><strong>Python Tetris</strong></h1>
+<h1 align="center"><strong>Bloquinhos</strong></h1>
 
 <p align="center">
   <img src="https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54" height="25" />
@@ -21,14 +21,14 @@
 </p>
 
 <p align="center">
-  <b>Uma implementação clássica do jogo Tetris focada em Programação Orientada a Objetos (POO) e persistência de dados com MongoDB.</b>
+  <b>Uma implementação inspirada no jogo Tetris focada em Programação Orientada a Objetos (POO) e persistência de dados com MongoDB.</b>
 </p>
 
 ---
 
 <h2 id="sobre">📌 Sobre</h2>
 
-Este projeto é um clone do **Tetris** desenvolvido para fins educacionais. O objetivo principal foi aplicar conceitos avançados de **POO** em Python e integrar o jogo com um banco de dados **NoSQL** para gerenciar um sistema de _Leaderboard_ global.
+Este projeto é inspirado em **Tetris** desenvolvido para fins educacionais. O objetivo principal foi aplicar conceitos avançados de **POO** em Python e integrar o jogo com um banco de dados **NoSQL** para gerenciar um sistema de _Leaderboard_ global.
 
 ### Funcionalidades
 
@@ -54,7 +54,7 @@ O projeto segue princípios de **Programação Orientada a Objetos** para garant
 
 Se você não deseja configurar o ambiente Python manualmente, pode utilizar os executáveis pré-gerados na seção de **Releases**.
 
-👉 **[Baixar o último release](https://github.com/alexbeldam/tetris/releases/latest)**
+👉 **[Baixar o último release](https://github.com/alexbeldam/bloquinhos/releases/latest)**
 
 ---
 
@@ -71,8 +71,8 @@ Se você não deseja configurar o ambiente Python manualmente, pode utilizar os 
 1. **Clone o repositório:**
 
    ```bash
-   git clone https://github.com/alexbeldam/tetris.git
-   cd tetris
+   git clone https://github.com/alexbeldam/bloquinhos.git
+   cd bloquinhos
    ```
 
 2. **Configure o ambiente:**

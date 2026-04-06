@@ -14,10 +14,10 @@ jobs:
         include:
           - os: ubuntu-latest
             artifact_name: linux
-            asset_name: tetris-linux-x64.tar.gz
+            asset_name: bloquinhos-linux-x64.tar.gz
           - os: windows-latest
             artifact_name: windows
-            asset_name: tetris-win64.zip
+            asset_name: bloquinhos-win64.zip
 
     steps:
       - name: Checkout code
@@ -26,41 +26,34 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.13'
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pyinstaller
+          pip install pygame pymongo python-dotenv cryptography pyinstaller
 
       - name: Create .env file from Secrets
         shell: bash
         run: echo "${{ secrets.ENV_FILE_CONTENT }}" > .env
 
-      - name: Debug Environment Loading
-        shell: bash
-        run: |
-          echo "🔍 Verificando variáveis de ambiente para o build:"
-          grep "DB_HOST" .env || echo "⚠️ DB_HOST não encontrado no arquivo .env"
-
       - name: Build with PyInstaller (Windows)
         if: matrix.os == 'windows-latest'
         run: |
-          pyinstaller --onefile --windowed --name "tetris" --icon="assets/img/icon.ico" --add-data ".env;." src/main.py
+          pyinstaller --onefile --windowed --name "bloquinhos" --paths src --icon="assets/img/icon.ico" --add-data ".env;." src/main.py
           mkdir dist_zip
-          cp dist/tetris.exe dist_zip/
+          cp dist/bloquinhos.exe dist_zip/
           cp -r assets dist_zip/
           compress-archive -Path dist_zip/* -DestinationPath ${{ matrix.asset_name }}
 
       - name: Build with PyInstaller (Linux)
         if: matrix.os == 'ubuntu-latest'
         run: |
-          pyinstaller --onefile --windowed --name "tetris" --add-data ".env:." src/main.py
+          pyinstaller --onefile --windowed --name "bloquinhos" --paths src --add-data ".env:." src/main.py
           mkdir dist_tar
-          cp dist/tetris dist_tar/
+          cp dist/bloquinhos dist_tar/
           cp -r assets dist_tar/
-          chmod +x dist_tar/tetris
+          chmod +x dist_tar/bloquinhos
           tar -czf ${{ matrix.asset_name }} -C dist_tar .
 
       - name: Upload Artifacts
@@ -86,16 +79,16 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.VERSION }}
-          name: Tetris - v${{ env.VERSION }}
+          name: Bloquinhos - v${{ env.VERSION }}
           generate_release_notes: true
           body: |
             ## 🎮 Como Jogar
             1. Baixe o pacote correspondente ao seu sistema operacional abaixo.
             2. Extraia os arquivos.
-            3. Execute o arquivo `tetris` (Linux) ou `tetris.exe` (Windows).
+            3. Execute o arquivo `bloquinhos` (Linux) ou `bloquinhos.exe` (Windows).
           files: |
-            linux/tetris-linux-x64.tar.gz
-            windows/tetris-win64.zip
+            linux/bloquinhos-linux-x64.tar.gz
+            windows/bloquinhos-win64.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
