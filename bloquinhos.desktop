@@ -6,3 +6,4 @@ Icon=bloquinhos
 Type=Application
 Categories=Game;
 Terminal=false
+Path=/usr/lib/bloquinhos
