@@ -1,6 +1,6 @@
 from settings import SETTINGS
 from network.connection_manager import NetworkManager
-from utils.path_manager import get_image_path
+from utils.path_manager import PathManager as pm
 import utils.env_manager as env
 from utils.logger import log
 import random
@@ -23,7 +23,7 @@ def bootstrap():
 
     log.info(f"🎲 Randomly selected tetromino: {tetromino}")
 
-    img_path = get_image_path(_ASSETS[tetromino])
+    img_path = pm.get_image_path(_ASSETS[tetromino])
     
     log.info(f"📁 Image path for {tetromino}: {img_path}")
 
