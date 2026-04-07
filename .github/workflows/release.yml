@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - os: ubuntu-latest
+          - os: ubuntu-22.04
             artifact_name: linux
             asset_name: bloquinhos-linux-x64.tar.gz
           - os: windows-latest
@@ -47,7 +47,7 @@ jobs:
           compress-archive -Path release/* -DestinationPath ${{ matrix.asset_name }}
 
       - name: Build with PyInstaller (Linux)
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-22.04'
         run: |
           pyinstaller --onefile --windowed --name "bloquinhos" --paths src --add-data ".env:." src/main.py
           mkdir release
