@@ -14,7 +14,7 @@ contents:
     dst: "/usr/lib/bloquinhos/_internal"
   - src: "assets/*"
     dst: "/usr/share/bloquinhos/assets"
-  - src: "assets/img/icon.png"
+  - src: "assets/img/logo.png"
     dst: "/usr/share/icons/hicolor/256x256/apps/bloquinhos.png"
   - src: "bloquinhos.desktop"
     dst: "/usr/share/applications/bloquinhos.desktop"
