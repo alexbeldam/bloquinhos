@@ -26,7 +26,8 @@ clean:
 
 clean-build:
 	@echo "🧹 Cleaning build artifacts..."
-	@rm -rf dist/ build/ release/ bloquinhos.spec *.zip *.tar.gz
+	@rm -rf dist/ build/ output/ bloquinhos.spec
+	@rm -f *.exe *.deb *.rpm
 	@echo "✅ Build cleanup complete."
 
 deep-clean: clean
