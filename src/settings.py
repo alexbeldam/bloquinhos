@@ -3,14 +3,14 @@ from typing import Dict
 
 @dataclass(frozen=True)
 class ScreenConfig:
-    TILE_SIZE: int = 32
+    TILE_SIZE: int = 30
     GRID_WIDTH: int = 10
     GRID_HEIGHT: int = 20
-    GAME_WIDTH: int = 320         # GRID_WIDTH * TILE_SIZE
-    GAME_HEIGHT: int = 640        # GRID_HEIGHT * TILE_SIZE
+    GAME_WIDTH: int = GRID_WIDTH * TILE_SIZE
+    GAME_HEIGHT: int = GRID_HEIGHT * TILE_SIZE
     SIDEBAR_WIDTH: int = 200
-    SCREEN_WIDTH: int = 520       # GAME_WIDTH + SIDEBAR_WIDTH
-    SCREEN_HEIGHT: int = 640      # GAME_HEIGHT
+    SCREEN_WIDTH: int = GAME_WIDTH + SIDEBAR_WIDTH
+    SCREEN_HEIGHT: int = GAME_HEIGHT
     FPS: int = 60
 
 @dataclass(frozen=True)
