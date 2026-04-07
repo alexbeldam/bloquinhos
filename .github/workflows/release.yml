@@ -14,10 +14,8 @@ jobs:
         include:
           - os: ubuntu-22.04
             artifact_name: linux
-            asset_name: bloquinhos-linux-x64.tar.gz
           - os: windows-latest
             artifact_name: windows
-            asset_name: bloquinhos-win64.zip
 
     steps:
       - name: Checkout code
@@ -40,27 +38,42 @@ jobs:
       - name: Build with PyInstaller (Windows)
         if: matrix.os == 'windows-latest'
         run: |
-          pyinstaller --onefile --windowed --name "bloquinhos" --paths src --icon="assets/img/icon.ico" --add-data ".env;." src/main.py
-          mkdir release
-          cp dist/bloquinhos.exe release/
-          cp -r assets release/
-          compress-archive -Path release/* -DestinationPath ${{ matrix.asset_name }}
+          pyinstaller --onedir --windowed --name "bloquinhos" --paths src --icon="assets/img/icon.ico" --add-data ".env;." src/main.py
+
+      - name: Compile Inno Setup (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}".Replace("release/v", "")
+          & "iscc.exe" /DMyAppVersion=$version install_script.iss
+          mv output/BloquinhosSetup.exe Bloquinhos-Installer-Win64.exe
 
       - name: Build with PyInstaller (Linux)
         if: matrix.os == 'ubuntu-22.04'
         run: |
-          pyinstaller --onefile --windowed --name "bloquinhos" --paths src --add-data ".env:." src/main.py
-          mkdir release
-          cp dist/bloquinhos release/
-          cp -r assets release/
-          chmod +x release/bloquinhos
-          tar -czf ${{ matrix.asset_name }} -C release .
+          pyinstaller --onedir --windowed --name "bloquinhos" --paths src --add-data ".env:." src/main.py
+
+      - name: Install nFPM (Linux)
+        if: matrix.os == 'ubuntu-22.04'
+        run: |
+          echo 'deb [trusted=yes] https://repo.goreleaser.com/apt/ /' | sudo tee /etc/apt/sources.list.d/goreleaser.list
+          sudo apt-get update && sudo apt-get install nfpm
+
+      - name: Package DEB and RPM
+        if: matrix.os == 'ubuntu-22.04'
+        run: |
+          export VERSION=${GITHUB_REF#refs/heads/release/v}
+          nfpm pkg --packager deb --target bloquinhos-linux.deb
+          nfpm pkg --packager rpm --target bloquinhos-linux.rpm
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact_name }}
-          path: ${{ matrix.asset_name }}
+          path: |
+            *.exe
+            *.deb
+            *.rpm
 
   create_release:
     needs: build
@@ -83,12 +96,20 @@ jobs:
           generate_release_notes: true
           body: |
             ## 🎮 Como Jogar
-            1. Baixe o pacote correspondente ao seu sistema operacional abaixo.
-            2. Extraia os arquivos.
-            3. Execute o arquivo `bloquinhos` (Linux) ou `bloquinhos.exe` (Windows).
+
+            ### 🪟 Windows
+            1. Baixe o arquivo `Bloquinhos-Installer-Win64.exe`.
+            2. **Importante:** Clique com o botão direito no arquivo -> **Propriedades** -> Marque a caixa **Desbloquear** (Unblock) e clique em OK.
+            3. Execute o instalador e siga as instruções. O jogo aparecerá no seu Menu Iniciar!
+
+            ### 🐧 Linux (Fedora/Ubuntu)
+            1. Baixe o arquivo correspondente (`.rpm` para Fedora/KDE ou `.deb` para Ubuntu).
+            2. Clique duas vezes para abrir na sua Loja de Software e clique em **Instalar**.
+            3. Procure por "Bloquinhos" no seu menu de aplicativos.
           files: |
-            linux/bloquinhos-linux-x64.tar.gz
-            windows/bloquinhos-win64.zip
+            windows/Bloquinhos-Installer-Win64.exe
+            linux/bloquinhos-linux.deb
+            linux/bloquinhos-linux.rpm
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

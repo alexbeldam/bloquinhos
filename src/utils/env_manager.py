@@ -1,10 +1,10 @@
 import os
 from dotenv import load_dotenv
-from .path_manager import get_env_path
+from .path_manager import PathManager as pm
 from .logger import log, update_log_level
 
 def load_env_vars():
-    env_path = get_env_path()
+    env_path = pm.get_env_path()
     
     if os.path.exists(env_path):
         load_dotenv(env_path)

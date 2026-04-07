@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Bloquinhos
+Comment=Tetris-like game
+Exec=/usr/bin/bloquinhos
+Icon=bloquinhos
+Type=Application
+Categories=Game;
+Terminal=false

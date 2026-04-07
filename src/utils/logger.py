@@ -1,6 +1,6 @@
 import logging
 import os
-from .path_manager import get_log_path
+from .path_manager import PathManager as pm
 
 class DraculaFormatter(logging.Formatter):
     PINK = "\033[95m"
@@ -39,11 +39,8 @@ class LogManager:
         self._setup()
 
     def _setup(self):
-        log_path = get_log_path()
+        log_path = pm.get_log_path()
         log_dir = os.path.dirname(log_path)
-        
-        if not os.path.exists(log_dir):
-            os.makedirs(log_dir, exist_ok=True)
 
         self.logger.setLevel(logging.INFO)
 

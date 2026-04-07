@@ -63,5 +63,6 @@ class Settings:
     SCORING: ScoringConfig = ScoringConfig()
     ASSETS: AssetConfig = AssetConfig()
     PATHS: PathConfig = PathConfig()
+    APP_NAME: str = "Bloquinhos"
 
 SETTINGS = Settings()
