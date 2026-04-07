@@ -99,13 +99,24 @@ jobs:
 
             ### 🪟 Windows
             1. Baixe o arquivo `Bloquinhos-Installer-Win64.exe`.
-            2. **Importante:** Clique com o botão direito no arquivo -> **Propriedades** -> Marque a caixa **Desbloquear** (Unblock) e clique em OK.
+            2. **IMPORTANTE:** Clique com o botão direito no arquivo -> **Propriedades** -> Marque a caixa **Desbloquear** (Unblock) e clique em OK.
             3. Execute o instalador e siga as instruções. O jogo aparecerá no seu Menu Iniciar!
 
-            ### 🐧 Linux (Fedora/Ubuntu)
-            1. Baixe o arquivo correspondente (`.rpm` para Fedora/KDE ou `.deb` para Ubuntu).
-            2. Clique duas vezes para abrir na sua Loja de Software e clique em **Instalar**.
-            3. Procure por "Bloquinhos" no seu menu de aplicativos.
+            ### 🐧 Linux
+            1. Baixe o instalador apropriado para sua distribuição (por exemplo, `.deb` ou `.rpm`).
+            2. Abra o arquivo com o gerenciador de software do sistema e clique em **"Instalar"**.
+
+              **Ou via terminal:**
+              - Para arquivos `.deb`:
+                ```bash
+                sudo apt install ./bloquinhos-linux.deb
+                ```
+              - Para arquivos `.rpm`:
+                ```bash
+                sudo dnf install bloquinhos-linux.rpm
+                ```
+
+            3. Depois, procure por **"Bloquinhos"** no menu de aplicativos.
           files: |
             windows/Bloquinhos-Installer-Win64.exe
             linux/bloquinhos-linux.deb
