@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    name: Build for ${{ matrix.os }}
+    name: Build & Package ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -26,45 +26,32 @@ jobs:
         with:
           python-version: '3.13'
 
+      - name: Create .env file from Secrets
+        shell: bash
+        run: echo "${{ secrets.ENV_FILE_CONTENT }}" > .env
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install pygame pymongo python-dotenv cryptography certifi pyinstaller
 
-      - name: Create .env file from Secrets
+      - name: Install nFPM
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          VERSION=v2.37.1
+          curl -fL https://github.com/goreleaser/nfpm/releases/download/${VERSION}/nfpm_${VERSION#v}_amd64.deb -o nfpm.deb
+          sudo dpkg -i nfpm.deb
+          nfpm --version
+
+      - name: Set VERSION
         shell: bash
-        run: echo "${{ secrets.ENV_FILE_CONTENT }}" > .env
+        run: echo "VERSION=${GITHUB_REF#refs/heads/release/v}" >> $GITHUB_ENV
 
-      - name: Build with PyInstaller (Windows)
-        if: matrix.os == 'windows-latest'
-        run: |
-          pyinstaller --onedir --windowed --name "bloquinhos" --paths src --icon="assets/img/icon.ico" --add-data ".env;." src/main.py
+      - name: Build executable
+        run: make build
 
-      - name: Compile Inno Setup (Windows)
-        if: matrix.os == 'windows-latest'
-        shell: pwsh
-        run: |
-          $version = "${{ github.ref_name }}".Replace("release/v", "")
-          & "iscc.exe" /DMyAppVersion=$version install_script.iss
-          mv output/BloquinhosSetup.exe Bloquinhos-Installer-Win64.exe
-
-      - name: Build with PyInstaller (Linux)
-        if: matrix.os == 'ubuntu-22.04'
-        run: |
-          pyinstaller --onedir --windowed --name "bloquinhos" --paths src --add-data ".env:." src/main.py
-
-      - name: Install nFPM (Linux)
-        if: matrix.os == 'ubuntu-22.04'
-        run: |
-          echo 'deb [trusted=yes] https://repo.goreleaser.com/apt/ /' | sudo tee /etc/apt/sources.list.d/goreleaser.list
-          sudo apt-get update && sudo apt-get install nfpm
-
-      - name: Package DEB and RPM
-        if: matrix.os == 'ubuntu-22.04'
-        run: |
-          export VERSION=${GITHUB_REF#refs/heads/release/v}
-          nfpm pkg --packager deb --target bloquinhos-linux.deb
-          nfpm pkg --packager rpm --target bloquinhos-linux.rpm
+      - name: Package
+        run: make package VERSION=${{ env.VERSION }}
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
@@ -98,29 +85,21 @@ jobs:
             ## 🎮 Como Jogar
 
             ### 🪟 Windows
-            1. Baixe o arquivo `Bloquinhos-Installer-Win64.exe`.
-            2. **IMPORTANTE:** Clique com o botão direito no arquivo -> **Propriedades** -> Marque a caixa **Desbloquear** (Unblock) e clique em OK.
-            3. Execute o instalador e siga as instruções. O jogo aparecerá no seu Menu Iniciar!
+            1. Baixe o `.exe`.
+            2. Clique com o botão direito → Propriedades → Desbloquear.
+            3. Execute o instalador.
 
             ### 🐧 Linux
-            1. Baixe o instalador apropriado para sua distribuição (por exemplo, `.deb` ou `.rpm`).
-            2. Abra o arquivo com o gerenciador de software do sistema e clique em **"Instalar"**.
-
-              **Ou via terminal:**
-              - Para arquivos `.deb`:
-                ```bash
-                sudo apt install ./bloquinhos-linux.deb
-                ```
-              - Para arquivos `.rpm`:
-                ```bash
-                sudo dnf install bloquinhos-linux.rpm
-                ```
-
-            3. Depois, procure por **"Bloquinhos"** no menu de aplicativos.
+            1. Baixe o `.deb` ou `.rpm`.
+            2. Instale via terminal:
+               ```bash
+               sudo apt install ./bloquinhos-linux.deb
+               sudo dnf install bloquinhos-linux.rpm
+               ```
           files: |
-            windows/Bloquinhos-Installer-Win64.exe
-            linux/bloquinhos-linux.deb
-            linux/bloquinhos-linux.rpm
+            windows/*.exe
+            linux/*.deb
+            linux/*.rpm
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

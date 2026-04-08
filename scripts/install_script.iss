@@ -7,15 +7,15 @@ AppName=Bloquinhos
 AppVersion={#MyAppVersion}
 DefaultDirName={autopf}\Bloquinhos
 DefaultGroupName=Bloquinhos
-OutputDir=output
+OutputDir=../output
 OutputBaseFilename=BloquinhosSetup
-SetupIconFile=assets\img\icon.ico
+SetupIconFile=../assets\img\icon.ico
 Compression=lzma
 SolidCompression=yes
 
 [Files]
-Source: "dist\bloquinhos\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
-Source: "assets\*"; DestDir: "{app}\assets"; Flags: ignoreversion recursesubdirs
+Source: "../dist\bloquinhos\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
+Source: "../assets\*"; DestDir: "{app}\assets"; Flags: ignoreversion recursesubdirs
 
 [Icons]
 Name: "{group}\Bloquinhos"; Filename: "{app}\bloquinhos.exe"
