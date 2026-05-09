@@ -1,5 +1,41 @@
 from dataclasses import dataclass, field
-from typing import Dict
+from typing import Dict, Tuple
+from engine.tile import Tile
+
+@dataclass(frozen=True)
+class TileInfo:
+    index: int
+    color: Tuple[int, int, int]
+
+@dataclass(frozen=True)
+class TilemapConfig:
+    FILENAME: str = "mino-tilemap.png"
+    ROWS: int = 2
+    COLUMNS: int = 4
+
+@dataclass(frozen=True)
+class TileColorConfig:
+    CYAN: TileInfo = field(default_factory=lambda: TileInfo(0, (0, 255, 255)))
+    BLUE: TileInfo = field(default_factory=lambda: TileInfo(1, (0, 0, 255)))
+    ORANGE: TileInfo = field(default_factory=lambda: TileInfo(2, (255, 127, 0)))
+    YELLOW: TileInfo = field(default_factory=lambda: TileInfo(3, (255, 255, 0)))
+    GREEN: TileInfo = field(default_factory=lambda: TileInfo(4, (0, 255, 0)))
+    PURPLE: TileInfo = field(default_factory=lambda: TileInfo(5, (160, 32, 240)))
+    RED: TileInfo = field(default_factory=lambda: TileInfo(6, (255, 0, 0)))
+    
+    def get_tile_info(self, tile: Tile) -> TileInfo:
+        tile_map = {
+            Tile.CYAN: self.CYAN,
+            Tile.BLUE: self.BLUE,
+            Tile.ORANGE: self.ORANGE,
+            Tile.YELLOW: self.YELLOW,
+            Tile.GREEN: self.GREEN,
+            Tile.PURPLE: self.PURPLE,
+            Tile.RED: self.RED
+        }
+        if tile not in tile_map:
+            raise ValueError(f"No tile info configured for {tile}")
+        return tile_map[tile]
 
 @dataclass(frozen=True)
 class ScreenConfig:
@@ -33,18 +69,6 @@ class ScoringConfig:
     B2B_MULTIPLIER: float = 1.5
 
 @dataclass(frozen=True)
-class AssetConfig:
-    TETROMINO_ASSETS: Dict[str, str] = field(default_factory=lambda: {
-        'I': 'cyan.png',
-        'J': 'blue.png',
-        'L': 'orange.png',
-        'O': 'yellow.png',
-        'S': 'green.png',
-        'T': 'purple.png',
-        'Z': 'red.png'
-    })
-
-@dataclass(frozen=True)
 class PathConfig:
     ASSETS_DIR: str = "assets"
     DATA_DIR: str = "data"
@@ -57,12 +81,19 @@ class PathConfig:
     LOG_FILE: str = "game.log"
 
 @dataclass(frozen=True)
+class TetrominoConfig:
+    SPAWN_X: int = 3
+    SPAWN_Y: int = 0
+
+@dataclass(frozen=True)
 class Settings:
-    SCREEN: ScreenConfig = ScreenConfig()
-    DIFFICULTY: DifficultyConfig = DifficultyConfig()
-    SCORING: ScoringConfig = ScoringConfig()
-    ASSETS: AssetConfig = AssetConfig()
-    PATHS: PathConfig = PathConfig()
+    SCREEN: ScreenConfig = field(default_factory=ScreenConfig)
+    DIFFICULTY: DifficultyConfig = field(default_factory=DifficultyConfig)
+    SCORING: ScoringConfig = field(default_factory=ScoringConfig)
+    PATHS: PathConfig = field(default_factory=PathConfig)
+    TILEMAP: TilemapConfig = field(default_factory=TilemapConfig)
+    TILE_COLORS: TileColorConfig = field(default_factory=TileColorConfig)
+    TETROMINO: TetrominoConfig = field(default_factory=TetrominoConfig)
     APP_NAME: str = "Bloquinhos"
 
 SETTINGS = Settings()

@@ -1,11 +1,10 @@
 from settings import SETTINGS
+from engine.tile import Tetromino
 from network.connection_manager import NetworkManager
 from utils.path_manager import PathManager as pm
 import utils.env_manager as env
 from utils.logger import log
 import random
-
-_ASSETS = SETTINGS.ASSETS.TETROMINO_ASSETS
 
 def bootstrap():
     env.load_env_vars()
@@ -19,13 +18,19 @@ def bootstrap():
     if not net.wait_for_connection(timeout=5.0):
         log.warning("⚠️ Network connection not established. Continuing offline.")
 
-    tetromino = random.choice(list(_ASSETS.keys()))
+    tetromino = random.choice(list(Tetromino))
+    tile = tetromino.tile
+    tile_info = SETTINGS.TILE_COLORS.get_tile_info(tile)
+    tilemap_path = pm.get_image_path(SETTINGS.TILEMAP.FILENAME)
 
-    log.info(f"🎲 Randomly selected tetromino: {tetromino}")
-
-    img_path = pm.get_image_path(_ASSETS[tetromino])
-    
-    log.info(f"📁 Image path for {tetromino}: {img_path}")
+    log.info(f"🎲 Randomly selected tetromino: {tetromino.name}")
+    log.info(
+        "🧩 Tile mapping: tile=%s index=%s color=%s",
+        tile.name,
+        tile_info.index,
+        tile_info.color,
+    )
+    log.info(f"🗺️ Tilemap path: {tilemap_path}")
 
 if __name__ == "__main__":
     bootstrap()
