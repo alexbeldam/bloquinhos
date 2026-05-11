@@ -39,12 +39,16 @@ class PathManager:
         return os.path.join(cls._get_static_base(), cls._PATHS.ASSETS_DIR, *args)
 
     @classmethod
-    def get_image_path(cls, filename: str = "") -> str:
-        return cls.get_assets_path(cls._PATHS.IMG_DIR, filename)
+    def get_image_path(cls) -> str:
+        return cls.get_assets_path(cls._PATHS.IMG_DIR)
 
     @classmethod
-    def get_audio_path(cls, filename: str = "") -> str:
-        return cls.get_assets_path(cls._PATHS.AUD_DIR, filename)
+    def get_audio_path(cls) -> str:
+        return cls.get_assets_path(cls._PATHS.AUD_DIR)
+
+    @classmethod
+    def get_font_path(cls) -> str:
+        return cls.get_assets_path(cls._PATHS.FONT_DIR)
 
     @classmethod
     def get_env_path(cls) -> str:
