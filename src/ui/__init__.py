@@ -4,4 +4,6 @@ UI module.
 This module handles user interface rendering and interaction.
 """
 
-__all__ = []
+from ui.assets import AssetLoader
+
+__all__ = ['AssetLoader']

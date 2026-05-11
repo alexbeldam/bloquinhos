@@ -1,9 +1,11 @@
 from settings import SETTINGS
 from engine import GameController, GameSession, TetrominoType
 from network.connection_manager import NetworkManager
+from ui.assets import AssetLoader
 from utils.path_manager import PathManager as pm
 import utils.env_manager as env
 from utils.logger import log
+import pygame
 
 
 def on_line_cleared(lines: int) -> None:
@@ -27,15 +29,23 @@ def bootstrap():
 
     log.info("🚀 Starting application...")
 
+    pygame.init()
+
+    log.info("📦 Loading game assets...")
+    assets = AssetLoader()
+    asset_stats = assets.load_all_assets()
+    log.info(
+        f"✨ Assets loaded: {asset_stats['images']} images, "
+        f"{asset_stats['sfx']} SFX, {asset_stats['music']} music, "
+        f"{asset_stats['fonts']} fonts, {asset_stats['tiles']} tiles"
+    )
+
     net = NetworkManager()
 
     log.info("🔌 Waiting for network connection...")
 
     if not net.wait_for_connection(timeout=5.0):
         log.warning("⚠️ Network connection not established. Continuing offline.")
-
-    tilemap_path = pm.get_image_path(SETTINGS.TILEMAP.FILENAME)
-    log.info(f"🗺️ Tilemap path: {tilemap_path}")
 
     log.info("🎮 Initializing Game Controller...")
     game = GameController()

@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict, Tuple
+from typing import Dict, Tuple, List
 from engine.tile import Tile
 
 @dataclass(frozen=True)
@@ -9,7 +9,7 @@ class TileInfo:
 
 @dataclass(frozen=True)
 class TilemapConfig:
-    FILENAME: str = "mino-tilemap.png"
+    FILENAME: str = "tilemap"
     ROWS: int = 2
     COLUMNS: int = 4
 
@@ -78,6 +78,7 @@ class PathConfig:
     PREFS_FILE: str = "preferences.json"
     IMG_DIR: str = "img"
     AUD_DIR: str = "aud"
+    FONT_DIR: str = "fonts"
     LOG_DIR: str = "logs"          
     LOG_FILE: str = "game.log"
 
@@ -94,6 +95,14 @@ class GameplayConfig:
     ARR_DELAY: float = 0.033
 
 @dataclass(frozen=True)
+class AssetConfig:
+    FONT_NAME: str = "PressStart2P-Regular.ttf"
+    FONT_SIZES: Tuple[int, ...] = (8, 12, 16, 24, 32)
+    IMAGE_EXTENSIONS: Tuple[str, ...] = ('.png',)
+    SFX_EXTENSIONS: Tuple[str, ...] = ('.wav',)
+    MUSIC_EXTENSIONS: Tuple[str, ...] = ('.ogg',)
+
+@dataclass(frozen=True)
 class Settings:
     SCREEN: ScreenConfig = field(default_factory=ScreenConfig)
     DIFFICULTY: DifficultyConfig = field(default_factory=DifficultyConfig)
@@ -103,6 +112,7 @@ class Settings:
     TILE_COLORS: TileColorConfig = field(default_factory=TileColorConfig)
     TETROMINO: TetrominoConfig = field(default_factory=TetrominoConfig)
     GAMEPLAY: GameplayConfig = field(default_factory=GameplayConfig)
+    ASSETS: AssetConfig = field(default_factory=AssetConfig)
     APP_NAME: str = "Bloquinhos"
 
 SETTINGS = Settings()
