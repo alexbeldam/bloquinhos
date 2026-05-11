@@ -56,6 +56,7 @@ class DifficultyConfig:
     INITIAL_FALL_SPEED: int = 1000
     MIN_FALL_SPEED: int = 100
     SPEED_DECREMENT_RATIO: float = 0.8
+    GRAVITY_INTERVAL: float = 1.0
 
 @dataclass(frozen=True)
 class ScoringConfig:
@@ -86,6 +87,13 @@ class TetrominoConfig:
     SPAWN_Y: int = 0
 
 @dataclass(frozen=True)
+class GameplayConfig:
+    USE_BAG_SYSTEM: bool = True
+    LOCK_DELAY: float = 0.5
+    DAS_DELAY: float = 0.133
+    ARR_DELAY: float = 0.033
+
+@dataclass(frozen=True)
 class Settings:
     SCREEN: ScreenConfig = field(default_factory=ScreenConfig)
     DIFFICULTY: DifficultyConfig = field(default_factory=DifficultyConfig)
@@ -94,6 +102,7 @@ class Settings:
     TILEMAP: TilemapConfig = field(default_factory=TilemapConfig)
     TILE_COLORS: TileColorConfig = field(default_factory=TileColorConfig)
     TETROMINO: TetrominoConfig = field(default_factory=TetrominoConfig)
+    GAMEPLAY: GameplayConfig = field(default_factory=GameplayConfig)
     APP_NAME: str = "Bloquinhos"
 
 SETTINGS = Settings()

@@ -42,3 +42,5 @@ logs/
 *.iml
 *.iws
 .vscode/
+.github/
+!.github/workflows/
