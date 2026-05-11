@@ -3,6 +3,7 @@ from .tetromino import Tetromino
 from .shapes import get_shape, get_all_rotations, materialize_shape, get_occupied_cells
 from .board import Board
 from .game_controller import GameController
+from .game_session import GameSession, GameState
 from .physics import GravityController
 from .progression import LevelManager
 from .scoring import ScoreCalculator
@@ -23,6 +24,8 @@ __all__ = [
     'get_occupied_cells',
     'Board',
     'GameController',
+    'GameSession',
+    'GameState',
     'GravityController',
     'LevelManager',
     'ScoreCalculator',

@@ -1,5 +1,5 @@
 from settings import SETTINGS
-from engine import GameController, TetrominoType
+from engine import GameController, GameSession, TetrominoType
 from network.connection_manager import NetworkManager
 from utils.path_manager import PathManager as pm
 import utils.env_manager as env
@@ -39,6 +39,7 @@ def bootstrap():
 
     log.info("🎮 Initializing Game Controller...")
     game = GameController()
+    session = GameSession(game)
 
     game.on_line_clear(on_line_cleared)
     game.on_piece_locked(on_piece_locked)
@@ -48,6 +49,10 @@ def bootstrap():
     log.info(f"🎲 Current piece: {game.current_piece.piece.name if game.current_piece else 'None'}")
     log.info(f"🔮 Next piece: {game.next_piece.name if game.next_piece else 'None'}")
     log.info(f"⏱️ Gravity interval: {game.gravity_interval}s")
+    log.info(
+        f"📊 Session state: {session.state.name} | "
+        f"score={session.score} | level={session.level} | lines={session.total_lines}"
+    )
 
     log.info("✨ Game Controller ready!")
 

@@ -86,6 +86,15 @@ class GameController:
         
         return distance
 
+    def reset(self) -> None:
+        self.board = Board(self.board.width, self.board.height)
+        self.current_piece = None
+        self.next_piece = None
+        self.is_game_over = False
+        self.gravity_timer = 0.0
+        self._piece_bag = []
+        self._initialize_game()
+
     def on_line_clear(self, handler: LinesClearedHandler) -> None:
         self._event_handlers['line_clear'].append(handler)
 
