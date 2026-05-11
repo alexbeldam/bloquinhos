@@ -8,6 +8,7 @@ from .events import (
     NextPieceChangedHandler,
     PieceLockedHandler,
 )
+from .physics import GravityController
 from .tetromino import Tetromino
 from .tile import Tetromino as TetrominoType
 
@@ -34,7 +35,9 @@ class GameController:
     def _initialize_game(self) -> None:
         from settings import SETTINGS
         
-        self.gravity_interval = SETTINGS.DIFFICULTY.GRAVITY_INTERVAL
+        self.gravity_interval = GravityController.calculate_gravity_interval(
+            SETTINGS.DIFFICULTY.STARTING_LEVEL
+        )
         self.next_piece = self._generate_next_piece()
         self._spawn_new_piece()
 
