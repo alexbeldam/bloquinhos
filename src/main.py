@@ -1,8 +1,15 @@
 from settings import SETTINGS
 from engine import GameController, GameSession, TetrominoType
 from network.connection_manager import NetworkManager
-from ui.assets import AssetLoader
-from utils.path_manager import PathManager as pm
+from ui import (
+    AssetLoader,
+    GameScreen,
+    MenuScreen,
+    PauseScreen,
+    RankingScreen,
+    ScreenManager,
+    TitleScreen,
+)
 import utils.env_manager as env
 from utils.logger import log
 import pygame
@@ -30,6 +37,10 @@ def bootstrap():
     log.info("🚀 Starting application...")
 
     pygame.init()
+    pygame.display.set_caption(SETTINGS.APP_NAME)
+    surface = pygame.display.set_mode(
+        (SETTINGS.SCREEN.SCREEN_WIDTH, SETTINGS.SCREEN.SCREEN_HEIGHT)
+    )
 
     log.info("📦 Loading game assets...")
     assets = AssetLoader()
@@ -65,6 +76,17 @@ def bootstrap():
     )
 
     log.info("✨ Game Controller ready!")
+
+    game_screen = GameScreen(game, session, assets)
+    manager = ScreenManager(surface)
+    manager.register_screen("title", TitleScreen(assets))
+    manager.register_screen("menu", MenuScreen(assets))
+    manager.register_screen("ranking", RankingScreen(assets))
+    manager.register_screen("game", game_screen)
+    manager.register_screen("pause", PauseScreen(game_screen, assets))
+    manager.switch_to("title")
+    manager.run()
+    pygame.quit()
 
 
 if __name__ == "__main__":
