@@ -2,6 +2,8 @@ name: Test Build and Package
 
 on:
   workflow_dispatch:
+  push:
+  pull_request:
 
 jobs:
   test_build:
