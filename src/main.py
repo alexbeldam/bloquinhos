@@ -1,6 +1,7 @@
 from settings import SETTINGS
 from engine import GameController, GameSession, TetrominoType
 from network.connection_manager import NetworkManager
+from ui.audio import AudioManager
 from ui import (
     AssetLoader,
     GameScreen,
@@ -77,13 +78,14 @@ def bootstrap():
 
     log.info("✨ Game Controller ready!")
 
-    game_screen = GameScreen(game, session, assets)
+    audio = AudioManager(assets)
+    game_screen = GameScreen(game, session, assets, audio)
     manager = ScreenManager(surface)
-    manager.register_screen("title", TitleScreen(assets))
-    manager.register_screen("menu", MenuScreen(assets))
-    manager.register_screen("ranking", RankingScreen(assets))
+    manager.register_screen("title", TitleScreen(assets, audio))
+    manager.register_screen("menu", MenuScreen(assets, audio))
+    manager.register_screen("ranking", RankingScreen(assets, audio))
     manager.register_screen("game", game_screen)
-    manager.register_screen("pause", PauseScreen(game_screen, assets))
+    manager.register_screen("pause", PauseScreen(game_screen, assets, audio))
     manager.switch_to("title")
     manager.run()
     pygame.quit()

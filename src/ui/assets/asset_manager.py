@@ -10,6 +10,12 @@ from ui.assets.loaders import ImageLoader, AudioLoader, FontLoader, TileLoader
 
 class AssetManager:
     def __init__(self):
+        if pygame.mixer.get_init():
+            pygame.mixer.quit()
+        pygame.mixer.pre_init(frequency=44100, size=-16, channels=2, buffer=2048)
+        pygame.mixer.init()
+        pygame.mixer.set_num_channels(32)
+        
         self._image_loader = ImageLoader(PathManager.get_image_path())
         self._audio_loader = AudioLoader(PathManager.get_audio_path())
         self._font_loader = FontLoader(PathManager.get_font_path())

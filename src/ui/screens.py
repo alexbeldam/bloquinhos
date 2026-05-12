@@ -1,3 +1,4 @@
+import random
 from typing import List, Optional, Sequence, Tuple
 
 import pygame
@@ -6,6 +7,7 @@ from engine import GameController, GameSession, GameState, Tile
 from settings import SETTINGS
 from ui.assets import AssetManager
 from ui.renderer import GameRenderer
+from ui.audio import AudioManager
 from ui.screen import Screen
 
 
@@ -13,8 +15,9 @@ Color = Tuple[int, int, int]
 
 
 class BaseScreen(Screen):
-    def __init__(self, assets: Optional[AssetManager] = None) -> None:
+    def __init__(self, assets: Optional[AssetManager] = None, audio_manager: Optional[AudioManager] = None) -> None:
         self.assets = assets
+        self.audio_manager = audio_manager
 
     def _font(self, size: int) -> pygame.font.Font:
         if self.assets is not None:
@@ -46,7 +49,8 @@ class TitleScreen(BaseScreen):
         return None
 
     def update(self, delta_time: float) -> None:
-        return None
+        if self.audio_manager:
+            self.audio_manager.play_bgm("menu")
 
     def render(self, surface: pygame.Surface) -> None:
         surface.fill((14, 18, 28))
@@ -86,8 +90,8 @@ class MenuScreen(BaseScreen):
         ("Sair", "quit"),
     )
 
-    def __init__(self, assets: Optional[AssetManager] = None) -> None:
-        super().__init__(assets)
+    def __init__(self, assets: Optional[AssetManager] = None, audio_manager: Optional[AudioManager] = None) -> None:
+        super().__init__(assets, audio_manager)
         self.selected_index = 0
 
     def handle_events(self, events: List[pygame.event.Event]) -> Optional[str]:
@@ -107,7 +111,8 @@ class MenuScreen(BaseScreen):
         return None
 
     def update(self, delta_time: float) -> None:
-        return None
+        if self.audio_manager:
+            self.audio_manager.play_bgm("menu")
 
     def render(self, surface: pygame.Surface) -> None:
         surface.fill((18, 22, 31))
@@ -146,7 +151,8 @@ class RankingScreen(BaseScreen):
         return None
 
     def update(self, delta_time: float) -> None:
-        return None
+        if self.audio_manager:
+            self.audio_manager.play_bgm("menu")
 
     def render(self, surface: pygame.Surface) -> None:
         surface.fill((18, 22, 31))
@@ -172,11 +178,18 @@ class GameScreen(BaseScreen):
         game_controller: GameController,
         session: GameSession,
         assets: Optional[AssetManager] = None,
+        audio_manager: Optional[AudioManager] = None,
     ) -> None:
-        super().__init__(assets)
+        super().__init__(assets, audio_manager)
         self.game_controller = game_controller
         self.session = session
         self.renderer: Optional[GameRenderer] = None
+
+        self.ingame_tracks = ["score1", "score2", "score3"]
+        self.current_track = random.choice(self.ingame_tracks)
+
+        if self.audio_manager:
+            self.audio_manager.register_events(self.game_controller)
 
     def handle_events(self, events: List[pygame.event.Event]) -> Optional[str]:
         for event in events:
@@ -191,18 +204,30 @@ class GameScreen(BaseScreen):
                 continue
             if event.key == pygame.K_LEFT:
                 self.game_controller.move_left()
+                if self.audio_manager:
+                    self.audio_manager.play_sfx("position")
             elif event.key == pygame.K_RIGHT:
                 self.game_controller.move_right()
+                if self.audio_manager:
+                    self.audio_manager.play_sfx("position")
             elif event.key == pygame.K_DOWN:
                 self.game_controller.move_down()
+                if self.audio_manager:
+                    self.audio_manager.play_sfx("position")
             elif event.key == pygame.K_UP:
                 self.game_controller.rotate()
+                if self.audio_manager:
+                    self.audio_manager.play_sfx("rotate")
             elif event.key == pygame.K_SPACE:
                 self.game_controller.hard_drop()
         return None
 
     def update(self, delta_time: float) -> None:
         if self.session.state == GameState.RUNNING:
+            if self.audio_manager:
+                if self.audio_manager.current_bgm not in self.ingame_tracks:
+                    self.current_track = random.choice(self.ingame_tracks)
+                self.audio_manager.play_bgm(self.current_track)
             self.game_controller.update(delta_time)
 
     def render(self, surface: pygame.Surface) -> None:
@@ -233,8 +258,9 @@ class PauseScreen(BaseScreen):
         self,
         game_screen: GameScreen,
         assets: Optional[AssetManager] = None,
+        audio_manager: Optional[AudioManager] = None,
     ) -> None:
-        super().__init__(assets)
+        super().__init__(assets, audio_manager)
         self.game_screen = game_screen
 
     def handle_events(self, events: List[pygame.event.Event]) -> Optional[str]:
@@ -250,6 +276,8 @@ class PauseScreen(BaseScreen):
                 self.game_screen.session.resume()
                 return "game"
             if event.key == pygame.K_q:
+                if self.game_screen.audio_manager:
+                    self.game_screen.audio_manager.stop_bgm()
                 self.game_screen.session.reset()
                 return "menu"
         return None
