@@ -15,13 +15,11 @@ class GameRenderer:
         self,
         screen: pygame.Surface,
         assets: Optional[AssetManager],
-        board: Board,
         controller: GameController,
         session: GameSession,
     ) -> None:
         self.screen = screen
         self.assets = assets
-        self.board = board
         self.controller = controller
         self.session = session
 
@@ -42,7 +40,7 @@ class GameRenderer:
         )
         pygame.draw.rect(self.screen, (24, 30, 42), board_rect)
 
-        for y, row in enumerate(self.board.grid):
+        for y, row in enumerate(self.controller.board.grid):
             for x, tile in enumerate(row):
                 self._render_tile(tile, x, y)
 
@@ -199,7 +197,7 @@ class GameRenderer:
             rotation_index=piece.rotation_index,
         )
 
-        ghost.fall(self.board)
+        ghost.fall(self.controller.board)
         
         if ghost.y == piece.y:
             return None

@@ -210,7 +210,6 @@ class GameScreen(BaseScreen):
             self.renderer = GameRenderer(
                 surface,
                 self.assets,
-                self.game_controller.board,
                 self.game_controller,
                 self.session,
             )
