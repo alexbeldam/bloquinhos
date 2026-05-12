@@ -6,6 +6,7 @@ import pygame
 from engine import GameController, GameSession, GameState, Tile
 from settings import SETTINGS
 from ui.assets import AssetManager
+from ui.renderer import GameRenderer
 from ui.audio import AudioManager
 from ui.screen import Screen
 
@@ -182,6 +183,7 @@ class GameScreen(BaseScreen):
         super().__init__(assets, audio_manager)
         self.game_controller = game_controller
         self.session = session
+        self.renderer: Optional[GameRenderer] = None
 
         self.ingame_tracks = ["score1", "score2", "score3"]
         self.current_track = random.choice(self.ingame_tracks)
@@ -229,10 +231,15 @@ class GameScreen(BaseScreen):
             self.game_controller.update(delta_time)
 
     def render(self, surface: pygame.Surface) -> None:
-        surface.fill((10, 14, 22))
-        self._draw_board(surface)
-        self._draw_active_piece(surface)
-        self._draw_hud(surface)
+        if self.renderer is None:
+            self.renderer = GameRenderer(
+                surface,
+                self.assets,
+                self.game_controller,
+                self.session,
+            )
+
+        self.renderer.render()
 
         if self.session.state == GameState.GAME_OVER:
             self._draw_text(
@@ -243,69 +250,7 @@ class GameScreen(BaseScreen):
                 (SETTINGS.SCREEN.GAME_WIDTH // 2, 285),
             )
 
-    def _draw_board(self, surface: pygame.Surface) -> None:
-        tile_size = SETTINGS.SCREEN.TILE_SIZE
-        board_rect = pygame.Rect(
-            0,
-            0,
-            SETTINGS.SCREEN.GAME_WIDTH,
-            SETTINGS.SCREEN.GAME_HEIGHT,
-        )
-        pygame.draw.rect(surface, (24, 30, 42), board_rect)
 
-        for y, row in enumerate(self.game_controller.board.grid):
-            for x, tile in enumerate(row):
-                self._draw_tile(surface, tile, x, y)
-
-        for x in range(SETTINGS.SCREEN.GRID_WIDTH + 1):
-            pygame.draw.line(
-                surface,
-                (37, 45, 61),
-                (x * tile_size, 0),
-                (x * tile_size, SETTINGS.SCREEN.GAME_HEIGHT),
-            )
-        for y in range(SETTINGS.SCREEN.GRID_HEIGHT + 1):
-            pygame.draw.line(
-                surface,
-                (37, 45, 61),
-                (0, y * tile_size),
-                (SETTINGS.SCREEN.GAME_WIDTH, y * tile_size),
-            )
-
-    def _draw_active_piece(self, surface: pygame.Surface) -> None:
-        piece = self.game_controller.current_piece
-        if piece is None:
-            return
-
-        for x, y in piece.get_occupied_places():
-            if y >= 0:
-                self._draw_tile(surface, piece.tile, x, y)
-
-    def _draw_tile(self, surface: pygame.Surface, tile: Tile, x: int, y: int) -> None:
-        if tile == Tile.EMPTY:
-            return
-
-        tile_size = SETTINGS.SCREEN.TILE_SIZE
-        rect = pygame.Rect(x * tile_size, y * tile_size, tile_size, tile_size)
-
-        if self.assets is not None:
-            try:
-                surface.blit(self.assets.get_tile_surface(tile), rect)
-                return
-            except (KeyError, FileNotFoundError, pygame.error):
-                pass
-
-        color = SETTINGS.TILE_COLORS.get_tile_info(tile).color
-        pygame.draw.rect(surface, color, rect.inflate(-2, -2), border_radius=3)
-
-    def _draw_hud(self, surface: pygame.Surface) -> None:
-        left = SETTINGS.SCREEN.GAME_WIDTH + 24
-        self._draw_text(surface, "SCORE", 16, (159, 173, 189), (left + 76, 70))
-        self._draw_text(surface, str(self.session.score), 20, (242, 244, 248), (left + 76, 105))
-        self._draw_text(surface, "LEVEL", 16, (159, 173, 189), (left + 76, 170))
-        self._draw_text(surface, str(self.session.level), 20, (242, 244, 248), (left + 76, 205))
-        self._draw_text(surface, "LINES", 16, (159, 173, 189), (left + 76, 270))
-        self._draw_text(surface, str(self.session.total_lines), 20, (242, 244, 248), (left + 76, 305))
 
 
 class PauseScreen(BaseScreen):
