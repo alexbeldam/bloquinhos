@@ -5,63 +5,12 @@ on:
 
 jobs:
   build:
-    name: Build & Package ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    defaults:
-      run:
-        shell: bash -el {0}
-    strategy:
-      matrix:
-        include:
-          - os: ubuntu-22.04
-            artifact_name: linux
-          - os: windows-latest
-            artifact_name: windows
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Conda environment
-        uses: conda-incubator/setup-miniconda@v3
-        with:
-          activate-environment: block_env
-          environment-file: environment.yml
-          auto-activate-base: false
-
-      - name: Create .env file from Secrets
-        run: echo "${{ secrets.ENV_FILE_CONTENT }}" > .env
-
-      - name: Install build dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install pyinstaller
-
-      - name: Install nFPM
-        if: startsWith(matrix.os, 'ubuntu')
-        run: |
-          VERSION=v2.37.1
-          curl -fL https://github.com/goreleaser/nfpm/releases/download/${VERSION}/nfpm_${VERSION#v}_amd64.deb -o nfpm.deb
-          sudo dpkg -i nfpm.deb
-          nfpm --version
-
-      - name: Set VERSION
-        run: echo "VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' pyproject.toml | head -1)" >> $GITHUB_ENV
-
-      - name: Build executable
-        run: make build
-
-      - name: Package
-        run: make package VERSION=${{ env.VERSION }}
-
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.artifact_name }}
-          path: |
-            *.exe
-            *.deb
-            *.rpm
+    uses: ./.github/workflows/_build-template.yml
+    with:
+      artifact_prefix: release
+      retention_days: 1
+    secrets:
+      env_content: ${{ secrets.ENV_FILE_CONTENT }}
 
   create_release:
     needs: build
@@ -87,8 +36,8 @@ jobs:
           generate_release_notes: true
           body_path: .github/release-body.md
           files: |
-            windows/*.exe
-            linux/*.deb
-            linux/*.rpm
+            release-windows/*.exe
+            release-linux/*.deb
+            release-linux/*.rpm
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
