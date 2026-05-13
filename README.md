@@ -87,6 +87,53 @@ Se você não deseja configurar o ambiente Python manualmente, pode utilizar os 
    make run
    ```
 
+### Comandos de manutenção
+
+- **Rebuild da imagem Docker local:**
+
+  ```bash
+  make docker-build
+  ```
+
+- **Subir e parar infraestrutura local (MongoDB):**
+
+  ```bash
+  make start
+  make stop
+  ```
+
+- **Rodar no modo de desenvolvimento local (sobe Docker e inicia o jogo):**
+
+  ```bash
+  make run-dev
+  ```
+
+- **Atualizar dependências Conda:**
+
+  ```bash
+  make update
+  ```
+
+- **Limpeza de workspace (cache, cobertura e logs):**
+
+  ```bash
+  make clean
+  ```
+
+- **Limpeza de build e empacotamento:**
+
+  ```bash
+  make clean-build
+  make clean-package
+  ```
+
+- **Reset completo (remove Docker, .env, dados locais e ambiente Conda):**
+
+  ```bash
+  make deep-clean
+  make reset
+  ```
+
 ---
 
 <h2 id="docker">🐳 Docker & Leaderboard Seed</h2>

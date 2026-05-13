@@ -25,18 +25,14 @@ else
     echo -e "${YELLOW}⚠️ .env já existe. Pulando...${NC}"
 fi
 
-if ! conda info --envs | grep -q "$ENV_NAME"; then
-    echo -e "${YELLOW}📦 Criando ambiente Conda ($ENV_NAME)...${NC}"
-    conda env create -f environment.yml
-    echo -e "${GREEN}✅ Ambiente criado.${NC}"
-else
-    echo -e "${YELLOW}⚠️ Ambiente '$ENV_NAME' já existe. Atualizando dependências...${NC}"
-    conda env update -f environment.yml --prune
-    echo -e "${GREEN}✅ Ambiente atualizado.${NC}"
-fi
+echo -e "${YELLOW}📦 Sincronizando ambiente Conda (${ENV_NAME})...${NC}"
+make --no-print-directory env-sync
+
+echo -e "${YELLOW}🐳 Buildando imagens Docker locais...${NC}"
+make --no-print-directory docker-build
 
 echo -e "${YELLOW}🐳 Subindo infraestrutura Docker...${NC}"
-docker compose up -d --build
+make --no-print-directory start
 
 echo -e "\n${GREEN}=========================================${NC}"
 echo -e "${GREEN}🚀 SETUP CONCLUÍDO COM SUCESSO!${NC}"
