@@ -45,9 +45,6 @@ jobs:
       - name: Create .env file from Secrets
         run: echo "${{ secrets.env_content }}" > .env
 
-      - name: Make scripts executable
-        run: chmod +x scripts/*.sh
-
       - name: Install build dependencies
         run: |
           python -m pip install --upgrade pip

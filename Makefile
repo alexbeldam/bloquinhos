@@ -1,13 +1,13 @@
-ENV_NAME = $(shell scripts/get-meta.sh env_name)
+ENV_NAME = $(shell bash scripts/get-meta.sh env_name)
 PYINSTALLER ?= pyinstaller
-VERSION ?= $(shell scripts/get-meta.sh version)
-APP_ID ?= $(shell scripts/get-meta.sh app_id)
-APP_DISPLAY ?= $(shell scripts/get-meta.sh app_display)
-MAINTAINER ?= $(shell scripts/get-meta.sh maintainer_line)
-VENDOR ?= $(shell scripts/get-meta.sh vendor)
-LINUX_DEB_ARCH ?= $(shell scripts/get-meta.sh deb_arch)
-LINUX_RPM_ARCH ?= $(shell scripts/get-meta.sh rpm_arch)
-WINDOWS_ARCH ?= $(shell scripts/get-meta.sh windows_arch)
+VERSION ?= $(shell bash scripts/get-meta.sh version)
+APP_ID ?= $(shell bash scripts/get-meta.sh app_id)
+APP_DISPLAY ?= $(shell bash scripts/get-meta.sh app_display)
+MAINTAINER ?= $(shell bash scripts/get-meta.sh maintainer_line)
+VENDOR ?= $(shell bash scripts/get-meta.sh vendor)
+LINUX_DEB_ARCH ?= $(shell bash scripts/get-meta.sh deb_arch)
+LINUX_RPM_ARCH ?= $(shell bash scripts/get-meta.sh rpm_arch)
+WINDOWS_ARCH ?= $(shell bash scripts/get-meta.sh windows_arch)
 APP_SETUP_BASENAME ?= $(APP_DISPLAY)Setup
 
 .PHONY: help setup env-sync docker-build start stop run run-dev update \
@@ -43,8 +43,7 @@ help:
 	@echo "  make package-linux    - Package both DEB and RPM (Linux only)"
 
 setup:
-	@chmod +x scripts/setup.sh
-	@./scripts/setup.sh
+	@bash scripts/setup.sh
 
 env-sync:
 	@if conda info --envs | grep -q "^$(ENV_NAME)[[:space:]]"; then \
