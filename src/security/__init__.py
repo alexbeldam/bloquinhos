@@ -1,7 +1,4 @@
-"""
-Security module.
+from .key_manager import KeyManager
+from .vault import Vault
 
-This module contains security-related functionality.
-"""
-
-__all__ = []
+__all__ = ['KeyManager', 'Vault']
