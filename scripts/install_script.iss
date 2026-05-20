@@ -18,9 +18,14 @@
   #define MyOutputBaseFilename "BloquinhosSetup"
 #endif
 
+#ifndef MyVersionInfoVersion
+  #define MyVersionInfoVersion "0.0.0.0"
+#endif
+
 [Setup]
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
+VersionInfoVersion={#MyVersionInfoVersion}
 DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 OutputDir=../output

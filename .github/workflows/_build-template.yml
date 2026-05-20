@@ -12,6 +12,11 @@ on:
         type: number
         default: 90
         description: "Number of days to retain artifacts"
+      inject_test_version:
+        required: false
+        type: boolean
+        default: false
+        description: "If true, overwrites pyproject.toml version with a dev build version before building"
     secrets:
       env_content:
         required: true
@@ -58,6 +63,10 @@ jobs:
           sudo dpkg -i nfpm.deb
           rm nfpm.deb
           nfpm --version
+
+      - name: Inject test version
+        if: inputs.inject_test_version
+        run: bash scripts/inject-version ${{ github.run_number }}
 
       - name: Build executable
         run: make build

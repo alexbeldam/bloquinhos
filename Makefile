@@ -9,6 +9,10 @@ LINUX_DEB_ARCH ?= $(shell bash scripts/get-meta.sh deb_arch)
 LINUX_RPM_ARCH ?= $(shell bash scripts/get-meta.sh rpm_arch)
 WINDOWS_ARCH ?= $(shell bash scripts/get-meta.sh windows_arch)
 APP_SETUP_BASENAME ?= $(APP_DISPLAY)Setup
+RPM_BASE_VERSION ?= $(shell bash scripts/get-meta.sh rpm_base_version)
+RPM_PKG_RELEASE ?= $(shell bash scripts/get-meta.sh rpm_pkg_release)
+DEB_PKG_RELEASE ?= $(shell bash scripts/get-meta.sh deb_pkg_release)
+WIN_NUMERIC_VERSION ?= $(shell bash scripts/get-meta.sh win_numeric_version)
 
 .PHONY: help setup env-sync docker-build start stop run run-dev update \
 	clean clean-cache clean-coverage clean-logs clean-data \
@@ -167,8 +171,9 @@ package-linux-deps:
 package-deb: package-linux-deps
 	@if [ -z "$(LINUX_DEB_ARCH)" ]; then echo "❌ Could not resolve LINUX_DEB_ARCH from pyproject.toml."; exit 1; fi
 	@if [ -z "$(APP_DISPLAY)" ]; then echo "❌ Could not resolve APP_DISPLAY from pyproject.toml."; exit 1; fi
+	@if [ -z "$(DEB_PKG_RELEASE)" ]; then echo "❌ Could not resolve DEB_PKG_RELEASE from pyproject.toml."; exit 1; fi
 	@echo "📦 Packaging DEB (version $(VERSION))..."
-	@APP_ID="$(APP_ID)" APP_DISPLAY="$(APP_DISPLAY)" VERSION="$(VERSION)" MAINTAINER="$(MAINTAINER)" VENDOR="$(VENDOR)" PACKAGE_ARCH="$(LINUX_DEB_ARCH)" envsubst < nfpm.yaml > nfpm.yaml.tmp
+	@APP_ID="$(APP_ID)" APP_DISPLAY="$(APP_DISPLAY)" VERSION="$(VERSION)" PKG_RELEASE="$(DEB_PKG_RELEASE)" MAINTAINER="$(MAINTAINER)" VENDOR="$(VENDOR)" PACKAGE_ARCH="$(LINUX_DEB_ARCH)" envsubst < nfpm.yaml > nfpm.yaml.tmp
 	@nfpm pkg --config nfpm.yaml.tmp --packager deb --target $(APP_ID)_$(VERSION)_$(LINUX_DEB_ARCH).deb
 	@rm nfpm.yaml.tmp
 	@echo "✅ DEB packaging complete."
@@ -176,9 +181,11 @@ package-deb: package-linux-deps
 package-rpm: package-linux-deps
 	@if [ -z "$(LINUX_RPM_ARCH)" ]; then echo "❌ Could not resolve LINUX_RPM_ARCH from pyproject.toml."; exit 1; fi
 	@if [ -z "$(APP_DISPLAY)" ]; then echo "❌ Could not resolve APP_DISPLAY from pyproject.toml."; exit 1; fi
+	@if [ -z "$(RPM_BASE_VERSION)" ]; then echo "❌ Could not resolve RPM_BASE_VERSION from pyproject.toml."; exit 1; fi
+	@if [ -z "$(RPM_PKG_RELEASE)" ]; then echo "❌ Could not resolve RPM_PKG_RELEASE from pyproject.toml."; exit 1; fi
 	@echo "📦 Packaging RPM (version $(VERSION))..."
-	@APP_ID="$(APP_ID)" APP_DISPLAY="$(APP_DISPLAY)" VERSION="$(VERSION)" MAINTAINER="$(MAINTAINER)" VENDOR="$(VENDOR)" PACKAGE_ARCH="$(LINUX_RPM_ARCH)" envsubst < nfpm.yaml > nfpm.yaml.tmp
-	@nfpm pkg --config nfpm.yaml.tmp --packager rpm --target $(APP_ID)-$(VERSION)-$(LINUX_RPM_ARCH).rpm
+	@APP_ID="$(APP_ID)" APP_DISPLAY="$(APP_DISPLAY)" VERSION="$(RPM_BASE_VERSION)" PKG_RELEASE="$(RPM_PKG_RELEASE)" MAINTAINER="$(MAINTAINER)" VENDOR="$(VENDOR)" PACKAGE_ARCH="$(LINUX_RPM_ARCH)" envsubst < nfpm.yaml > nfpm.yaml.tmp
+	@nfpm pkg --config nfpm.yaml.tmp --packager rpm --target $(APP_ID)-$(RPM_BASE_VERSION)-$(RPM_PKG_RELEASE).$(LINUX_RPM_ARCH).rpm
 	@rm nfpm.yaml.tmp
 	@echo "✅ RPM packaging complete."
 
@@ -190,9 +197,10 @@ package-windows:
 	@if [ -z "$(APP_DISPLAY)" ]; then echo "❌ Could not resolve APP_DISPLAY from pyproject.toml."; exit 1; fi
 	@if [ -z "$(WINDOWS_ARCH)" ]; then echo "❌ Could not resolve WINDOWS_ARCH from pyproject.toml."; exit 1; fi
 	@if [ -z "$(APP_SETUP_BASENAME)" ]; then echo "❌ Could not resolve APP_SETUP_BASENAME."; exit 1; fi
+	@if [ -z "$(WIN_NUMERIC_VERSION)" ]; then echo "❌ Could not resolve WIN_NUMERIC_VERSION from pyproject.toml."; exit 1; fi
 	@command -v iscc.exe >/dev/null 2>&1 || { echo "❌ Inno Setup Compiler (iscc.exe) not found."; exit 1; }
 	@echo "📦 Packaging Windows installer (version $(VERSION))..."
-	@iscc.exe /DMyAppVersion=$(VERSION) /DMyAppId=$(APP_ID) /DMyAppName=$(APP_DISPLAY) /DMyAppExe=$(APP_ID).exe /DMyOutputBaseFilename=$(APP_SETUP_BASENAME) scripts/install_script.iss
+	@iscc.exe /DMyAppVersion=$(VERSION) /DMyVersionInfoVersion=$(WIN_NUMERIC_VERSION) /DMyAppId=$(APP_ID) /DMyAppName=$(APP_DISPLAY) /DMyAppExe=$(APP_ID).exe /DMyOutputBaseFilename=$(APP_SETUP_BASENAME) scripts/install_script.iss
 	@mv output/$(APP_SETUP_BASENAME).exe $(APP_SETUP_BASENAME)_v$(VERSION)_$(WINDOWS_ARCH).exe
 	@echo "✅ Windows packaging complete."
 

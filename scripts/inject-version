@@ -1,0 +1,32 @@
+#!/bin/bash
+
+set -euo pipefail
+
+if [[ $# -ne 1 ]]; then
+    echo "usage: scripts/inject-version <run_number>" >&2
+    exit 2
+fi
+
+RUN_NUMBER="$1"
+PYPROJECT="pyproject.toml"
+
+if [[ ! -f "$PYPROJECT" ]]; then
+    echo "error: $PYPROJECT not found" >&2
+    exit 1
+fi
+
+BASE_VERSION="$(sed -n 's/^version = "\([^"]*\)"/\1/p' "$PYPROJECT" | head -n 1)"
+
+if [[ -z "$BASE_VERSION" ]]; then
+    echo "error: could not read version from $PYPROJECT" >&2
+    exit 1
+fi
+
+BASE_VERSION="${BASE_VERSION%%~dev*}"
+
+BUILD_DATE="$(date -u +%Y%m%d)"
+TEST_VERSION="${BASE_VERSION}~dev${BUILD_DATE}.${RUN_NUMBER}"
+
+sed -i "s/^version = \"[^\"]*\"/version = \"${TEST_VERSION}\"/" "$PYPROJECT"
+
+echo "Injected version: ${TEST_VERSION}"
