@@ -1,5 +1,7 @@
 from typing import TYPE_CHECKING, Optional
 
+import pygame
+
 from settings import SETTINGS
 
 if TYPE_CHECKING:
@@ -40,11 +42,12 @@ class ServiceContainer:
         self,
         width: int,
         height: int,
-        decorated: bool = True
+        decorated: bool = True,
+        icon: Optional[pygame.Surface] = None
     ) -> 'ScreenManager':
         if self._screen_manager is None:
             from ui.screen_manager import ScreenManager
-            self._screen_manager = ScreenManager(width, height, decorated)
+            self._screen_manager = ScreenManager(width, height, decorated, icon)
         return self._screen_manager
     
     @property

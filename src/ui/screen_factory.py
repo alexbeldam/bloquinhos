@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Callable, Dict, Optional
 
 from engine import GameController, GameSession
 from service_container import ServiceContainer
@@ -16,11 +16,17 @@ from ui.screens import (
 
 class ScreenFactory:
     @staticmethod
-    def create_loading_screen(services: ServiceContainer) -> LoadingScreen:
+    def create_loading_screen(
+        services: ServiceContainer,
+        init_callbacks: Optional[Dict[str, Callable[[], None]]] = None
+    ) -> LoadingScreen:
+        from utils.logger import log
+        
         def on_loading_complete():
             try:
                 icon = services.asset_manager.get_image("logo")
-            except (KeyError, FileNotFoundError, Exception):
+            except (KeyError, FileNotFoundError) as e:
+                log.debug(f"Could not load icon for main window: {e}")
                 icon = None
             
             screen_width = SETTINGS.GRID.GAME_WIDTH + SETTINGS.GRID.SIDEBAR_WIDTH
@@ -34,19 +40,27 @@ class ScreenFactory:
             )
             services.screen_manager.distribute_assets(services.asset_manager)
         
-        return LoadingScreen(assets=services.asset_manager, on_complete=on_loading_complete)
+        try:
+            asset_manager = services.asset_manager
+        except RuntimeError:
+            asset_manager = None
+        
+        return LoadingScreen(
+            assets=asset_manager,
+            on_complete=on_loading_complete,
+            init_callbacks=init_callbacks,
+            services=services
+        )
     
     @staticmethod
-    def create_all_screens(
+    def create_game_screens(
         game: GameController,
         session: GameSession,
         services: ServiceContainer
     ) -> Dict[str, Screen]:
-        loading_screen = ScreenFactory.create_loading_screen(services)
         game_screen = GameScreen(game, session, assets=None, audio_manager=services.audio_manager)
         
         return {
-            SETTINGS.SCREEN_NAMES.LOADING: loading_screen,
             SETTINGS.SCREEN_NAMES.MENU: MenuScreen(assets=None, audio_manager=services.audio_manager),
             SETTINGS.SCREEN_NAMES.RANKING: RankingScreen(assets=None, audio_manager=services.audio_manager),
             SETTINGS.SCREEN_NAMES.GAME: game_screen,

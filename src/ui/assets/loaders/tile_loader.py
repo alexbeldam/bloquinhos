@@ -14,7 +14,7 @@ class TileLoader:
         tilemap: pygame.Surface, 
         progress_tracker: ProgressTracker
     ) -> int:
-        log.info("🧩 Loading tiles...")
+        log.info("Loading tiles...")
         count = 0
         
         tile_width = tilemap.get_width() // SETTINGS.TILEMAP.COLUMNS
@@ -24,7 +24,7 @@ class TileLoader:
         tiles_to_load = [t.tile for t in Tetromino]
         
         for tile in tiles_to_load:
-            log.debug(f"🎨 Loading tile: {tile.name}")
+            log.debug(f"Loading tile: {tile.name}")
             try:
                 tile_info = SETTINGS.TILE_COLORS.get_tile_info(tile)
                 index = tile_info.index
@@ -41,11 +41,11 @@ class TileLoader:
                 self._tiles[tile] = scaled_tile
                 count += 1
             except Exception as e:
-                log.error(f"❌ Failed to load tile {tile.name}: {e}")
+                log.error(f"Failed to load tile {tile.name}: {e}")
             
             progress_tracker.update(f"Loading tile: {tile.name}")
         
-        log.info(f"✅ Loaded {count} tiles.")
+        log.info(f"Loaded {count} tiles.")
         return count
     
     def get_tile_surface(self, tile: Tile) -> pygame.Surface:

@@ -86,6 +86,7 @@ class PathConfig:
     SAVE_FILE: str = "user_data.bin"
     PREFS_FILE: str = "preferences.json"
     IMG_DIR: str = "img"
+    ICON_FILE: str = "logo.png"
     AUD_DIR: str = "aud"
     FONT_DIR: str = "fonts"
     LOG_DIR: str = "logs"          
@@ -202,6 +203,14 @@ class NetworkConfig:
     HEARTBEAT_INTERVAL_S: int = 30
 
 @dataclass(frozen=True)
+class LoadingMessagesConfig:
+    SERVICES: str = "Warming up the engines..."
+    NETWORK: str = "Establishing uplink..."
+    GAME: str = "Spawning first piece..."
+    SCREENS: str = "Building the playfield..."
+    ASSETS: str = "Coloring the blocks..."
+
+@dataclass(frozen=True)
 class ScreenNames:
     LOADING: str = "loading"
     MENU: str = "menu"
@@ -227,6 +236,7 @@ class Settings:
     ASSETS: AssetConfig = field(default_factory=AssetConfig)
     LOADING_LAYOUT: LoadingLayoutConfig = field(default_factory=LoadingLayoutConfig)
     LOADING_ANIMATION: LoadingAnimationConfig = field(default_factory=LoadingAnimationConfig)
+    LOADING_MESSAGES: LoadingMessagesConfig = field(default_factory=LoadingMessagesConfig)
     UI_THEME: UIThemeConfig = field(default_factory=UIThemeConfig)
     NETWORK: NetworkConfig = field(default_factory=NetworkConfig)
     SCREEN_NAMES: ScreenNames = field(default_factory=ScreenNames)

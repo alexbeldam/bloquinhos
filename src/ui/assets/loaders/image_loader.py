@@ -5,7 +5,7 @@ from ui.assets.loaders.base_loader import BaseLoader
 
 class ImageLoader(BaseLoader):
     def __init__(self, directory: str):
-        super().__init__(directory, "🖼️ ", "images")
+        super().__init__(directory, "images")
         self._images: Dict[str, pygame.Surface] = {}
     
     def _load_single(self, filename: str) -> bool:

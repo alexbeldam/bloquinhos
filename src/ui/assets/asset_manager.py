@@ -25,7 +25,7 @@ class AssetManager:
         self, 
         progress_callback: Optional[Callable[[str, int, int], None]] = None
     ) -> Dict[str, int]:
-        log.debug("🔍 Scanning asset directories for loadable resources")
+        log.debug("Scanning asset directories")
         
         img_dir = PathManager.get_image_path()
         aud_dir = PathManager.get_audio_path()

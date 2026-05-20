@@ -8,12 +8,12 @@ def load_env_vars():
     
     if os.path.exists(env_path):
         load_dotenv(env_path)
-        log.info("⚙️ Subsystem successfully configured!")
+        log.debug("Environment configuration loaded from .env")
 
         log_level = os.getenv("LOG_LEVEL", "INFO")
         update_log_level(log_level)
     else:
-        log.warning("⚠️ Error configuring subsystem. Using default values.")
+        log.warning("Environment file not found - using default configuration")
 
 def get_env(key, default=None):
     return os.getenv(key, default)

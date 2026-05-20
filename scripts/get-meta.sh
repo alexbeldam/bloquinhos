@@ -123,6 +123,42 @@ case "$1" in
     windows_arch)
         read_scalar "tool.bloquinhos.packaging.variants" "windows_arch" "x64"
         ;;
+    rpm_base_version)
+        _ver="$(read_scalar "project" "version")"
+        printf '%s\n' "${_ver%%~dev*}"
+        ;;
+    rpm_pkg_release)
+        _ver="$(read_scalar "project" "version")"
+        if [[ "$_ver" == *"~dev"* ]]; then
+            _dev_part="${_ver#*~dev}"
+            printf '0.dev%s\n' "$_dev_part"
+        else
+            printf '1\n'
+        fi
+        ;;
+    deb_pkg_release)
+        printf '1\n'
+        ;;
+    win_numeric_version)
+        _ver="$(read_scalar "project" "version")"
+        _base="${_ver%%~dev*}"
+        if [[ "$_ver" == *"~dev"* ]]; then
+            _dev_part="${_ver#*~dev}"
+            _run="${_dev_part#*.}"
+            IFS='.' read -r _x _y _z <<< "$_base"
+            if [[ "$_z" -gt 0 ]]; then
+                printf '%d.%d.%d.%s\n' "$_x" "$_y" "$((_z - 1))" "$_run"
+            elif [[ "$_y" -gt 0 ]]; then
+                printf '%d.%d.0.%s\n' "$_x" "$((_y - 1))" "$_run"
+            elif [[ "$_x" -gt 0 ]]; then
+                printf '%d.0.0.%s\n' "$((_x - 1))" "$_run"
+            else
+                printf '0.0.0.%s\n' "$_run"
+            fi
+        else
+            printf '%s.0\n' "$_base"
+        fi
+        ;;
     *)
         echo "unknown key: $1" >&2
         exit 2

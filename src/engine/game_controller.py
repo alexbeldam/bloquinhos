@@ -57,7 +57,6 @@ class GameController:
             return False
         
         moved = self.current_piece.move_left(self.board)
-        log.debug(f"⬅️  Move left: {'success' if moved else 'blocked by wall/blocks'}")
         return moved
 
     def move_right(self) -> bool:
@@ -65,7 +64,6 @@ class GameController:
             return False
         
         moved = self.current_piece.move_right(self.board)
-        log.debug(f"➡️  Move right: {'success' if moved else 'blocked by wall/blocks'}")
         return moved
 
     def move_down(self) -> bool:
@@ -84,7 +82,6 @@ class GameController:
             return False
         
         rotated = self.current_piece.rotate(self.board)
-        log.debug(f"🔄 Rotation: {'success' if rotated else 'blocked'}")
         return rotated
 
     def hard_drop(self) -> int:
@@ -92,7 +89,6 @@ class GameController:
             return 0
         
         distance = self.current_piece.fall(self.board)
-        log.debug(f"⬇️  Hard drop: piece fell {distance} rows before locking")
         self._lock_piece()
         
         return distance
@@ -125,14 +121,12 @@ class GameController:
         if self.current_piece is None:
             return
 
-        log.debug(f"🔒 Locking piece {self.current_piece.piece.name} at position ({self.current_piece.x}, {self.current_piece.y})")
         self.board.fix_block(self.current_piece)
         
         self._emit_event('piece_locked', self.current_piece.piece)
         
         cleared_lines = self.board.clear_full_rows()
         if cleared_lines > 0:
-            log.debug(f"🧹 Board cleared {cleared_lines} full row(s)")
             self._emit_event('line_clear', cleared_lines)
         
         self._spawn_new_piece()
@@ -162,9 +156,6 @@ class GameController:
             self.current_piece.y,
         )
         
-        if collision:
-            log.debug(f"⚠️  Game over condition detected: spawn collision with piece {self.current_piece.piece.name}")
-        
         return collision
     
     def _displace_piece_on_game_over(self) -> None:
@@ -184,7 +175,7 @@ class GameController:
             ):
                 return
         
-        log.warning(f"⚠️  Could not find clear position for game over piece {self.current_piece.piece.name} after {max_displacement} attempts")
+        log.warning(f"Could not find clear position for game over piece after {max_displacement} attempts")
 
     def _generate_next_piece(self) -> TetrominoType:
         from settings import SETTINGS

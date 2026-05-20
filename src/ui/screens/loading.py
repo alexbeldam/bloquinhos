@@ -1,4 +1,5 @@
-from typing import Callable, Dict, List, Optional, Tuple
+import threading
+from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Tuple
 
 import pygame
 
@@ -7,6 +8,9 @@ from engine.tile import Tetromino
 from settings import SETTINGS
 from ui.assets import AssetManager
 from ui.screen import Screen
+
+if TYPE_CHECKING:
+    from service_container import ServiceContainer
 
 
 class MorphingEngine:
@@ -117,7 +121,9 @@ class LoadingScreen(Screen):
     def __init__(
         self, 
         assets: Optional[AssetManager] = None,
-        on_complete: Optional[Callable[[], None]] = None
+        on_complete: Optional[Callable[[], None]] = None,
+        init_callbacks: Optional[Dict[str, Callable[[], None]]] = None,
+        services: Optional['ServiceContainer'] = None
     ) -> None:
         super().__init__(assets)
         
@@ -131,19 +137,26 @@ class LoadingScreen(Screen):
         self.total = 0
         self.visual_progress = 0.0
         
+        self.current_message = ""
         self.actual_loading_complete = False
         self.loading_complete = False
         self.loading_started = False
-        self.frame_count = 0
+        self.animation_started = False
+        
+        self._progress_lock = threading.Lock()
         
         self.on_complete = on_complete
+        self.init_callbacks = init_callbacks or {}
+        self.services = services
 
     def update_progress(self, message: str, current: int, total: int) -> None:
-        self.progress = current
-        self.total = total
-        
-        if current >= total:
-            self.actual_loading_complete = True
+        with self._progress_lock:
+            self.current_message = message
+            self.progress = current
+            self.total = total
+            
+            if current >= total:
+                self.actual_loading_complete = True
 
     def handle_events(self, events: List[pygame.event.Event]) -> Optional[str]:
         for event in events:
@@ -156,54 +169,109 @@ class LoadingScreen(Screen):
         return None
 
     def update(self, delta_time: float) -> Optional[str]:
-        self.frame_count += 1
-        
-        # Start loading assets after initial delay
-        min_frames_before_load = SETTINGS.LOADING_ANIMATION.FRAME_DELAY
-        should_start_loading = (
-            not self.loading_started 
-            and self.assets is not None 
-            and self.frame_count >= min_frames_before_load
-        )
-        
-        if should_start_loading:
+        if not self.loading_started:
             self.loading_started = True
-            import threading
+            from utils.logger import log
             
-            def load_assets():
-                from utils.logger import log
-                log.debug("Starting threaded asset loading process")
-                asset_stats = self.assets.load_all_assets(self.update_progress)
-                log.info(
-                    f"All assets loaded successfully - "
-                    f"{asset_stats['images']} images, {asset_stats['sfx']} SFX, {asset_stats['music']} music tracks, "
-                    f"{asset_stats['fonts']} fonts, {asset_stats['tiles']} tile sprites"
-                )
+            def run_initialization():
+                
+                try:
+                    if 'services' in self.init_callbacks:
+                        self.update_progress(SETTINGS.LOADING_MESSAGES.SERVICES, 0, 100)
+                        log.debug("Starting services initialization phase")
+                        self.init_callbacks['services']()
+                        if self.services and not self.assets:
+                            try:
+                                self.assets = self.services.asset_manager
+                            except RuntimeError:
+                                pass
+                        self.update_progress(SETTINGS.LOADING_MESSAGES.SERVICES, 10, 100)
+                    else:
+                        self.update_progress(SETTINGS.LOADING_MESSAGES.SERVICES, 10, 100)
+                    
+                    if 'network' in self.init_callbacks:
+                        self.update_progress(SETTINGS.LOADING_MESSAGES.NETWORK, 10, 100)
+                        log.debug("Starting network initialization phase")
+                        self.init_callbacks['network']()
+                        self.update_progress(SETTINGS.LOADING_MESSAGES.NETWORK, 25, 100)
+                    else:
+                        self.update_progress(SETTINGS.LOADING_MESSAGES.NETWORK, 25, 100)
+                    
+                    if 'game' in self.init_callbacks:
+                        self.update_progress(SETTINGS.LOADING_MESSAGES.GAME, 25, 100)
+                        log.debug("Starting game initialization phase")
+                        self.init_callbacks['game']()
+                        self.update_progress(SETTINGS.LOADING_MESSAGES.GAME, 35, 100)
+                    else:
+                        self.update_progress(SETTINGS.LOADING_MESSAGES.GAME, 35, 100)
+                    
+                    if 'screens' in self.init_callbacks:
+                        self.update_progress(SETTINGS.LOADING_MESSAGES.SCREENS, 35, 100)
+                        log.debug("Starting screen creation phase")
+                        self.init_callbacks['screens']()
+                        self.update_progress(SETTINGS.LOADING_MESSAGES.SCREENS, 45, 100)
+                    else:
+                        self.update_progress(SETTINGS.LOADING_MESSAGES.SCREENS, 45, 100)
+                    
+                    if self.assets is not None:
+                        self.update_progress(SETTINGS.LOADING_MESSAGES.ASSETS, 45, 100)
+                        log.debug("Starting asset loading phase")
+                        asset_stats = self.assets.load_all_assets(self._asset_progress_callback)
+                        log.info(
+                            f"All assets loaded successfully - "
+                            f"{asset_stats['images']} images, {asset_stats['sfx']} SFX, {asset_stats['music']} music tracks, "
+                            f"{asset_stats['fonts']} fonts, {asset_stats['tiles']} tile sprites"
+                        )
+                    
+                    log.info("All initialization phases completed successfully")
+                    
+                except Exception as e:
+                    log.error(f"Error during initialization: {e}", exc_info=True)
+                    with self._progress_lock:
+                        self.actual_loading_complete = True
             
-            loading_thread = threading.Thread(target=load_assets, daemon=True)
+            loading_thread = threading.Thread(target=run_initialization, daemon=True)
             loading_thread.start()
         
-        # Smoothly animate progress bar toward actual progress
-        if self.total > 0:
-            actual_progress = self.progress / self.total
+        with self._progress_lock:
+            current_total = self.total
+            current_progress = self.progress
+            is_complete = self.actual_loading_complete
+        
+        if current_total > 0:
+            actual_progress = current_progress / current_total
             progress_delta = actual_progress - self.visual_progress
             smooth_speed = SETTINGS.LOADING_ANIMATION.PROGRESS_SMOOTH_SPEED
             self.visual_progress += progress_delta * smooth_speed * delta_time
             self.visual_progress = min(self.visual_progress, 1.0)
         
-        # Mark complete when visual progress catches up
         visual_progress_threshold = SETTINGS.LOADING_ANIMATION.PROGRESS_THRESHOLD
-        if self.actual_loading_complete and self.visual_progress >= visual_progress_threshold:
+        if is_complete and self.visual_progress >= visual_progress_threshold:
             self.loading_complete = True
         
-        self.engine.update(delta_time)
+        if self.animation_started:
+            self.engine.update(delta_time)
         
         return None
+    
+    def _asset_progress_callback(self, message: str, current: int, total: int) -> None:
+        if total > 0:
+            asset_fraction = current / total
+            mapped_progress = 45 + int(asset_fraction * 55)
+        else:
+            mapped_progress = 45
+        
+        with self._progress_lock:
+            self.current_message = SETTINGS.LOADING_MESSAGES.ASSETS
+            self.progress = mapped_progress
+            self.total = 100
+            
+            if current >= total:
+                self.actual_loading_complete = True
 
     def render(self, surface: pygame.Surface) -> None:
         surface.fill(SETTINGS.UI_THEME.BG_DARKER)
         
-        # Calculate center position for morphing animation
         screen_center_x = surface.get_width() // 2
         screen_center_y = surface.get_height() // 2
         animation_offset_y = 60
@@ -211,7 +279,9 @@ class LoadingScreen(Screen):
         
         self.engine.draw(surface, screen_center_x, animation_y, self.block_scale)
         
-        # Draw completion prompt or progress bar
+        if not self.animation_started:
+            self.animation_started = True
+        
         ui_element_y = animation_y + 140
         if self.loading_complete:
             self._draw_text(
@@ -223,6 +293,19 @@ class LoadingScreen(Screen):
             )
         else:
             self._draw_progress_bar(surface, screen_center_x, ui_element_y)
+            
+            with self._progress_lock:
+                display_message = self.current_message
+            
+            if display_message:
+                message_y = ui_element_y + 40
+                self._draw_text(
+                    surface,
+                    display_message,
+                    SETTINGS.UI_TYPOGRAPHY.SMALL,
+                    SETTINGS.UI_THEME.TEXT_MUTED,
+                    (screen_center_x, message_y),
+                )
 
     def _draw_progress_bar(self, surface: pygame.Surface, center_x: int, center_y: int) -> None:
         # Calculate bar dimensions
