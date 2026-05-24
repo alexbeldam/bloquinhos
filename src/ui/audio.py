@@ -4,6 +4,7 @@ import pygame
 
 from engine import GameController
 from ui.assets.asset_manager import AssetManager
+from utils.logger import log
 
 
 class AudioManager:
@@ -18,9 +19,13 @@ class AudioManager:
 
         self.current_bgm: Optional[str] = None
 
-        if not pygame.mixer.get_init():
-            pygame.mixer.pre_init(frequency=44100, size=-16, channels=2, buffer=2048)
-            pygame.mixer.init()
+    def initialize_mixer(self) -> None:
+        if pygame.mixer.get_init():
+            pygame.mixer.quit()
+        pygame.mixer.pre_init(frequency=44100, size=-16, channels=2, buffer=2048)
+        pygame.mixer.init()
+        pygame.mixer.set_num_channels(32)
+        log.debug("Audio mixer initialized")
 
     def play_bgm(self, name: str, loop: bool = True) -> None:
         if not self.bgm_enabled:

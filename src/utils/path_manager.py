@@ -41,6 +41,10 @@ class PathManager:
     @classmethod
     def get_image_path(cls) -> str:
         return cls.get_assets_path(cls._PATHS.IMG_DIR)
+    
+    @classmethod
+    def get_icon_path(cls) -> str:
+        return cls.get_assets_path(cls._PATHS.IMG_DIR, cls._PATHS.ICON_FILE)
 
     @classmethod
     def get_audio_path(cls) -> str:

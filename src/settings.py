@@ -86,6 +86,7 @@ class PathConfig:
     SAVE_FILE: str = "user_data.bin"
     PREFS_FILE: str = "preferences.json"
     IMG_DIR: str = "img"
+    ICON_FILE: str = "logo.png"
     AUD_DIR: str = "aud"
     FONT_DIR: str = "fonts"
     LOG_DIR: str = "logs"          
@@ -184,6 +185,7 @@ class LoadingAnimationConfig:
     FRAME_DELAY: int = 3
     MIN_DISPLAY_TIME_RATIO: float = 0.5
     PROGRESS_THRESHOLD: float = 0.995
+    FRAME_BUDGET_RATIO: float = 0.5
     
     @property
     def MIN_DISPLAY_TIME(self) -> float:
@@ -207,6 +209,14 @@ class SecurityConfig:
     KEYRING_ACCOUNT: str = "fernet-key"
     FALLBACK_KEY_FILE: str = ".key.bin"
     DPAPI_KEY_FILE: str = ".key.dpapi"
+      
+@dataclass(frozen=True)
+class LoadingMessagesConfig:
+    SERVICES: str = "Warming up the engines..."
+    NETWORK: str = "Establishing uplink..."
+    GAME: str = "Spawning first piece..."
+    SCREENS: str = "Building the playfield..."
+    ASSETS: str = "Coloring the blocks..."
 
 @dataclass(frozen=True)
 class ScreenNames:
@@ -234,6 +244,7 @@ class Settings:
     ASSETS: AssetConfig = field(default_factory=AssetConfig)
     LOADING_LAYOUT: LoadingLayoutConfig = field(default_factory=LoadingLayoutConfig)
     LOADING_ANIMATION: LoadingAnimationConfig = field(default_factory=LoadingAnimationConfig)
+    LOADING_MESSAGES: LoadingMessagesConfig = field(default_factory=LoadingMessagesConfig)
     UI_THEME: UIThemeConfig = field(default_factory=UIThemeConfig)
     NETWORK: NetworkConfig = field(default_factory=NetworkConfig)
     SCREEN_NAMES: ScreenNames = field(default_factory=ScreenNames)
