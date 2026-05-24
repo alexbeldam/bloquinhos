@@ -204,6 +204,13 @@ class NetworkConfig:
     HEARTBEAT_INTERVAL_S: int = 30
 
 @dataclass(frozen=True)
+class SecurityConfig:
+    KEYRING_SERVICE: str = "bloquinhos"
+    KEYRING_ACCOUNT: str = "fernet-key"
+    FALLBACK_KEY_FILE: str = ".key.bin"
+    DPAPI_KEY_FILE: str = ".key.dpapi"
+      
+@dataclass(frozen=True)
 class LoadingMessagesConfig:
     SERVICES: str = "Warming up the engines..."
     NETWORK: str = "Establishing uplink..."
@@ -241,6 +248,7 @@ class Settings:
     UI_THEME: UIThemeConfig = field(default_factory=UIThemeConfig)
     NETWORK: NetworkConfig = field(default_factory=NetworkConfig)
     SCREEN_NAMES: ScreenNames = field(default_factory=ScreenNames)
+    SECURITY: SecurityConfig = field(default_factory=SecurityConfig)
     APP_NAME: str = "Bloquinhos"
 
 SETTINGS = Settings()

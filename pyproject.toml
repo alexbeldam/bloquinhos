@@ -23,6 +23,8 @@ dependencies = [
   "python-dotenv",
   "cryptography",
   "certifi",
+  "keyring",
+  "pywin32; sys_platform == 'win32'",
 ]
 
 [tool.setuptools]

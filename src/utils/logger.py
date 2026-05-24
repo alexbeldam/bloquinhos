@@ -1,6 +1,5 @@
 import logging
 import os
-from .path_manager import PathManager as pm
 
 class DraculaFormatter(logging.Formatter):
     PINK = "\033[95m"
@@ -39,8 +38,8 @@ class LogManager:
         self._setup()
 
     def _setup(self):
+        from .path_manager import PathManager as pm
         log_path = pm.get_log_path()
-        log_dir = os.path.dirname(log_path)
 
         log_level_str = os.getenv("LOG_LEVEL", "INFO").upper()
         log_level = self._LEVELS.get(log_level_str, logging.INFO)
@@ -66,6 +65,20 @@ class LogManager:
         else:
             self.logger.warning(f"⚠️ Invalid log level: {level_name}. Keeping current level.")
 
-_manager = LogManager()
-log = _manager.logger
-update_log_level = _manager.update_level
+
+class _LazyLogger:
+    _manager: LogManager | None = None
+
+    def _get_manager(self) -> LogManager:
+        if self._manager is None:
+            self._manager = LogManager()
+        return self._manager
+
+    def __getattr__(self, name: str):
+        return getattr(self._get_manager().logger, name)
+
+
+log = _LazyLogger()
+
+def update_log_level(level_name: str):
+    log._get_manager().update_level(level_name)

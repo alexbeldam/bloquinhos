@@ -73,6 +73,14 @@ class PathManager:
         return cls.get_data_path(cls._PATHS.PREFS_FILE)
 
     @classmethod
+    def get_fallback_key_path(cls) -> str:
+        return cls.get_data_path(SETTINGS.SECURITY.FALLBACK_KEY_FILE)
+
+    @classmethod
+    def get_dpapi_key_path(cls) -> str:
+        return cls.get_data_path(SETTINGS.SECURITY.DPAPI_KEY_FILE)
+
+    @classmethod
     def get_log_path(cls) -> str:
         path = os.path.join(cls._get_cached_base(), cls._PATHS.LOG_DIR, cls._PATHS.LOG_FILE)
         os.makedirs(os.path.dirname(path), exist_ok=True)
