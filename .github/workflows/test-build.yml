@@ -2,6 +2,9 @@ name: Test Build and Package
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
   pull_request:
     branches:
       - main
@@ -17,5 +20,6 @@ jobs:
     with:
       artifact_prefix: test
       retention_days: 7
+      inject_test_version: true
     secrets:
       env_content: ${{ secrets.ENV_FILE_CONTENT }}

@@ -5,7 +5,7 @@ from ui.assets.loaders.base_loader import BaseLoader
 
 class ImageLoader(BaseLoader):
     def __init__(self, directory: str):
-        super().__init__(directory, "🖼️ ", "images")
+        super().__init__(directory, "images")
         self._images: Dict[str, pygame.Surface] = {}
     
     def _load_single(self, filename: str) -> bool:
@@ -26,6 +26,9 @@ class ImageLoader(BaseLoader):
         if filename not in self._images:
             raise KeyError(f"Image '{filename}' not found in loaded assets")
         return self._images[filename]
+
+    def register_image(self, name: str, surface: pygame.Surface) -> None:
+        self._images[name] = surface
     
     @property
     def images(self) -> Dict[str, pygame.Surface]:

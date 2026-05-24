@@ -65,10 +65,10 @@ class NetworkManager:
                 self.db = client[self.db_name]
                 
                 if first_attempt:
-                    log.info(f"🔌 Database connection established - connected to '{self.db_name}' database")
+                    log.info(f"Database connection established - connected to '{self.db_name}' database")
                     first_attempt = False
                 elif was_offline:
-                    log.info("✅ Database connection restored after temporary failure")
+                    log.info("Database connection restored after temporary failure")
                     was_offline = False
 
             except Exception as e:
