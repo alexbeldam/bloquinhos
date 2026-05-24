@@ -16,7 +16,7 @@ class Vault:
         try:
             return self._fernet.decrypt(encrypted_data).decode("utf-8")
         except InvalidToken:
-            log.error("Data integrity check failed — token invalid or tampered", exc_info=True)
+            log.error("Data integrity check failed: token invalid or tampered", exc_info=True)
             raise
 
     def _get_or_create_key(self) -> bytes:
