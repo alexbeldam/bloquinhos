@@ -1,6 +1,7 @@
 from typing import Callable, Dict, Optional
 
 from engine import GameController, GameSession
+from security import IdentityManager
 from service_container import ServiceContainer
 from settings import SETTINGS
 from ui.screen import Screen
@@ -41,6 +42,12 @@ class ScreenFactory:
                 decorated=True
             )
             services.screen_manager.distribute_assets(services.asset_manager)
+
+            identity_manager = IdentityManager(
+                network_manager=services.network_manager,
+                screen_manager=services.screen_manager,
+            )
+            identity_manager.get_or_create_identity()
         
         try:
             asset_manager = services.asset_manager
