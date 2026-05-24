@@ -185,6 +185,7 @@ class LoadingAnimationConfig:
     FRAME_DELAY: int = 3
     MIN_DISPLAY_TIME_RATIO: float = 0.5
     PROGRESS_THRESHOLD: float = 0.995
+    FRAME_BUDGET_RATIO: float = 0.5
     
     @property
     def MIN_DISPLAY_TIME(self) -> float:

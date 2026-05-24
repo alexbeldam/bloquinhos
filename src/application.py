@@ -1,5 +1,5 @@
 import os
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Dict, Optional
 
 import pygame
 
@@ -28,6 +28,7 @@ class Application:
             self._load_environment()
             self._initialize_pygame()
             icon = self._load_icon()
+            ui_fonts = self._preload_ui_fonts()
             self._create_splash_window(icon)
             pygame.event.pump()
             
@@ -40,7 +41,9 @@ class Application:
             
             loading_screen = ScreenFactory.create_loading_screen(
                 self.services,
-                init_callbacks=init_callbacks
+                init_callbacks=init_callbacks,
+                ui_fonts=ui_fonts,
+                preloaded_icon=icon,
             )
             self.services.screen_manager.register_screen(
                 SETTINGS.SCREEN_NAMES.LOADING,
@@ -65,8 +68,20 @@ class Application:
         log.debug("Environment configuration loaded")
     
     def _initialize_pygame(self) -> None:
-        pygame.init()
+        pygame.display.init()
+        pygame.font.init()
         log.debug(f"Pygame {pygame.version.ver} initialized")
+    
+    def _preload_ui_fonts(self) -> Dict[int, pygame.font.Font]:
+        font_path = os.path.join(PathManager.get_font_path(), SETTINGS.UI_TYPOGRAPHY.FONT_NAME)
+        sizes = [SETTINGS.UI_TYPOGRAPHY.SMALL, SETTINGS.UI_TYPOGRAPHY.BODY, SETTINGS.UI_TYPOGRAPHY.TITLE]
+        try:
+            fonts = {size: pygame.font.Font(font_path, size) for size in sizes}
+            log.debug(f"Pre-loaded {len(fonts)} UI fonts for loading screen")
+            return fonts
+        except Exception as e:
+            log.warning(f"Could not pre-load UI fonts: {e}")
+            return {}
     
     def _load_icon(self) -> Optional[pygame.Surface]:
         try:

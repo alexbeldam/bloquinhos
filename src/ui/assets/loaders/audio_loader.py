@@ -108,3 +108,9 @@ class AudioLoader(BaseLoader):
         if filename not in self._music:
             raise KeyError(f"Music '{filename}' not found in loaded assets")
         return self._music[filename]
+
+    def register_sfx(self, name: str, sound: pygame.mixer.Sound) -> None:
+        self._sfx[name] = sound
+
+    def register_music(self, name: str, music_path: str) -> None:
+        self._music[name] = music_path

@@ -18,7 +18,9 @@ class ScreenFactory:
     @staticmethod
     def create_loading_screen(
         services: ServiceContainer,
-        init_callbacks: Optional[Dict[str, Callable[[], None]]] = None
+        init_callbacks: Optional[Dict[str, Callable[[], None]]] = None,
+        ui_fonts: Optional[Dict[int, 'pygame.font.Font']] = None,
+        preloaded_icon: Optional['pygame.Surface'] = None,
     ) -> LoadingScreen:
         from utils.logger import log
         
@@ -49,7 +51,9 @@ class ScreenFactory:
             assets=asset_manager,
             on_complete=on_loading_complete,
             init_callbacks=init_callbacks,
-            services=services
+            services=services,
+            ui_fonts=ui_fonts,
+            preloaded_icon=preloaded_icon,
         )
     
     @staticmethod

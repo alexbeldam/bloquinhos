@@ -26,6 +26,9 @@ class ImageLoader(BaseLoader):
         if filename not in self._images:
             raise KeyError(f"Image '{filename}' not found in loaded assets")
         return self._images[filename]
+
+    def register_image(self, name: str, surface: pygame.Surface) -> None:
+        self._images[name] = surface
     
     @property
     def images(self) -> Dict[str, pygame.Surface]:

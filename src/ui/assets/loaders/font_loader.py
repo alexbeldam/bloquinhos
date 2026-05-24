@@ -29,3 +29,6 @@ class FontLoader(BaseLoader):
                 log.error(f"Failed to create font size {size}: {e}")
                 raise
         return self._fonts[size]
+
+    def register_font(self, size: int, font: pygame.font.Font) -> None:
+        self._fonts[size] = font
