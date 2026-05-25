@@ -9,21 +9,20 @@ from ui.assets import AssetManager
 from ui.screen import Screen
 
 if TYPE_CHECKING:
-    from network.connection_manager import NetworkManager
     from ui.audio import AudioManager
 
 
 class IdentityEntryScreen(Screen):
     def __init__(
         self,
-        network_manager: "NetworkManager",
+        identity_manager: IdentityManager,
         reason_provider: Optional[Callable[[], str]] = None,
         return_screen_provider: Optional[Callable[[], str]] = None,
         assets: Optional[AssetManager] = None,
         audio_manager: Optional["AudioManager"] = None,
     ) -> None:
         super().__init__(assets, audio_manager)
-        self.identity_manager = IdentityManager(network_manager=network_manager)
+        self.identity_manager = identity_manager
         self._reason_provider = reason_provider or (lambda: IdentityStatus.MISSING.value)
         self._return_screen_provider = return_screen_provider or (
             lambda: SETTINGS.SCREEN_NAMES.MENU

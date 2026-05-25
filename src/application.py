@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Dict, Optional
 import pygame
 
 from game_initializer import GameInitializer
-from security.identity_manager import IdentityManager, IdentityStatus
+from security.identity_manager import IdentityStatus
 from service_container import ServiceContainer
 from settings import SETTINGS
 from ui.screen_factory import ScreenFactory
@@ -115,6 +115,7 @@ class Application:
         self.services.initialize_assets()
         self.services.initialize_audio()
         network_manager = self.services.initialize_network()
+        self.services.initialize_identity_manager()
         network_manager.add_reconnect_listener(self._on_network_reconnected)
     
     def _init_network_connection(self) -> None:
@@ -141,7 +142,7 @@ class Application:
 
     def _init_identity(self) -> str:
         log.debug("Checking stored player identity...")
-        identity_manager = IdentityManager(network_manager=self.services.network_manager)
+        identity_manager = self.services.identity_manager
         result = identity_manager.inspect_identity()
         if result.status == IdentityStatus.VALID:
             return SETTINGS.SCREEN_NAMES.MENU
@@ -153,7 +154,7 @@ class Application:
         return SETTINGS.SCREEN_NAMES.IDENTITY_ENTRY
 
     def _on_network_reconnected(self) -> None:
-        identity_manager = IdentityManager(network_manager=self.services.network_manager)
+        identity_manager = self.services.identity_manager
         result = identity_manager.revalidate_pending_identity()
         if result.status == IdentityStatus.CONFLICT:
             self.services.mark_identity_rename_required(result.status.value)

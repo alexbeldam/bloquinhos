@@ -57,9 +57,7 @@ class _EncryptedFileIdentityDAO:
         self._save_path = save_path or PathManager.get_user_save_path()
 
     def exists(self) -> bool:
-        exists = os.path.exists(self._save_path)
-        log.debug("Identity file found" if exists else "Identity file missing")
-        return exists
+        return os.path.exists(self._save_path)
 
     def load_name(self) -> Optional[str]:
         record = self._load_record()
@@ -180,7 +178,9 @@ class IdentityManager:
         return result.username if result.status == IdentityStatus.VALID else None
 
     def inspect_identity(self) -> IdentityResult:
-        if not self._dao.exists():
+        identity_exists = self._dao.exists()
+        log.debug("Identity file found" if identity_exists else "Identity file missing")
+        if not identity_exists:
             return IdentityResult(IdentityStatus.MISSING)
 
         try:
