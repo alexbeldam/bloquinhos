@@ -19,8 +19,8 @@ class LoadingScreen(Screen):
     def __init__(
         self, 
         assets: Optional[AssetManager] = None,
-        on_complete: Optional[Callable[[], None]] = None,
-        init_callbacks: Optional[Dict[str, Callable[[], None]]] = None,
+        on_complete: Optional[Callable[[], Optional[str]]] = None,
+        init_callbacks: Optional[Dict[str, Callable[[], Optional[str]]]] = None,
         services: Optional['ServiceContainer'] = None,
         ui_fonts: Optional[Dict[int, pygame.font.Font]] = None,
         preloaded_icon: Optional[pygame.Surface] = None,
@@ -49,6 +49,7 @@ class LoadingScreen(Screen):
         self._queue_drain_logged = False
         self._visual_completion_logged = False
         self._preloaded_fonts_registered = False
+        self._next_screen = SETTINGS.SCREEN_NAMES.MENU
 
         self._pipeline = LoadingPipeline()
         self._progress_lock = threading.Lock()
@@ -87,9 +88,10 @@ class LoadingScreen(Screen):
                 if self.error_state and event.key == pygame.K_ESCAPE:
                     return SETTINGS.SCREEN_NAMES.QUIT
                 elif self.loading_complete and not self.error_state:
+                    next_screen = self._next_screen
                     if self.on_complete:
-                        self.on_complete()
-                    return SETTINGS.SCREEN_NAMES.MENU
+                        next_screen = self.on_complete() or next_screen
+                    return next_screen
         return None
 
     def update(self, delta_time: float) -> Optional[str]:
@@ -134,9 +136,19 @@ class LoadingScreen(Screen):
                         self.update_progress(SETTINGS.LOADING_MESSAGES.SCREENS, 45, 100)
                     else:
                         self.update_progress(SETTINGS.LOADING_MESSAGES.SCREENS, 45, 100)
+
+                    if 'identity' in self.init_callbacks:
+                        self.update_progress(SETTINGS.LOADING_MESSAGES.IDENTITY, 45, 100)
+                        log.debug("Starting identity initialization phase")
+                        next_screen = self.init_callbacks['identity']()
+                        if isinstance(next_screen, str):
+                            self._next_screen = next_screen
+                        self.update_progress(SETTINGS.LOADING_MESSAGES.IDENTITY, 55, 100)
+                    else:
+                        self.update_progress(SETTINGS.LOADING_MESSAGES.IDENTITY, 55, 100)
                     
                     if self.assets is not None:
-                        self.update_progress(SETTINGS.LOADING_MESSAGES.ASSETS, 45, 100)
+                        self.update_progress(SETTINGS.LOADING_MESSAGES.ASSETS, 55, 100)
                         log.debug("Preparing asset loading work items")
                         self._prepare_asset_work_items()
                     

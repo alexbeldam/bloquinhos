@@ -1,6 +1,7 @@
 import threading
 import time
 import urllib.parse
+from typing import Callable, List
 import certifi
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure, ServerSelectionTimeoutError
@@ -13,6 +14,7 @@ class NetworkManager:
         self.db = None
         self._use_tls = False
         self._ready_event = threading.Event()
+        self._reconnect_listeners: List[Callable[[], None]] = []
         
         user = get_env("DB_USER")
         password = urllib.parse.quote_plus(get_env("DB_PASSWORD", ""))
@@ -28,6 +30,9 @@ class NetworkManager:
 
         self.thread = threading.Thread(target=self._check_connection_loop, daemon=True)
         self.thread.start()
+
+    def add_reconnect_listener(self, listener: Callable[[], None]) -> None:
+        self._reconnect_listeners.append(listener)
 
     def wait_for_connection(self, timeout=None):
         from settings import SETTINGS
@@ -70,6 +75,7 @@ class NetworkManager:
                 elif was_offline:
                     log.info("Database connection restored after temporary failure")
                     was_offline = False
+                    self._notify_reconnect_listeners()
 
             except Exception as e:
                 if self.is_online or first_attempt:
@@ -88,3 +94,10 @@ class NetworkManager:
             
             from settings import SETTINGS
             time.sleep(SETTINGS.NETWORK.HEARTBEAT_INTERVAL_S)
+
+    def _notify_reconnect_listeners(self) -> None:
+        for listener in self._reconnect_listeners:
+            try:
+                listener()
+            except Exception:
+                log.error("Reconnect listener failed", exc_info=True)

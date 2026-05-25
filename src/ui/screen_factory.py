@@ -7,6 +7,7 @@ from ui.screen import Screen
 from ui.screens import (
     GameOverScreen,
     GameScreen,
+    IdentityEntryScreen,
     LoadingScreen,
     MenuScreen,
     PauseScreen,
@@ -18,13 +19,13 @@ class ScreenFactory:
     @staticmethod
     def create_loading_screen(
         services: ServiceContainer,
-        init_callbacks: Optional[Dict[str, Callable[[], None]]] = None,
+        init_callbacks: Optional[Dict[str, Callable[[], Optional[str]]]] = None,
         ui_fonts: Optional[Dict[int, 'pygame.font.Font']] = None,
         preloaded_icon: Optional['pygame.Surface'] = None,
     ) -> LoadingScreen:
         from utils.logger import log
         
-        def on_loading_complete():
+        def on_loading_complete() -> None:
             try:
                 icon = services.asset_manager.get_image("logo")
             except (KeyError, FileNotFoundError) as e:
@@ -65,6 +66,13 @@ class ScreenFactory:
         game_screen = GameScreen(game, session, assets=None, audio_manager=services.audio_manager)
         
         return {
+            SETTINGS.SCREEN_NAMES.IDENTITY_ENTRY: IdentityEntryScreen(
+                identity_manager=services.identity_manager,
+                reason_provider=lambda: services.identity_entry_reason,
+                return_screen_provider=services.consume_identity_return_screen,
+                assets=None,
+                audio_manager=services.audio_manager,
+            ),
             SETTINGS.SCREEN_NAMES.MENU: MenuScreen(assets=None, audio_manager=services.audio_manager),
             SETTINGS.SCREEN_NAMES.RANKING: RankingScreen(assets=None, audio_manager=services.audio_manager),
             SETTINGS.SCREEN_NAMES.GAME: game_screen,

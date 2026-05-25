@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Callable, Dict, Optional
 import os
 
 import pygame
@@ -15,6 +15,7 @@ class ScreenManager:
         self.current_screen: Optional[Screen] = None
         self._current_name: Optional[str] = None
         self._running = False
+        self._transition_guard: Optional[Callable[[str], str]] = None
         self._create_window(width, height, decorated, icon)
 
     def _create_window(self, width: int, height: int, decorated: bool, icon: Optional[pygame.Surface] = None) -> None:
@@ -51,7 +52,11 @@ class ScreenManager:
     def register_screen(self, name: str, screen: Screen) -> None:
         self._screens[name] = screen
 
+    def set_transition_guard(self, guard: Callable[[str], str]) -> None:
+        self._transition_guard = guard
+
     def switch_to(self, name: str) -> None:
+        name = self._apply_transition_guard(name)
         if name not in self._screens:
             raise KeyError(f"Screen '{name}' is not registered.")
 
@@ -59,6 +64,18 @@ class ScreenManager:
         pygame.event.clear()
         self._current_name = name
         self.current_screen = self._screens[name]
+
+    @property
+    def current_name(self) -> Optional[str]:
+        return self._current_name
+
+    def _apply_transition_guard(self, name: str) -> str:
+        if self._transition_guard is None:
+            return name
+        guarded_name = self._transition_guard(name)
+        if guarded_name != name:
+            log.debug(f"Transition guarded: {name} -> {guarded_name}")
+        return guarded_name
 
     def run(self) -> None:
         if self.current_screen is None:

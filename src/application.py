@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Dict, Optional
 import pygame
 
 from game_initializer import GameInitializer
+from security.identity_manager import IdentityStatus
 from service_container import ServiceContainer
 from settings import SETTINGS
 from ui.screen_factory import ScreenFactory
@@ -36,7 +37,8 @@ class Application:
                 'services': self._init_services,
                 'network': self._init_network_connection,
                 'game': self._init_game,
-                'screens': self._init_screens
+                'screens': self._init_screens,
+                'identity': self._init_identity,
             }
             
             loading_screen = ScreenFactory.create_loading_screen(
@@ -106,12 +108,15 @@ class Application:
             decorated=False,
             icon=icon
         )
+        self.services.screen_manager.set_transition_guard(self._guard_identity_transition)
     
     def _init_services(self) -> None:
         log.debug("Initializing services")
         self.services.initialize_assets()
         self.services.initialize_audio()
-        self.services.initialize_network()
+        network_manager = self.services.initialize_network()
+        self.services.initialize_identity_manager()
+        network_manager.add_reconnect_listener(self._on_network_reconnected)
     
     def _init_network_connection(self) -> None:
         log.debug("Waiting for database connection...")
@@ -134,6 +139,51 @@ class Application:
         )
         ScreenFactory.register_screens(self.services.screen_manager, game_screens)
         log.debug(f"Registered {len(game_screens)} game screens")
+
+    def _init_identity(self) -> str:
+        log.debug("Checking stored player identity...")
+        identity_manager = self.services.identity_manager
+        result = identity_manager.inspect_identity()
+        if result.status == IdentityStatus.VALID:
+            return SETTINGS.SCREEN_NAMES.MENU
+        self.services.set_identity_entry_context(
+            result.status.value,
+            return_screen=SETTINGS.SCREEN_NAMES.MENU,
+            rename_required=True,
+        )
+        return SETTINGS.SCREEN_NAMES.IDENTITY_ENTRY
+
+    def _on_network_reconnected(self) -> None:
+        identity_manager = self.services.identity_manager
+        result = identity_manager.revalidate_pending_identity()
+        if result.status == IdentityStatus.CONFLICT:
+            self.services.mark_identity_rename_required(result.status.value)
+            log.warning("Identity rename deferred to the next safe transition")
+
+    def _guard_identity_transition(self, next_screen: str) -> str:
+        if next_screen in (SETTINGS.SCREEN_NAMES.QUIT, SETTINGS.SCREEN_NAMES.IDENTITY_ENTRY):
+            return next_screen
+        if not self.services.identity_rename_required:
+            return next_screen
+
+        safe_sources = {
+            SETTINGS.SCREEN_NAMES.LOADING,
+            SETTINGS.SCREEN_NAMES.MENU,
+            SETTINGS.SCREEN_NAMES.RANKING,
+            SETTINGS.SCREEN_NAMES.GAME_OVER,
+        }
+        current_screen = self.services.screen_manager.current_name
+        if current_screen not in safe_sources:
+            log.debug("Identity rename remains deferred until a safe transition")
+            return next_screen
+
+        self.services.set_identity_entry_context(
+            self.services.identity_entry_reason,
+            return_screen=next_screen,
+            rename_required=True,
+        )
+        log.info("Identity rename required before continuing")
+        return SETTINGS.SCREEN_NAMES.IDENTITY_ENTRY
     
     def _cleanup(self) -> None:
         log.debug("Shutting down application")
