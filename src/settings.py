@@ -83,7 +83,7 @@ class PathConfig:
     ASSETS_DIR: str = "assets"
     DATA_DIR: str = "data"
     ENV_FILE: str = ".env"
-    SAVE_FILE: str = "user_data.bin"
+    SAVE_FILE: str = ".user_data.bin"
     PREFS_FILE: str = "preferences.json"
     IMG_DIR: str = "img"
     ICON_FILE: str = "logo.png"
@@ -202,6 +202,7 @@ class NetworkConfig:
     DEFAULT_TIMEOUT: float = 3.0
     SERVER_SELECTION_TIMEOUT_MS: int = 2000
     HEARTBEAT_INTERVAL_S: int = 30
+    SCORES_COLLECTION: str = "scores"
 
 @dataclass(frozen=True)
 class SecurityConfig:
@@ -216,11 +217,13 @@ class LoadingMessagesConfig:
     NETWORK: str = "Establishing uplink..."
     GAME: str = "Spawning first piece..."
     SCREENS: str = "Building the playfield..."
+    IDENTITY: str = "Checking player identity..."
     ASSETS: str = "Coloring the blocks..."
 
 @dataclass(frozen=True)
 class ScreenNames:
     LOADING: str = "loading"
+    IDENTITY_ENTRY: str = "identity_entry"
     MENU: str = "menu"
     GAME: str = "game"
     GAME_OVER: str = "game_over"

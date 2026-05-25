@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Dict, Optional
 import pygame
 
 from game_initializer import GameInitializer
+from security import IdentityManager
 from service_container import ServiceContainer
 from settings import SETTINGS
 from ui.screen_factory import ScreenFactory
@@ -36,7 +37,8 @@ class Application:
                 'services': self._init_services,
                 'network': self._init_network_connection,
                 'game': self._init_game,
-                'screens': self._init_screens
+                'screens': self._init_screens,
+                'identity': self._init_identity,
             }
             
             loading_screen = ScreenFactory.create_loading_screen(
@@ -134,6 +136,13 @@ class Application:
         )
         ScreenFactory.register_screens(self.services.screen_manager, game_screens)
         log.debug(f"Registered {len(game_screens)} game screens")
+
+    def _init_identity(self) -> str:
+        log.debug("Checking stored player identity...")
+        identity_manager = IdentityManager(network_manager=self.services.network_manager)
+        if identity_manager.get_existing_identity() is not None:
+            return SETTINGS.SCREEN_NAMES.MENU
+        return SETTINGS.SCREEN_NAMES.IDENTITY_ENTRY
     
     def _cleanup(self) -> None:
         log.debug("Shutting down application")
