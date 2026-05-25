@@ -1,3 +1,4 @@
+import threading
 from typing import TYPE_CHECKING, Optional
 
 import pygame
@@ -17,6 +18,10 @@ class ServiceContainer:
         self._audio_manager: Optional['AudioManager'] = None
         self._network_manager: Optional['NetworkManager'] = None
         self._screen_manager: Optional['ScreenManager'] = None
+        self._identity_context_lock = threading.Lock()
+        self._identity_entry_reason = "missing"
+        self._identity_return_screen = SETTINGS.SCREEN_NAMES.MENU
+        self._identity_rename_required = False
     
     def initialize_assets(self) -> 'AssetManager':
         if self._asset_manager is None:
@@ -73,3 +78,43 @@ class ServiceContainer:
         if self._screen_manager is None:
             raise RuntimeError("ScreenManager not initialized. Call initialize_screen_manager() first.")
         return self._screen_manager
+
+    def set_identity_entry_context(
+        self,
+        reason: str,
+        return_screen: Optional[str] = None,
+        rename_required: bool = True,
+    ) -> None:
+        with self._identity_context_lock:
+            self._identity_entry_reason = reason
+            self._identity_return_screen = return_screen or SETTINGS.SCREEN_NAMES.MENU
+            self._identity_rename_required = rename_required
+
+    def mark_identity_rename_required(self, reason: str) -> None:
+        with self._identity_context_lock:
+            self._identity_entry_reason = reason
+            self._identity_rename_required = True
+
+    def clear_identity_rename_required(self) -> None:
+        with self._identity_context_lock:
+            self._identity_rename_required = False
+            self._identity_entry_reason = "missing"
+            self._identity_return_screen = SETTINGS.SCREEN_NAMES.MENU
+
+    @property
+    def identity_entry_reason(self) -> str:
+        with self._identity_context_lock:
+            return self._identity_entry_reason
+
+    @property
+    def identity_rename_required(self) -> bool:
+        with self._identity_context_lock:
+            return self._identity_rename_required
+
+    def consume_identity_return_screen(self) -> str:
+        with self._identity_context_lock:
+            return_screen = self._identity_return_screen
+            self._identity_return_screen = SETTINGS.SCREEN_NAMES.MENU
+            self._identity_rename_required = False
+            self._identity_entry_reason = "missing"
+            return return_screen
