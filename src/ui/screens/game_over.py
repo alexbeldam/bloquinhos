@@ -2,11 +2,13 @@ from typing import List, Optional, Sequence, Tuple, TYPE_CHECKING
 
 import pygame
 
+from network.user_data_dao import UserDataDAO
 from settings import SETTINGS
 from ui.assets import AssetManager
 from ui.components import Menu
 from ui.screen import Screen
 from ui.screens.game import GameScreen
+from utils.logger import log
 
 if TYPE_CHECKING:
     from ui.audio import AudioManager
@@ -26,6 +28,8 @@ class GameOverScreen(Screen):
     ) -> None:
         super().__init__(assets, audio_manager)
         self.game_screen = game_screen
+        self.user_data_dao = UserDataDAO()
+        self._save_attempted = False
         self.menu = Menu(
             options=self.OPTIONS,
             font_renderer=self._font,
@@ -40,12 +44,21 @@ class GameOverScreen(Screen):
             result = self.menu.handle_navigation(event)
             if result is not None:
                 self.game_screen.session.reset()
+                self._save_attempted = False
                 self.menu.reset_selection()
                 return result
         
         return None
 
     def update(self, delta_time: float) -> Optional[str]:
+        if not self._save_attempted:
+            self._save_attempted = True
+            try:
+                name = self.user_data_dao.load_name()
+                if name:
+                    self.user_data_dao.save(self.game_screen.session, name)
+            except Exception:
+                log.error("Failed to save game over user data", exc_info=True)
         return None
 
     def render(self, surface: pygame.Surface) -> None:
