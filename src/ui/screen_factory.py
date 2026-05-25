@@ -63,7 +63,13 @@ class ScreenFactory:
         session: GameSession,
         services: ServiceContainer
     ) -> Dict[str, Screen]:
-        game_screen = GameScreen(game, session, assets=None, audio_manager=services.audio_manager)
+        game_screen = GameScreen(
+            game,
+            session,
+            assets=None,
+            audio_manager=services.audio_manager,
+            settings_manager=services.settings_manager,
+        )
         
         return {
             SETTINGS.SCREEN_NAMES.IDENTITY_ENTRY: IdentityEntryScreen(

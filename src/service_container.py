@@ -11,6 +11,7 @@ if TYPE_CHECKING:
     from ui.assets import AssetManager
     from ui.audio import AudioManager
     from ui.screen_manager import ScreenManager
+    from utils.settings_manager import SettingsManager
 
 
 class ServiceContainer:
@@ -20,6 +21,7 @@ class ServiceContainer:
         self._network_manager: Optional['NetworkManager'] = None
         self._screen_manager: Optional['ScreenManager'] = None
         self._identity_manager: Optional['IdentityManager'] = None
+        self._settings_manager: Optional['SettingsManager'] = None
         self._identity_context_lock = threading.Lock()
         self._identity_entry_reason = "missing"
         self._identity_return_screen = SETTINGS.SCREEN_NAMES.MENU
@@ -39,10 +41,13 @@ class ServiceContainer:
             self._audio_manager = AudioManager(self._asset_manager)
         return self._audio_manager
     
-    def initialize_network(self) -> 'NetworkManager':
+    def initialize_network(self, start_offline: bool = False, reconnect_policy: str = "auto") -> 'NetworkManager':
         if self._network_manager is None:
             from network.connection_manager import NetworkManager
-            self._network_manager = NetworkManager()
+            self._network_manager = NetworkManager(
+                start_offline=start_offline,
+                reconnect_policy=reconnect_policy,
+            )
         return self._network_manager
 
     def initialize_identity_manager(self) -> 'IdentityManager':
@@ -52,6 +57,12 @@ class ServiceContainer:
             network_manager = self.initialize_network()
             self._identity_manager = IdentityManager(network_manager=network_manager)
         return self._identity_manager
+
+    def initialize_settings_manager(self) -> 'SettingsManager':
+        if self._settings_manager is None:
+            from utils.settings_manager import SettingsManager
+            self._settings_manager = SettingsManager()
+        return self._settings_manager
     
     def initialize_screen_manager(
         self,
@@ -94,6 +105,12 @@ class ServiceContainer:
         if self._identity_manager is None:
             raise RuntimeError("IdentityManager not initialized. Call initialize_identity_manager() first.")
         return self._identity_manager
+
+    @property
+    def settings_manager(self) -> 'SettingsManager':
+        if self._settings_manager is None:
+            raise RuntimeError("SettingsManager not initialized. Call initialize_settings_manager() first.")
+        return self._settings_manager
 
     def set_identity_entry_context(
         self,

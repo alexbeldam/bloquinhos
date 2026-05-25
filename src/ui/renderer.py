@@ -1,10 +1,13 @@
-from typing import Optional, Tuple
+from typing import Optional, Tuple, TYPE_CHECKING
 
 import pygame
 
 from engine import Board, GameController, GameSession, Tetromino, Tile
 from settings import SETTINGS
 from ui.assets import AssetManager
+
+if TYPE_CHECKING:
+    from utils.settings_manager import SettingsManager
 
 
 Color = Tuple[int, int, int]
@@ -17,19 +20,31 @@ class GameRenderer:
         assets: Optional[AssetManager],
         controller: GameController,
         session: GameSession,
+        settings_manager: Optional['SettingsManager'] = None,
     ) -> None:
         self.screen = screen
         self.assets = assets
         self.controller = controller
         self.session = session
+        self.settings_manager = settings_manager
 
     def render(self) -> None:
         self.screen.fill((10, 14, 22))
         self._render_board()
-        self._render_ghost_piece()
+        if self._setting_enabled("graphics.draw_ghost", True):
+            self._render_ghost_piece()
         self._render_active_piece()
-        self._render_grid_lines()
+        if self._setting_enabled("graphics.draw_grid", True):
+            self._render_grid_lines()
         self._render_sidebar()
+
+    def _setting_enabled(self, path: str, fallback: bool) -> bool:
+        if self.settings_manager is None:
+            return fallback
+        try:
+            return self.settings_manager.get_bool(path)
+        except (KeyError, TypeError, ValueError):
+            return fallback
 
     def _render_board(self) -> None:
         board_rect = pygame.Rect(

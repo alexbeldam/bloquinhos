@@ -84,7 +84,7 @@ class PathConfig:
     DATA_DIR: str = "data"
     ENV_FILE: str = ".env"
     SAVE_FILE: str = ".user_data.bin"
-    PREFS_FILE: str = "preferences.json"
+    PREFS_FILE: str = "settings.json"
     IMG_DIR: str = "img"
     ICON_FILE: str = "logo.png"
     AUD_DIR: str = "aud"
@@ -214,6 +214,7 @@ class SecurityConfig:
 @dataclass(frozen=True)
 class LoadingMessagesConfig:
     SERVICES: str = "Warming up the engines..."
+    PREFERENCES: str = "Applying player preferences..."
     NETWORK: str = "Establishing uplink..."
     GAME: str = "Spawning first piece..."
     SCREENS: str = "Building the playfield..."
