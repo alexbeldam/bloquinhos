@@ -15,6 +15,7 @@ class MenuScreen(Screen):
     OPTIONS: Sequence[Tuple[str, str]] = (
         ("Jogar", SETTINGS.SCREEN_NAMES.GAME),
         ("Ranking", SETTINGS.SCREEN_NAMES.RANKING),
+        ("Configurações", SETTINGS.SCREEN_NAMES.SETTINGS),
         ("Sair", SETTINGS.SCREEN_NAMES.QUIT),
     )
 

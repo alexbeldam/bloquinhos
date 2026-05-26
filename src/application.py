@@ -8,6 +8,7 @@ from security.identity_manager import IdentityStatus
 from service_container import ServiceContainer
 from settings import SETTINGS
 from ui.screen_factory import ScreenFactory
+from ui.tabs import AudioTab, ControlsTab, GraphicsTab, LocalizationTab, NetworkTab, SettingsTabRegistry
 from utils.path_manager import PathManager
 import utils.env_manager as env
 from utils.logger import log
@@ -39,6 +40,7 @@ class Application:
                 'network': self._init_network_connection,
                 'game': self._init_game,
                 'screens': self._init_screens,
+                'tabs': self._init_tabs,
                 'identity': self._init_identity,
             }
             
@@ -199,6 +201,19 @@ class Application:
         )
         ScreenFactory.register_screens(self.services.screen_manager, game_screens)
         log.debug(f"Registered {len(game_screens)} game screens")
+
+    def _init_tabs(self) -> None:
+        log.debug("Registering settings tabs...")
+        registry = SettingsTabRegistry()
+        registry.clear()
+        
+        registry.register(ControlsTab())
+        registry.register(GraphicsTab())
+        registry.register(AudioTab())
+        registry.register(NetworkTab())
+        registry.register(LocalizationTab())
+        
+        log.info("Settings tabs registered")
 
     def _init_identity(self) -> str:
         log.debug("Checking stored player identity...")

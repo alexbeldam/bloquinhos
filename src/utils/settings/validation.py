@@ -56,7 +56,10 @@ def validate_field(value: Any, field: SettingField, path: str, warn_invalid: War
             return default
         if isinstance(value, (int, float)):
             parsed_float = float(value)
-            return apply_numeric_constraints(parsed_float, field)
+            constrained = apply_numeric_constraints(parsed_float, field)
+            if field.precision is not None:
+                constrained = round(constrained, field.precision)
+            return constrained
         warn_invalid(path, value, field.setting_type.value)
         return default
 

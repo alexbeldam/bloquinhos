@@ -145,8 +145,16 @@ class LoadingScreen(Screen):
                     else:
                         self.update_progress(SETTINGS.LOADING_MESSAGES.SCREENS, 50, 100)
 
+                    if 'tabs' in self.init_callbacks:
+                        self.update_progress(SETTINGS.LOADING_MESSAGES.TABS, 50, 100)
+                        log.debug("Starting tabs registration phase")
+                        self.init_callbacks['tabs']()
+                        self.update_progress(SETTINGS.LOADING_MESSAGES.TABS, 55, 100)
+                    else:
+                        self.update_progress(SETTINGS.LOADING_MESSAGES.TABS, 55, 100)
+
                     if 'identity' in self.init_callbacks:
-                        self.update_progress(SETTINGS.LOADING_MESSAGES.IDENTITY, 50, 100)
+                        self.update_progress(SETTINGS.LOADING_MESSAGES.IDENTITY, 55, 100)
                         log.debug("Starting identity initialization phase")
                         next_screen = self.init_callbacks['identity']()
                         if isinstance(next_screen, str):

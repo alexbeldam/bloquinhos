@@ -12,6 +12,7 @@ from ui.screens import (
     MenuScreen,
     PauseScreen,
     RankingScreen,
+    SettingsScreen,
 )
 
 
@@ -70,6 +71,19 @@ class ScreenFactory:
             audio_manager=services.audio_manager,
             settings_manager=services.settings_manager,
         )
+
+        def get_settings_return_screen() -> str:
+            previous = services.screen_manager.previous_name
+            if previous in (SETTINGS.SCREEN_NAMES.MENU, SETTINGS.SCREEN_NAMES.PAUSE):
+                return previous
+            return SETTINGS.SCREEN_NAMES.MENU
+
+        settings_screen = SettingsScreen(
+            return_screen_provider=get_settings_return_screen,
+            assets=None,
+            audio_manager=services.audio_manager,
+            settings_manager=services.settings_manager,
+        )
         
         return {
             SETTINGS.SCREEN_NAMES.IDENTITY_ENTRY: IdentityEntryScreen(
@@ -84,6 +98,7 @@ class ScreenFactory:
             SETTINGS.SCREEN_NAMES.GAME: game_screen,
             SETTINGS.SCREEN_NAMES.PAUSE: PauseScreen(game_screen, assets=None, audio_manager=services.audio_manager),
             SETTINGS.SCREEN_NAMES.GAME_OVER: GameOverScreen(game_screen, assets=None, audio_manager=services.audio_manager),
+            SETTINGS.SCREEN_NAMES.SETTINGS: settings_screen,
         }
     
     @staticmethod

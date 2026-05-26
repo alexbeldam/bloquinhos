@@ -25,6 +25,7 @@ class SettingField:
     minimum: float | int | None = None
     maximum: float | int | None = None
     enum_values: tuple[str, ...] | None = None
+    precision: int | None = None
 
 
 SchemaNode = dict[str, "SchemaNode | SettingField"]
@@ -42,15 +43,15 @@ def build_schema() -> SchemaNode:
     return {
         "audio": {
             "master": {
-                "volume": SettingField(SettingType.FLOAT, 0.7, minimum=0.0, maximum=1.0),
+                "volume": SettingField(SettingType.FLOAT, 0.7, minimum=0.0, maximum=1.0, precision=2),
                 "muted": SettingField(SettingType.BOOL, False),
             },
             "sfx": {
-                "volume": SettingField(SettingType.FLOAT, 0.8, minimum=0.0, maximum=1.0),
+                "volume": SettingField(SettingType.FLOAT, 0.8, minimum=0.0, maximum=1.0, precision=2),
                 "muted": SettingField(SettingType.BOOL, False),
             },
             "music": {
-                "volume": SettingField(SettingType.FLOAT, 0.7, minimum=0.0, maximum=1.0),
+                "volume": SettingField(SettingType.FLOAT, 0.5, minimum=0.0, maximum=1.0, precision=2),
                 "muted": SettingField(SettingType.BOOL, False),
             },
         },

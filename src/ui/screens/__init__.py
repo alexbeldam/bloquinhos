@@ -7,6 +7,7 @@ from ui.screens.loading import LoadingScreen
 from ui.screens.menu import MenuScreen
 from ui.screens.pause import PauseScreen
 from ui.screens.ranking import RankingScreen
+from ui.screens.settings import SettingsScreen
 
 __all__ = [
     "GameScreen",
@@ -18,4 +19,5 @@ __all__ = [
     "MenuScreen",
     "PauseScreen",
     "RankingScreen",
+    "SettingsScreen",
 ]
