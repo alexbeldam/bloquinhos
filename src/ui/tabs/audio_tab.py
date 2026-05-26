@@ -1,14 +1,10 @@
-from typing import Optional, TYPE_CHECKING
+from typing import Optional
 
 import pygame
 
 from settings import SETTINGS
-from ui.components import bottom_action_y, draw_tab_background_and_title
+from ui.styles import SETTINGS_STYLE
 from ui.tabs.settings_tab import SettingsTab
-
-if TYPE_CHECKING:
-    from ui.assets import AssetManager
-    from utils.settings_manager import SettingsManager
 
 
 class AudioTab(SettingsTab):
@@ -44,35 +40,32 @@ class AudioTab(SettingsTab):
         self,
         surface: pygame.Surface,
         rect: pygame.Rect,
-        assets: Optional["AssetManager"],
-        settings_manager: Optional["SettingsManager"],
     ) -> None:
         self._slider_hitboxes = []
         self._icon_hitboxes = []
 
-        title_y, _, _ = draw_tab_background_and_title(
+        title_y, _, _ = self._draw_tab_background_and_title(
             surface,
             rect,
             self.title,
-            assets,
             self.CONTENT_PADDING,
         )
 
         sliders_start_y = title_y + 60
-        row_font =self._font(SETTINGS.UI_TYPOGRAPHY.BODY, assets)
+        row_font = self._font(SETTINGS.UI_TYPOGRAPHY.BODY)
 
         for index, (label, volume_path, mute_path) in enumerate(self.SLIDERS):
             row_y = sliders_start_y + index * (self.SLIDER_ROW_HEIGHT + self.SLIDER_ROW_GAP)
             
             volume = 1.0
             is_muted = False
-            if settings_manager is not None:
+            if self.settings_manager is not None:
                 try:
-                    volume = settings_manager.get_float(volume_path)
+                    volume = self.settings_manager.get_float(volume_path)
                 except (KeyError, TypeError, ValueError):
                     volume = 1.0
                 try:
-                    is_muted = settings_manager.get_bool(mute_path)
+                    is_muted = self.settings_manager.get_bool(mute_path)
                 except (KeyError, TypeError, ValueError):
                     is_muted = False
 
@@ -97,8 +90,8 @@ class AudioTab(SettingsTab):
             icon_x_screen = rect.x + icon_x_relative
             icon_y_screen = rect.y + icon_y_relative
 
-            bg_color = SETTINGS.UI_THEME.SETTINGS_SLIDER_BG
-            progress_color = SETTINGS.UI_THEME.SETTINGS_SLIDER_MUTED if is_muted else SETTINGS.UI_THEME.PURPLE
+            bg_color = SETTINGS_STYLE.SLIDER_BG
+            progress_color = SETTINGS_STYLE.SLIDER_MUTED if is_muted else SETTINGS.UI_THEME.PURPLE
             
             pygame.draw.rect(surface, bg_color, (slider_x_screen, slider_y_screen, slider_width, self.SLIDER_HEIGHT), border_radius=3)
             
@@ -116,7 +109,7 @@ class AudioTab(SettingsTab):
             )
 
             icon_name = self._get_volume_icon_name(volume, is_muted)
-            icon = self._try_load_icon(icon_name, assets)
+            icon = self._try_load_icon(icon_name)
             if icon:
                 icon_scaled = pygame.transform.scale(icon, (self.ICON_SIZE, self.ICON_SIZE))
                 is_icon_hovered = mute_path == self.hovered_icon_path
@@ -124,22 +117,21 @@ class AudioTab(SettingsTab):
                     icon_scaled.set_alpha(200)
                 surface.blit(icon_scaled, (icon_x_screen, icon_y_screen))
         
-        reset_button_y = bottom_action_y(rect, self.CONTENT_PADDING, action_height=42)
-        self.render_reset_button(surface, rect, assets, reset_button_y)
+        reset_button_y = self._bottom_action_y(rect, self.CONTENT_PADDING, action_height=42)
+        self.render_reset_button(surface, rect, reset_button_y)
 
     def handle_click(
         self,
         pos: tuple[int, int],
-        settings_manager: Optional["SettingsManager"],
     ) -> None:
-        if settings_manager is None:
+        if self.settings_manager is None:
             return
 
         for mute_path, icon_rect in self._icon_hitboxes:
             if icon_rect.collidepoint(pos):
                 try:
-                    current_mute = settings_manager.get_bool(mute_path)
-                    settings_manager.set(mute_path, not current_mute)
+                    current_mute = self.settings_manager.get_bool(mute_path)
+                    self.settings_manager.set(mute_path, not current_mute)
                 except (KeyError, TypeError, ValueError):
                     pass
                 return
@@ -147,7 +139,7 @@ class AudioTab(SettingsTab):
         for volume_path, slider_rect in self._slider_hitboxes:
             if slider_rect.collidepoint(pos):
                 self._dragging_path = volume_path
-                self._update_slider_value(pos, slider_rect, volume_path, settings_manager)
+                self._update_slider_value(pos, slider_rect, volume_path)
                 return
 
     def handle_mouse_motion(self, pos: tuple[int, int]) -> None:
@@ -164,19 +156,19 @@ class AudioTab(SettingsTab):
                 self.hovered_icon_path = mute_path
                 break
 
-    def handle_mouse_button_down(self, pos: tuple[int, int], settings_manager: Optional["SettingsManager"]) -> None:
-        self.handle_click(pos, settings_manager)
+    def handle_mouse_button_down(self, pos: tuple[int, int]) -> None:
+        self.handle_click(pos)
 
     def handle_mouse_button_up(self) -> None:
         self._dragging_path = None
 
-    def handle_drag(self, pos: tuple[int, int], settings_manager: Optional["SettingsManager"]) -> None:
-        if self._dragging_path is None or settings_manager is None:
+    def handle_drag(self, pos: tuple[int, int]) -> None:
+        if self._dragging_path is None or self.settings_manager is None:
             return
 
         for volume_path, slider_rect in self._slider_hitboxes:
             if volume_path == self._dragging_path:
-                self._update_slider_value(pos, slider_rect, volume_path, settings_manager)
+                self._update_slider_value(pos, slider_rect, volume_path)
                 return
 
     def _update_slider_value(
@@ -184,12 +176,14 @@ class AudioTab(SettingsTab):
         pos: tuple[int, int],
         slider_rect: pygame.Rect,
         volume_path: str,
-        settings_manager: "SettingsManager",
     ) -> None:
+        if self.settings_manager is None:
+            return
+
         relative_x = pos[0] - slider_rect.x
         volume = max(0.0, min(1.0, relative_x / slider_rect.width))
         try:
-            settings_manager.set(volume_path, volume)
+            self.settings_manager.set(volume_path, volume)
         except (KeyError, TypeError, ValueError):
             pass
 

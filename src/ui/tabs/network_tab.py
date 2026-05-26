@@ -1,20 +1,10 @@
-from typing import Optional, TYPE_CHECKING
+from typing import Optional
 
 import pygame
 
 from settings import SETTINGS
-from ui.components import (
-    bottom_action_y,
-    draw_option_row,
-    draw_row_icon_right,
-    draw_tab_background_and_title,
-    draw_wrapped_text,
-)
+from ui.styles import SETTINGS_STYLE
 from ui.tabs.settings_tab import SettingsTab
-
-if TYPE_CHECKING:
-    from ui.assets import AssetManager
-    from utils.settings_manager import SettingsManager
 
 
 class NetworkTab(SettingsTab):
@@ -58,29 +48,26 @@ class NetworkTab(SettingsTab):
         self,
         surface: pygame.Surface,
         rect: pygame.Rect,
-        assets: Optional["AssetManager"],
-        settings_manager: Optional["SettingsManager"],
     ) -> None:
         self._checkbox_hitboxes = []
         self._dropdown_option_hitboxes = []
 
-        _, _, current_y = draw_tab_background_and_title(
+        _, _, current_y = self._draw_tab_background_and_title(
             surface,
             rect,
             self.title,
-            assets,
             self.CONTENT_PADDING,
         )
 
         start_offline = False
         reconnect_policy = "auto"
-        if settings_manager is not None:
+        if self.settings_manager is not None:
             try:
-                start_offline = settings_manager.get_bool("network.start_offline")
+                start_offline = self.settings_manager.get_bool("network.start_offline")
             except (KeyError, TypeError, ValueError):
                 start_offline = False
             try:
-                reconnect_policy = str(settings_manager.get("network.reconnect_policy"))
+                reconnect_policy = str(self.settings_manager.get("network.reconnect_policy"))
             except (KeyError, TypeError, ValueError):
                 reconnect_policy = "auto"
 
@@ -91,7 +78,6 @@ class NetworkTab(SettingsTab):
             "network.start_offline",
             start_offline,
             current_y,
-            assets,
         )
         
         help_text = "Launch the game without connecting to the server"
@@ -100,7 +86,6 @@ class NetworkTab(SettingsTab):
             rect,
             help_text,
             current_y,
-            assets,
         )
 
         current_y += self.SECTION_GAP
@@ -111,7 +96,6 @@ class NetworkTab(SettingsTab):
             "Reconnection Policy",
             reconnect_policy,
             current_y,
-            assets,
         )
         
         display_option = reconnect_policy
@@ -122,10 +106,10 @@ class NetworkTab(SettingsTab):
         
         description = self.POLICY_DESCRIPTIONS.get(display_option, "")
         if description:
-            current_y = self._render_help_text(surface, rect, description, current_y, assets)
+            current_y = self._render_help_text(surface, rect, description, current_y)
         
-        reset_button_y = bottom_action_y(rect, self.CONTENT_PADDING, action_height=42)
-        self.render_reset_button(surface, rect, assets, reset_button_y)
+        reset_button_y = self._bottom_action_y(rect, self.CONTENT_PADDING, action_height=42)
+        self.render_reset_button(surface, rect, reset_button_y)
 
     def _render_checkbox_option(
         self,
@@ -135,21 +119,20 @@ class NetworkTab(SettingsTab):
         path: str,
         checked: bool,
         y_pos: int,
-        assets: Optional["AssetManager"],
     ) -> int:
-        row_font = self._font(SETTINGS.UI_TYPOGRAPHY.BODY, assets)
+        row_font = self._font(SETTINGS.UI_TYPOGRAPHY.BODY)
         row_x = rect.x + self.CONTENT_PADDING
         row_width = rect.width - self.CONTENT_PADDING * 2
         row_rect = pygame.Rect(row_x, y_pos, row_width, self.OPTION_ROW_HEIGHT)
         self._checkbox_hitboxes.append((path, row_rect))
 
         is_hovered = path == self.hovered_checkbox_path
-        draw_option_row(surface, row_rect, label, row_font, is_hovered=is_hovered)
+        self._draw_option_row(surface, row_rect, label, row_font, is_hovered=is_hovered)
 
-        checkbox_checked = self._try_load_icon("checkbox-marked", assets)
-        checkbox_empty = self._try_load_icon("checkbox-blank", assets)
+        checkbox_checked = self._try_load_icon("checkbox-marked")
+        checkbox_empty = self._try_load_icon("checkbox-blank")
         icon = checkbox_checked if checked else checkbox_empty
-        draw_row_icon_right(surface, row_rect, icon)
+        self._draw_row_icon_right(surface, row_rect, icon)
 
         return y_pos + self.OPTION_ROW_HEIGHT + self.OPTION_ROW_GAP
 
@@ -160,10 +143,9 @@ class NetworkTab(SettingsTab):
         label: str,
         current_value: str,
         y_pos: int,
-        assets: Optional["AssetManager"],
     ) -> int:
-        label_font = self._font(SETTINGS.UI_TYPOGRAPHY.BODY, assets)
-        option_font = self._font(SETTINGS.UI_TYPOGRAPHY.BODY, assets)
+        label_font = self._font(SETTINGS.UI_TYPOGRAPHY.BODY)
+        option_font = self._font(SETTINGS.UI_TYPOGRAPHY.BODY)
         
         label_row_x = rect.x + self.CONTENT_PADDING
         label_row_width = rect.width - self.CONTENT_PADDING * 2
@@ -184,8 +166,8 @@ class NetworkTab(SettingsTab):
             self.DROPDOWN_HEIGHT
         )
 
-        bg_color = SETTINGS.UI_THEME.SETTINGS_DROPDOWN_BG
-        border_color = SETTINGS.UI_THEME.PURPLE if self._dropdown_open else SETTINGS.UI_THEME.SETTINGS_DROPDOWN_BORDER
+        bg_color = SETTINGS_STYLE.DROPDOWN_BG
+        border_color = SETTINGS.UI_THEME.PURPLE if self._dropdown_open else SETTINGS_STYLE.DROPDOWN_BORDER
         pygame.draw.rect(surface, bg_color, dropdown_rect, border_radius=8)
         pygame.draw.rect(surface, border_color, dropdown_rect, width=2, border_radius=8)
 
@@ -194,7 +176,7 @@ class NetworkTab(SettingsTab):
         value_rect = value_surface.get_rect(midleft=(dropdown_rect.left + 16, dropdown_rect.centery))
         surface.blit(value_surface, value_rect)
 
-        arrow_icon = self._try_load_icon("chevron-down" if not self._dropdown_open else "chevron-up", assets)
+        arrow_icon = self._try_load_icon("chevron-down" if not self._dropdown_open else "chevron-up")
         if arrow_icon:
             arrow_scaled = pygame.transform.scale(arrow_icon, (20, 20))
             arrow_rect = arrow_scaled.get_rect(midright=(dropdown_rect.right - 12, dropdown_rect.centery))
@@ -221,13 +203,13 @@ class NetworkTab(SettingsTab):
                 is_keyboard_selected = idx == self._keyboard_selected_index
                 
                 if is_current:
-                    option_bg_color = SETTINGS.UI_THEME.SETTINGS_DROPDOWN_OPTION_BG_SELECTED
+                    option_bg_color = SETTINGS_STYLE.DROPDOWN_OPTION_BG_SELECTED
                     text_color = SETTINGS.UI_THEME.CYAN
                 elif is_hovered or is_keyboard_selected:
-                    option_bg_color = SETTINGS.UI_THEME.SETTINGS_DROPDOWN_OPTION_BG_HOVER
+                    option_bg_color = SETTINGS_STYLE.DROPDOWN_OPTION_BG_HOVER
                     text_color = SETTINGS.UI_THEME.TEXT_PRIMARY
                 else:
-                    option_bg_color = SETTINGS.UI_THEME.SETTINGS_DROPDOWN_OPTION_BG
+                    option_bg_color = SETTINGS_STYLE.DROPDOWN_OPTION_BG
                     text_color = SETTINGS.UI_THEME.TEXT_PRIMARY
 
                 pygame.draw.rect(surface, option_bg_color, option_rect, border_radius=6)
@@ -238,7 +220,7 @@ class NetworkTab(SettingsTab):
                 surface.blit(option_surface, option_text_rect)
 
                 if is_current:
-                    check_icon = self._try_load_icon("check", assets)
+                    check_icon = self._try_load_icon("check")
                     if check_icon:
                         check_scaled = pygame.transform.scale(check_icon, (18, 18))
                         check_rect = check_scaled.get_rect(midright=(option_rect.right - 12, option_rect.centery))
@@ -258,17 +240,15 @@ class NetworkTab(SettingsTab):
         rect: pygame.Rect,
         text: str,
         y_pos: int,
-        assets: Optional["AssetManager"],
     ) -> int:
         max_width = rect.width - self.CONTENT_PADDING * 2
-        next_y = draw_wrapped_text(
+        next_y = self._draw_wrapped_text(
             surface,
             text,
             SETTINGS.UI_TYPOGRAPHY.SMALL,
             SETTINGS.UI_THEME.TEXT_MUTED,
             max_width,
             line_spacing=2,
-            assets=assets,
             x=rect.x + self.CONTENT_PADDING,
             y=y_pos + 4,
             align="left",
@@ -278,25 +258,24 @@ class NetworkTab(SettingsTab):
     def handle_click(
         self,
         pos: tuple[int, int],
-        settings_manager: Optional["SettingsManager"],
     ) -> None:
-        if settings_manager is None:
+        if self.settings_manager is None:
             return
 
         for path, rect in self._checkbox_hitboxes:
             if rect.collidepoint(pos):
                 try:
-                    current = settings_manager.get_bool(path)
-                    settings_manager.set(path, not current)
+                    current = self.settings_manager.get_bool(path)
+                    self.settings_manager.set(path, not current)
                 except (KeyError, TypeError, ValueError):
                     pass
                 return
 
         if self._dropdown_hitbox and self._dropdown_hitbox.collidepoint(pos):
             self._dropdown_open = not self._dropdown_open
-            if self._dropdown_open and settings_manager is not None:
+            if self._dropdown_open and self.settings_manager is not None:
                 try:
-                    current = settings_manager.get("network.reconnect_policy")
+                    current = self.settings_manager.get("network.reconnect_policy")
                     self._keyboard_selected_index = self._options_list.index(current)
                 except (KeyError, TypeError, ValueError):
                     self._keyboard_selected_index = 0
@@ -306,9 +285,9 @@ class NetworkTab(SettingsTab):
             for option, rect in self._dropdown_option_hitboxes:
                 if rect.collidepoint(pos):
                     try:
-                        current = settings_manager.get("network.reconnect_policy")
+                        current = self.settings_manager.get("network.reconnect_policy")
                         if option != current:
-                            settings_manager.set("network.reconnect_policy", option)
+                            self.settings_manager.set("network.reconnect_policy", option)
                         self._dropdown_open = False
                     except (KeyError, TypeError, ValueError):
                         self._dropdown_open = False
@@ -333,7 +312,6 @@ class NetworkTab(SettingsTab):
     def handle_key(
         self,
         event: pygame.event.Event,
-        settings_manager: Optional["SettingsManager"],
     ) -> None:
         if not self._dropdown_open or event.type != pygame.KEYDOWN:
             return
@@ -345,10 +323,10 @@ class NetworkTab(SettingsTab):
             self._keyboard_selected_index = (self._keyboard_selected_index + 1) % len(self._options_list)
             self.hovered_dropdown_option = None
         elif event.key in (pygame.K_RETURN, pygame.K_SPACE):
-            if settings_manager is not None:
+            if self.settings_manager is not None:
                 selected_option = self._options_list[self._keyboard_selected_index]
                 try:
-                    settings_manager.set("network.reconnect_policy", selected_option)
+                    self.settings_manager.set("network.reconnect_policy", selected_option)
                 except (KeyError, TypeError, ValueError):
                     pass
             self._dropdown_open = False

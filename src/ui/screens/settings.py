@@ -5,6 +5,7 @@ import pygame
 from settings import SETTINGS
 from ui.assets import AssetManager
 from ui.screen import Screen
+from ui.styles import SETTINGS_STYLE
 from ui.tabs import SettingsTab, SettingsTabRegistry
 
 if TYPE_CHECKING:
@@ -30,9 +31,10 @@ class SettingsScreen(Screen):
         settings_manager: Optional["SettingsManager"] = None,
     ) -> None:
         super().__init__(assets, audio_manager)
-        self.settings_manager = settings_manager
         self.return_screen_provider = return_screen_provider
         self.registry = SettingsTabRegistry()
+        self.registry.distribute_assets(self.assets)
+        self.settings_manager = settings_manager
         self.active_tab_id: Optional[str] = None
         self.hovered_tab_id: Optional[str] = None
         self._tab_hitboxes: dict[str, pygame.Rect] = {}
@@ -41,6 +43,26 @@ class SettingsScreen(Screen):
         self._reset_all_hitbox: Optional[pygame.Rect] = None
         self._reset_all_hovered: bool = False
         self._reset_all_armed_until_ms: int = 0
+
+    @property
+    def assets(self) -> Optional[AssetManager]:
+        return getattr(self, "_assets", None)
+
+    @assets.setter
+    def assets(self, value: Optional[AssetManager]) -> None:
+        self._assets = value
+        if hasattr(self, "registry"):
+            self.registry.distribute_assets(value)
+
+    @property
+    def settings_manager(self) -> Optional["SettingsManager"]:
+        return getattr(self, "_settings_manager", None)
+
+    @settings_manager.setter
+    def settings_manager(self, value: Optional["SettingsManager"]) -> None:
+        self._settings_manager = value
+        if hasattr(self, "registry"):
+            self.registry.distribute_settings_manager(value)
 
     def _ensure_active_tab(self) -> None:
         if self.active_tab_id is not None:
@@ -83,7 +105,7 @@ class SettingsScreen(Screen):
             if event.type == pygame.KEYDOWN:
                 if tab_is_capturing or dropdown_is_open:
                     if active_tab is not None:
-                        active_tab.handle_key(event, self.settings_manager)
+                        active_tab.handle_key(event)
                     continue
 
                 if event.key == pygame.K_ESCAPE:
@@ -99,7 +121,7 @@ class SettingsScreen(Screen):
                     if active_tab is not None and hasattr(active_tab, 'handle_drag'):
                         content_rect = self._get_content_rect(pygame.display.get_surface())
                         adjusted_pos = (event.pos[0] - content_rect.x, event.pos[1] - content_rect.y)
-                        active_tab.handle_drag(adjusted_pos, self.settings_manager)
+                        active_tab.handle_drag(adjusted_pos)
                 self._handle_mouse_motion(event.pos)
 
             if event.type == pygame.MOUSEBUTTONDOWN:
@@ -137,9 +159,9 @@ class SettingsScreen(Screen):
                                     continue
                                 
                                 if hasattr(active_tab, 'handle_mouse_button_down'):
-                                    active_tab.handle_mouse_button_down(adjusted_pos, self.settings_manager)
+                                    active_tab.handle_mouse_button_down(adjusted_pos)
                                 else:
-                                    active_tab.handle_click(adjusted_pos, self.settings_manager)
+                                    active_tab.handle_click(adjusted_pos)
                 elif event.button == 3 and tab_is_capturing:
                     if active_tab is not None and hasattr(active_tab, 'cancel_keybind_capture'):
                         active_tab.cancel_keybind_capture()
@@ -203,7 +225,7 @@ class SettingsScreen(Screen):
         )
 
     def render(self, surface: pygame.Surface) -> None:
-        surface.fill(SETTINGS.UI_THEME.SETTINGS_SCREEN_BG)
+        surface.fill(SETTINGS_STYLE.SCREEN_BG)
         self._ensure_active_tab()
         self._tab_hitboxes = {}
 
@@ -241,10 +263,10 @@ class SettingsScreen(Screen):
         )
     def _render_sidebar(self, surface: pygame.Surface, tabs: List[SettingsTab]) -> None:
         sidebar_rect = pygame.Rect(0, 0, self.SIDEBAR_WIDTH, surface.get_height())
-        pygame.draw.rect(surface, SETTINGS.UI_THEME.SETTINGS_SIDEBAR_BG, sidebar_rect)
+        pygame.draw.rect(surface, SETTINGS_STYLE.SIDEBAR_BG, sidebar_rect)
 
         divider_x = self.SIDEBAR_WIDTH - 1
-        pygame.draw.line(surface, SETTINGS.UI_THEME.SETTINGS_DIVIDER, (divider_x, 0), (divider_x, surface.get_height()), 1)
+        pygame.draw.line(surface, SETTINGS_STYLE.DIVIDER, (divider_x, 0), (divider_x, surface.get_height()), 1)
 
         start_y = self.TAB_START_Y
 
@@ -257,11 +279,11 @@ class SettingsScreen(Screen):
             is_active = tab.id == self.active_tab_id
             is_hovered = tab.id == self.hovered_tab_id
 
-            bg_color = SETTINGS.UI_THEME.SETTINGS_TAB_BG
+            bg_color = SETTINGS_STYLE.TAB_BG
             if is_hovered:
-                bg_color = SETTINGS.UI_THEME.SETTINGS_TAB_BG_HOVER
+                bg_color = SETTINGS_STYLE.TAB_BG_HOVER
             if is_active:
-                bg_color = SETTINGS.UI_THEME.SETTINGS_TAB_BG_ACTIVE
+                bg_color = SETTINGS_STYLE.TAB_BG_ACTIVE
             pygame.draw.rect(surface, bg_color, tab_rect, border_radius=10)
 
             icon = self._try_load_icon(tab.icon_name)
@@ -285,7 +307,7 @@ class SettingsScreen(Screen):
         divider_y = footer_top - 10
         pygame.draw.line(
             surface,
-            SETTINGS.UI_THEME.SETTINGS_DIVIDER,
+            SETTINGS_STYLE.DIVIDER,
             (10, divider_y),
             (self.SIDEBAR_WIDTH - 10, divider_y),
             1,
@@ -297,7 +319,7 @@ class SettingsScreen(Screen):
             return
 
         content_rect = self._get_content_rect(surface)
-        active_tab.render(surface, content_rect, self.assets, self.settings_manager)
+        active_tab.render(surface, content_rect)
 
     def _render_reset_all_button(self, surface: pygame.Surface) -> None:
         button_size = self.RESET_ALL_BUTTON_SIZE
@@ -310,14 +332,14 @@ class SettingsScreen(Screen):
         is_armed = pygame.time.get_ticks() <= self._reset_all_armed_until_ms
         
         if is_armed:
-            bg_color = SETTINGS.UI_THEME.SETTINGS_RESET_BG_ARMED
-            border_color = SETTINGS.UI_THEME.SETTINGS_RESET_BORDER_ARMED
+            bg_color = SETTINGS_STYLE.RESET_BG_ARMED
+            border_color = SETTINGS_STYLE.RESET_BORDER_ARMED
         elif self._reset_all_hovered:
-            bg_color = SETTINGS.UI_THEME.SETTINGS_RESET_BG_HOVER
-            border_color = SETTINGS.UI_THEME.SETTINGS_RESET_BORDER_HOVER
+            bg_color = SETTINGS_STYLE.RESET_BG_HOVER
+            border_color = SETTINGS_STYLE.RESET_BORDER_HOVER
         else:
-            bg_color = SETTINGS.UI_THEME.SETTINGS_RESET_BG
-            border_color = SETTINGS.UI_THEME.SETTINGS_RESET_BORDER
+            bg_color = SETTINGS_STYLE.RESET_BG
+            border_color = SETTINGS_STYLE.RESET_BORDER
 
         pygame.draw.rect(surface, bg_color, button_rect, border_radius=8)
         pygame.draw.rect(surface, border_color, button_rect, width=1, border_radius=8)
@@ -353,7 +375,7 @@ class SettingsScreen(Screen):
             y = surface.get_height() - tooltip_height - 8
 
         tooltip_rect = pygame.Rect(x, y, tooltip_width, tooltip_height)
-        pygame.draw.rect(surface, SETTINGS.UI_THEME.SETTINGS_TOOLTIP_BG, tooltip_rect, border_radius=6)
+        pygame.draw.rect(surface, SETTINGS_STYLE.TOOLTIP_BG, tooltip_rect, border_radius=6)
         pygame.draw.rect(surface, SETTINGS.UI_THEME.TEXT_MUTED, tooltip_rect, width=1, border_radius=6)
         surface.blit(text_surface, (x + padding_x, y + padding_y))
 

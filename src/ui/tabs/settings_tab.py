@@ -1,7 +1,10 @@
 from abc import ABC, abstractmethod
-from typing import Optional, TYPE_CHECKING
+from typing import Literal, Optional, TYPE_CHECKING
 
 import pygame
+
+from settings import SETTINGS
+from ui.styles import SETTINGS_STYLE
 
 if TYPE_CHECKING:
     from ui.assets import AssetManager
@@ -15,6 +18,8 @@ class SettingsTab(ABC):
         self.icon_name = icon_name
         self.order = order
         self.category = category
+        self.assets: Optional["AssetManager"] = None
+        self.settings_manager: Optional["SettingsManager"] = None
         self._reset_button_hitbox: Optional[pygame.Rect] = None
         self._reset_button_hovered: bool = False
 
@@ -23,8 +28,6 @@ class SettingsTab(ABC):
         self,
         surface: pygame.Surface,
         rect: pygame.Rect,
-        assets: Optional["AssetManager"],
-        settings_manager: Optional["SettingsManager"],
     ) -> None:
         pass
 
@@ -32,14 +35,12 @@ class SettingsTab(ABC):
     def handle_click(
         self,
         pos: tuple[int, int],
-        settings_manager: Optional["SettingsManager"],
     ) -> None:
         pass
 
     def handle_key(
         self,
         event: pygame.event.Event,
-        settings_manager: Optional["SettingsManager"],
     ) -> None:
         pass
 
@@ -47,21 +48,18 @@ class SettingsTab(ABC):
         self,
         surface: pygame.Surface,
         rect: pygame.Rect,
-        assets: Optional["AssetManager"],
         y_pos: int,
     ) -> int:
-        from settings import SETTINGS
-
         button_height = 42
         icon_size = 18
         side_padding = 16
         icon_text_gap = 10
 
-        font = self._font(SETTINGS.UI_TYPOGRAPHY.SMALL, assets)
+        font = self._font(SETTINGS.UI_TYPOGRAPHY.SMALL)
         label = "Reset This Section"
         label_surface = font.render(label, True, SETTINGS.UI_THEME.TEXT_PRIMARY)
 
-        icon = self._try_load_icon("back", assets)
+        icon = self._try_load_icon("back")
         icon_width = icon_size if icon is not None else 0
         group_width = label_surface.get_width() + (icon_text_gap + icon_width if icon_width > 0 else 0)
 
@@ -78,8 +76,8 @@ class SettingsTab(ABC):
             button_height
         )
 
-        bg_color = SETTINGS.UI_THEME.SETTINGS_SECTION_RESET_BG_HOVER if self._reset_button_hovered else SETTINGS.UI_THEME.SETTINGS_SECTION_RESET_BG
-        border_color = SETTINGS.UI_THEME.SETTINGS_SECTION_RESET_BORDER_HOVER if self._reset_button_hovered else SETTINGS.UI_THEME.SETTINGS_SECTION_RESET_BORDER
+        bg_color = SETTINGS_STYLE.SECTION_RESET_BG_HOVER if self._reset_button_hovered else SETTINGS_STYLE.SECTION_RESET_BG
+        border_color = SETTINGS_STYLE.SECTION_RESET_BORDER_HOVER if self._reset_button_hovered else SETTINGS_STYLE.SECTION_RESET_BORDER
         pygame.draw.rect(surface, bg_color, button_rect, border_radius=10)
         pygame.draw.rect(surface, border_color, button_rect, width=1, border_radius=10)
 
@@ -107,21 +105,172 @@ class SettingsTab(ABC):
             self._reset_button_hitbox is not None and self._reset_button_hitbox.collidepoint(pos)
         )
 
-    def _font(self, size: int, assets: Optional["AssetManager"]) -> pygame.font.Font:
-        if assets is not None:
+    def _font(self, size: int) -> pygame.font.Font:
+        if self.assets is not None:
             try:
-                return assets.get_font(size)
+                return self.assets.get_font(size)
             except (KeyError, FileNotFoundError, pygame.error):
                 pass
         return pygame.font.Font(None, size)
 
-    def _try_load_icon(self, icon_name: str, assets: Optional["AssetManager"]) -> Optional[pygame.Surface]:
-        if not assets:
+    def _try_load_icon(self, icon_name: str) -> Optional[pygame.Surface]:
+        if not self.assets:
             return None
         try:
-            return assets.get_image(icon_name)
+            return self.assets.get_image(icon_name)
         except (KeyError, FileNotFoundError):
             return None
+
+    def _draw_centered_text(
+        self,
+        surface: pygame.Surface,
+        text: str,
+        size: int,
+        color: tuple[int, int, int],
+        center: tuple[int, int],
+    ) -> None:
+        rendered = self._font(size).render(text, True, color)
+        surface.blit(rendered, rendered.get_rect(center=center))
+
+    def _draw_tab_background_and_title(
+        self,
+        surface: pygame.Surface,
+        rect: pygame.Rect,
+        title: str,
+        content_padding: int,
+    ) -> tuple[int, int, int]:
+        pygame.draw.rect(surface, SETTINGS_STYLE.CONTENT_BG, rect)
+
+        title_y = rect.y + content_padding + 12
+        content_center_x = rect.x + rect.width // 2
+        self._draw_centered_text(
+            surface,
+            title,
+            SETTINGS.UI_TYPOGRAPHY.TITLE,
+            SETTINGS.UI_THEME.CYAN,
+            (content_center_x, title_y),
+        )
+
+        return title_y, content_center_x, title_y + 48
+
+    def _draw_wrapped_text(
+        self,
+        surface: pygame.Surface,
+        text: str,
+        font_size: int,
+        color: tuple[int, int, int],
+        max_width: int,
+        line_spacing: int,
+        *,
+        x: int,
+        y: int,
+        align: Literal["left", "center"] = "left",
+    ) -> int:
+        font = self._font(font_size)
+        words = text.split()
+        lines: list[str] = []
+        current_line: list[str] = []
+
+        for word in words:
+            test_line = " ".join(current_line + [word])
+            if font.size(test_line)[0] <= max_width:
+                current_line.append(word)
+            else:
+                if current_line:
+                    lines.append(" ".join(current_line))
+                current_line = [word]
+
+        if current_line:
+            lines.append(" ".join(current_line))
+
+        if align == "left":
+            current_y = y
+            for line in lines:
+                rendered = font.render(line, True, color)
+                surface.blit(rendered, (x, current_y))
+                current_y += rendered.get_height() + line_spacing
+            return current_y
+
+        total_height = len(lines) * (font.get_height() + line_spacing) - line_spacing if lines else 0
+        start_y = y - total_height // 2
+        for index, line in enumerate(lines):
+            rendered = font.render(line, True, color)
+            line_y = start_y + index * (font.get_height() + line_spacing)
+            surface.blit(rendered, rendered.get_rect(center=(x, line_y)))
+        return start_y + total_height
+
+    def _bottom_action_y(
+        self,
+        rect: pygame.Rect,
+        content_padding: int,
+        *,
+        action_height: int,
+        bottom_gap: int = 16,
+        reserve_space: int = 0,
+    ) -> int:
+        return rect.y + rect.height - content_padding - action_height - bottom_gap - reserve_space
+
+    def _draw_option_row(
+        self,
+        surface: pygame.Surface,
+        row_rect: pygame.Rect,
+        label: str,
+        font: pygame.font.Font,
+        *,
+        is_hovered: bool = False,
+        is_selected: bool = False,
+        label_left_padding: int = 16,
+        border_radius: int = 10,
+        normal_bg: tuple[int, int, int] = SETTINGS_STYLE.ROW_BG,
+        hover_bg: tuple[int, int, int] = SETTINGS_STYLE.ROW_BG_HOVER,
+        selected_bg: Optional[tuple[int, int, int]] = SETTINGS_STYLE.ROW_BG_SELECTED,
+        text_color: tuple[int, int, int] = SETTINGS.UI_THEME.TEXT_PRIMARY,
+    ) -> None:
+        if is_selected and selected_bg is not None:
+            bg_color = selected_bg
+        elif is_hovered:
+            bg_color = hover_bg
+        else:
+            bg_color = normal_bg
+
+        pygame.draw.rect(surface, bg_color, row_rect, border_radius=border_radius)
+
+        label_surface = font.render(label, True, text_color)
+        label_rect = label_surface.get_rect(midleft=(row_rect.left + label_left_padding, row_rect.centery))
+        surface.blit(label_surface, label_rect)
+
+    def _draw_row_icon_right(
+        self,
+        surface: pygame.Surface,
+        row_rect: pygame.Rect,
+        icon: Optional[pygame.Surface],
+        *,
+        icon_size: int = 28,
+        right_padding: int = 16,
+        alpha: Optional[int] = None,
+    ) -> None:
+        if icon is None:
+            return
+
+        icon_scaled = pygame.transform.scale(icon, (icon_size, icon_size))
+        if alpha is not None:
+            icon_scaled.set_alpha(alpha)
+        icon_rect = icon_scaled.get_rect(midright=(row_rect.right - right_padding, row_rect.centery))
+        surface.blit(icon_scaled, icon_rect)
+
+    def _draw_row_value_right(
+        self,
+        surface: pygame.Surface,
+        row_rect: pygame.Rect,
+        value_text: str,
+        font: pygame.font.Font,
+        color: tuple[int, int, int],
+        *,
+        right_padding: int = 16,
+    ) -> None:
+        value_surface = font.render(value_text, True, color)
+        value_rect = value_surface.get_rect(midright=(row_rect.right - right_padding, row_rect.centery))
+        surface.blit(value_surface, value_rect)
 
 
 class SettingsTabRegistry:
@@ -131,12 +280,17 @@ class SettingsTabRegistry:
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance._tabs = {}
+            cls._instance._assets = None
+            cls._instance._settings_manager = None
         return cls._instance
 
     def register(self, tab: SettingsTab) -> None:
         if tab.id in self._tabs:
             from utils.logger import log
             log.warning(f"Settings tab '{tab.id}' already registered, overwriting")
+
+        tab.assets = self._assets
+        tab.settings_manager = self._settings_manager
         self._tabs[tab.id] = tab
 
     def get_all(self) -> list[SettingsTab]:
@@ -154,3 +308,13 @@ class SettingsTabRegistry:
 
     def clear(self) -> None:
         self._tabs.clear()
+
+    def distribute_assets(self, assets: Optional["AssetManager"]) -> None:
+        self._assets = assets
+        for tab in self._tabs.values():
+            tab.assets = assets
+
+    def distribute_settings_manager(self, settings_manager: Optional["SettingsManager"]) -> None:
+        self._settings_manager = settings_manager
+        for tab in self._tabs.values():
+            tab.settings_manager = settings_manager
