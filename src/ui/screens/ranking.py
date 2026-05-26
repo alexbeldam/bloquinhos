@@ -12,6 +12,8 @@ class RankingScreen(Screen):
         for event in events:
             if event.type == pygame.QUIT:
                 return SETTINGS.SCREEN_NAMES.QUIT
+            if self._handle_network_status_event(event):
+                continue
             if event.type == pygame.KEYDOWN and event.key in (
                 pygame.K_ESCAPE,
                 pygame.K_RETURN,
@@ -41,3 +43,4 @@ class RankingScreen(Screen):
             SETTINGS.UI_THEME.PURPLE,
             (surface.get_width() // 2, 270),
         )
+        self._render_network_status(surface)

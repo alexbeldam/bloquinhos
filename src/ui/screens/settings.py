@@ -94,6 +94,7 @@ class SettingsScreen(Screen):
         self.active_tab_id = tabs[next_index].id
 
     def handle_events(self, events: List[pygame.event.Event]) -> Optional[str]:
+        self._ensure_active_tab()
         active_tab = self._get_active_tab()
         tab_is_capturing = active_tab is not None and hasattr(active_tab, 'has_pending_keybind') and active_tab.has_pending_keybind()
         dropdown_is_open = active_tab is not None and hasattr(active_tab, 'has_dropdown_open') and active_tab.has_dropdown_open()
@@ -101,6 +102,9 @@ class SettingsScreen(Screen):
         for event in events:
             if event.type == pygame.QUIT:
                 return SETTINGS.SCREEN_NAMES.QUIT
+
+            if self._handle_network_status_event(event, enabled=self.active_tab_id == "network"):
+                continue
 
             if event.type == pygame.KEYDOWN:
                 if tab_is_capturing or dropdown_is_open:
@@ -238,6 +242,7 @@ class SettingsScreen(Screen):
         self._render_sidebar(surface, tabs)
         self._render_content(surface)
         self._render_reset_all_button(surface)
+        self._render_network_status(surface, enabled=self.active_tab_id == "network")
         self._render_tooltip(surface)
 
     def _render_empty_state(self, surface: pygame.Surface) -> None:
@@ -351,33 +356,16 @@ class SettingsScreen(Screen):
             icon_rect = icon_scaled.get_rect(center=button_rect.center)
             surface.blit(icon_scaled, icon_rect)
 
-    def _render_tooltip(self, surface: pygame.Surface) -> None:
-        if self._tooltip is None:
+    def _render_tooltip(
+        self,
+        surface: pygame.Surface,
+        tooltip: Optional[tuple[str, tuple[int, int]]] = None,
+    ) -> None:
+        tooltip_to_render = tooltip or self._tooltip
+        if tooltip_to_render is None:
             return
 
-        text, pos = self._tooltip
-        font = self._font(SETTINGS.UI_TYPOGRAPHY.SMALL)
-        text_surface = font.render(text, True, SETTINGS.UI_THEME.TEXT_PRIMARY)
-
-        padding_x = 10
-        padding_y = 6
-        tooltip_width = text_surface.get_width() + padding_x * 2
-        tooltip_height = text_surface.get_height() + padding_y * 2
-
-        x = pos[0] + 14
-        y = pos[1] - tooltip_height // 2
-
-        if x + tooltip_width > surface.get_width() - 8:
-            x = surface.get_width() - tooltip_width - 8
-        if y < 8:
-            y = 8
-        if y + tooltip_height > surface.get_height() - 8:
-            y = surface.get_height() - tooltip_height - 8
-
-        tooltip_rect = pygame.Rect(x, y, tooltip_width, tooltip_height)
-        pygame.draw.rect(surface, SETTINGS_STYLE.TOOLTIP_BG, tooltip_rect, border_radius=6)
-        pygame.draw.rect(surface, SETTINGS.UI_THEME.TEXT_MUTED, tooltip_rect, width=1, border_radius=6)
-        surface.blit(text_surface, (x + padding_x, y + padding_y))
+        super()._render_tooltip(surface, tooltip_to_render)
 
     def _try_load_icon(self, icon_name: str) -> Optional[pygame.Surface]:
         if not self.assets:

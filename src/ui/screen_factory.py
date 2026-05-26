@@ -84,8 +84,8 @@ class ScreenFactory:
             audio_manager=services.audio_manager,
             settings_manager=services.settings_manager,
         )
-        
-        return {
+
+        screens = {
             SETTINGS.SCREEN_NAMES.IDENTITY_ENTRY: IdentityEntryScreen(
                 identity_manager=services.identity_manager,
                 reason_provider=lambda: services.identity_entry_reason,
@@ -100,6 +100,16 @@ class ScreenFactory:
             SETTINGS.SCREEN_NAMES.GAME_OVER: GameOverScreen(game_screen, assets=None, audio_manager=services.audio_manager),
             SETTINGS.SCREEN_NAMES.SETTINGS: settings_screen,
         }
+
+        for screen_name in (
+            SETTINGS.SCREEN_NAMES.MENU,
+            SETTINGS.SCREEN_NAMES.IDENTITY_ENTRY,
+            SETTINGS.SCREEN_NAMES.RANKING,
+            SETTINGS.SCREEN_NAMES.SETTINGS,
+        ):
+            screens[screen_name].bind_network_manager(services.network_manager)
+
+        return screens
     
     @staticmethod
     def register_screens(

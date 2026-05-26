@@ -162,7 +162,19 @@ class Application:
             elif path == "audio.sfx.muted":
                 audio_manager.set_sfx_muted(bool(new_value))
 
+        def on_network_setting_changed(path: str, _old_value, new_value) -> None:
+            if path != "network.reconnect_policy" or not isinstance(new_value, str):
+                return
+
+            try:
+                network_manager = self.services.network_manager
+            except RuntimeError:
+                return
+
+            network_manager.update_reconnect_policy(new_value)
+
         settings_manager.subscribe("audio.*", on_audio_setting_changed)
+        settings_manager.subscribe("network.reconnect_policy", on_network_setting_changed)
     
     def _init_network_connection(self) -> None:
         start_offline = self.services.settings_manager.get_bool("network.start_offline")

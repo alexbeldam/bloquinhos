@@ -32,6 +32,9 @@ class MenuScreen(Screen):
         for event in events:
             if event.type == pygame.QUIT:
                 return SETTINGS.SCREEN_NAMES.QUIT
+
+            if self._handle_network_status_event(event):
+                continue
             
             if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 return SETTINGS.SCREEN_NAMES.QUIT
@@ -86,3 +89,4 @@ class MenuScreen(Screen):
         current_y += title_height + 60
         
         self.menu.render(surface, center_x, current_y, self._draw_text)
+        self._render_network_status(surface)

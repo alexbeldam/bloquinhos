@@ -204,6 +204,8 @@ class NetworkConfig:
     SERVER_SELECTION_TIMEOUT_MS: int = 2000
     HEARTBEAT_INTERVAL_S: int = 30
     SCORES_COLLECTION: str = "scores"
+    AUTO_MAX_RETRIES: int = 4
+    REQUEST_WAIT_S: float = 0.25
 
 @dataclass(frozen=True)
 class SecurityConfig:
