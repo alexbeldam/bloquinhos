@@ -51,7 +51,7 @@ def build_schema() -> SchemaNode:
                 "muted": SettingField(SettingType.BOOL, False),
             },
             "music": {
-                "volume": SettingField(SettingType.FLOAT, 0.5, minimum=0.0, maximum=1.0, precision=2),
+                "volume": SettingField(SettingType.FLOAT, 0.7, minimum=0.0, maximum=1.0, precision=2),
                 "muted": SettingField(SettingType.BOOL, False),
             },
         },

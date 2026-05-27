@@ -13,6 +13,7 @@ class AudioTab(SettingsTab):
     SLIDER_ROW_GAP = 20
     SLIDER_HEIGHT = 6
     HANDLE_RADIUS = 8
+    SLIDER_HITBOX_HEIGHT = HANDLE_RADIUS * 2 + 4  # 20px (handle diameter + 4px margin)
     ICON_SIZE = 28
     ICON_SPACING = 16
 
@@ -86,7 +87,8 @@ class AudioTab(SettingsTab):
             slider_x_relative = self.CONTENT_PADDING
             slider_y_relative = row_y - rect.y + label_surface.get_height() + 8
             slider_width = rect.width - self.CONTENT_PADDING * 2 - self.ICON_SIZE - self.ICON_SPACING
-            slider_rect = pygame.Rect(slider_x_relative, slider_y_relative, slider_width, self.SLIDER_HEIGHT)
+            slider_hitbox_y = slider_y_relative - (self.SLIDER_HITBOX_HEIGHT - self.SLIDER_HEIGHT) // 2
+            slider_rect = pygame.Rect(slider_x_relative, slider_hitbox_y, slider_width, self.SLIDER_HITBOX_HEIGHT)
             self._slider_hitboxes.append((volume_path, slider_rect))
 
             slider_x_screen = rect.x + slider_x_relative

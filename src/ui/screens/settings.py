@@ -130,8 +130,6 @@ class SettingsScreen(Screen):
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
-                    self._mouse_button_down = True
-                    
                     if self._reset_all_hitbox and self._reset_all_hitbox.collidepoint(event.pos):
                         now_ms = pygame.time.get_ticks()
                         if now_ms <= self._reset_all_armed_until_ms:
@@ -142,6 +140,7 @@ class SettingsScreen(Screen):
                             self._reset_all_armed_until_ms = now_ms + self.RESET_ALL_CONFIRM_MS
                         continue
                     
+                    tab_clicked = False
                     for tab_id, rect in self._tab_hitboxes.items():
                         if rect.collidepoint(event.pos):
                             if tab_id != self.active_tab_id:
@@ -149,8 +148,10 @@ class SettingsScreen(Screen):
                                 if current_tab is not None and hasattr(current_tab, 'clear_status'):
                                     current_tab.clear_status()
                             self.active_tab_id = tab_id
+                            tab_clicked = True
                             break
-                    else:
+                    
+                    if not tab_clicked:
                         active_tab = self._get_active_tab()
                         if active_tab is not None:
                             content_rect = self._get_content_rect(pygame.display.get_surface())
@@ -162,6 +163,7 @@ class SettingsScreen(Screen):
                                         self.settings_manager.reset_subtree(active_tab.category)
                                     continue
                                 
+                                self._mouse_button_down = True
                                 if hasattr(active_tab, 'handle_mouse_button_down'):
                                     active_tab.handle_mouse_button_down(adjusted_pos)
                                 else:

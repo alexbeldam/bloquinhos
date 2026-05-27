@@ -155,15 +155,18 @@ class SettingsTab(ABC):
 
         title_y = rect.y + content_padding + 12
         content_center_x = rect.x + rect.width // 2
-        self._draw_centered_text(
-            surface,
+        
+        title_surface = self._render_text_surface(
             title,
             SETTINGS.UI_TYPOGRAPHY.TITLE,
             SETTINGS.UI_THEME.CYAN,
-            (content_center_x, title_y),
         )
+        surface.blit(title_surface, title_surface.get_rect(center=(content_center_x, title_y)))
+        
+        title_bottom = title_y + title_surface.get_height()
+        content_start_y = title_bottom + 36
 
-        return title_y, content_center_x, title_y + 48
+        return title_y, content_center_x, content_start_y
 
     def _draw_wrapped_text(
         self,
