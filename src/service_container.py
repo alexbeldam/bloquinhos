@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING, Optional
 import pygame
 
 from settings import SETTINGS
-from utils.logger import log
 
 if TYPE_CHECKING:
     from security.identity_manager import IdentityManager
@@ -54,20 +53,8 @@ class ServiceContainer:
             from security.identity_manager import IdentityManager
 
             network_manager = self.initialize_network()
-            synchronizer = self.initialize_synchronizer()
-            self._identity_manager = IdentityManager(
-                network_manager=network_manager,
-                on_registered=lambda name: self._sync_after_registration(synchronizer, name),
-            )
+            self._identity_manager = IdentityManager(network_manager=network_manager)
         return self._identity_manager
-
-    @staticmethod
-    def _sync_after_registration(synchronizer, name: str) -> None:
-        try:
-            result = synchronizer.sync(name)
-            log.info("Initial sync after registration: %s — %s", result.status.name, result.message)
-        except Exception:
-            log.error("Initial sync after registration failed", exc_info=True)
 
     def initialize_synchronizer(self) -> 'DataSynchronizer':
         if self._data_synchronizer is None:

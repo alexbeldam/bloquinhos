@@ -69,6 +69,7 @@ class ScreenFactory:
         return {
             SETTINGS.SCREEN_NAMES.IDENTITY_ENTRY: IdentityEntryScreen(
                 identity_manager=services.identity_manager,
+                synchronizer=synchronizer,
                 reason_provider=lambda: services.identity_entry_reason,
                 return_screen_provider=services.consume_identity_return_screen,
                 assets=None,
