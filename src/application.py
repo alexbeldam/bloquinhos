@@ -116,6 +116,7 @@ class Application:
         self.services.initialize_audio()
         network_manager = self.services.initialize_network()
         self.services.initialize_identity_manager()
+        self.services.initialize_synchronizer()
         network_manager.add_reconnect_listener(self._on_network_reconnected)
     
     def _init_network_connection(self) -> None:

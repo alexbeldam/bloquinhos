@@ -64,6 +64,7 @@ class ScreenFactory:
         services: ServiceContainer
     ) -> Dict[str, Screen]:
         game_screen = GameScreen(game, session, assets=None, audio_manager=services.audio_manager)
+        synchronizer = services.data_synchronizer
         
         return {
             SETTINGS.SCREEN_NAMES.IDENTITY_ENTRY: IdentityEntryScreen(
@@ -77,7 +78,12 @@ class ScreenFactory:
             SETTINGS.SCREEN_NAMES.RANKING: RankingScreen(assets=None, audio_manager=services.audio_manager),
             SETTINGS.SCREEN_NAMES.GAME: game_screen,
             SETTINGS.SCREEN_NAMES.PAUSE: PauseScreen(game_screen, assets=None, audio_manager=services.audio_manager),
-            SETTINGS.SCREEN_NAMES.GAME_OVER: GameOverScreen(game_screen, assets=None, audio_manager=services.audio_manager),
+            SETTINGS.SCREEN_NAMES.GAME_OVER: GameOverScreen(
+                game_screen,
+                synchronizer=synchronizer,
+                assets=None,
+                audio_manager=services.audio_manager,
+            ),
         }
     
     @staticmethod

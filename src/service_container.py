@@ -4,10 +4,13 @@ from typing import TYPE_CHECKING, Optional
 import pygame
 
 from settings import SETTINGS
+from utils.logger import log
 
 if TYPE_CHECKING:
     from security.identity_manager import IdentityManager
     from network.connection_manager import NetworkManager
+    from network.data_synchronizer import DataSynchronizer
+    from network.user_data_dao import UserDataDAO
     from ui.assets import AssetManager
     from ui.audio import AudioManager
     from ui.screen_manager import ScreenManager
@@ -20,6 +23,7 @@ class ServiceContainer:
         self._network_manager: Optional['NetworkManager'] = None
         self._screen_manager: Optional['ScreenManager'] = None
         self._identity_manager: Optional['IdentityManager'] = None
+        self._data_synchronizer: Optional['DataSynchronizer'] = None
         self._identity_context_lock = threading.Lock()
         self._identity_entry_reason = "missing"
         self._identity_return_screen = SETTINGS.SCREEN_NAMES.MENU
@@ -50,8 +54,30 @@ class ServiceContainer:
             from security.identity_manager import IdentityManager
 
             network_manager = self.initialize_network()
-            self._identity_manager = IdentityManager(network_manager=network_manager)
+            synchronizer = self.initialize_synchronizer()
+            self._identity_manager = IdentityManager(
+                network_manager=network_manager,
+                on_registered=lambda name: self._sync_after_registration(synchronizer, name),
+            )
         return self._identity_manager
+
+    @staticmethod
+    def _sync_after_registration(synchronizer, name: str) -> None:
+        try:
+            result = synchronizer.sync(name)
+            log.info("Initial sync after registration: %s — %s", result.status.name, result.message)
+        except Exception:
+            log.error("Initial sync after registration failed", exc_info=True)
+
+    def initialize_synchronizer(self) -> 'DataSynchronizer':
+        if self._data_synchronizer is None:
+            from network.data_synchronizer import DataSynchronizer
+            from network.user_data_dao import UserDataDAO
+
+            dao = UserDataDAO()
+            network = self.initialize_network()
+            self._data_synchronizer = DataSynchronizer(dao, network)
+        return self._data_synchronizer
     
     def initialize_screen_manager(
         self,
@@ -94,6 +120,12 @@ class ServiceContainer:
         if self._identity_manager is None:
             raise RuntimeError("IdentityManager not initialized. Call initialize_identity_manager() first.")
         return self._identity_manager
+
+    @property
+    def data_synchronizer(self) -> 'DataSynchronizer':
+        if self._data_synchronizer is None:
+            raise RuntimeError("DataSynchronizer not initialized. Call initialize_synchronizer() first.")
+        return self._data_synchronizer
 
     def set_identity_entry_context(
         self,

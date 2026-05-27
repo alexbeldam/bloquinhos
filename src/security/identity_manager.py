@@ -66,6 +66,7 @@ class IdentityManager:
         dao: Optional[IdentityDAO] = None,
         remote_validator: Optional[RemoteIdentityValidator] = None,
         prompt_provider: Optional[Callable[[Optional[str]], str]] = None,
+        on_registered: Optional[Callable[[str], None]] = None,
     ) -> None:
         self._network_manager = network_manager
         self._dao = dao or self._create_default_dao()
@@ -74,6 +75,7 @@ class IdentityManager:
         )
         self._prompt_provider = prompt_provider
         self._prompt_error: Optional[str] = None
+        self._on_registered = on_registered
 
     def get_or_create_identity(self) -> str:
         current_name = self.get_existing_identity()
@@ -164,10 +166,18 @@ class IdentityManager:
             self._dao.save_name(name, pending_remote_validation=pending_remote_validation)
             if pending_remote_validation:
                 log.info("Identity saved with pending remote validation")
+            self._fire_registered(name)
             return True
         except Exception:
             log.error("Failed to persist identity", exc_info=True)
             return False
+
+    def _fire_registered(self, name: str) -> None:
+        if self._on_registered is not None:
+            try:
+                self._on_registered(name)
+            except Exception:
+                log.error("on_registered callback failed", exc_info=True)
 
     def _prompt_for_name(self) -> str:
         if self._prompt_provider is not None:
