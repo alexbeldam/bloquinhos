@@ -257,11 +257,23 @@ class DataSynchronizer:
         return SyncResult(SyncStatus.FAILURE, "Upload failed")
 
     def _download_remote(self, name: str, remote_data: Dict[str, Any]) -> SyncResult:
-        """Helper: download remote data and wrap result."""
-        result = self.download_if_higher(name)
-        if result is not None:
+        """Persist remote data locally and wrap result.
+
+        Unlike ``download_if_higher`` this method does not re-check the
+        score — the caller (``sync`` / ``_resolve_tie``) has already
+        determined that the remote side wins.
+        """
+        try:
+            self._dao.save_dict(remote_data)
+            log.info(
+                "Downloaded remote data for '%s' (score=%s)",
+                name,
+                remote_data.get("score", 0),
+            )
             return SyncResult(SyncStatus.SUCCESS, "Remote data downloaded locally")
-        return SyncResult(SyncStatus.FAILURE, "Download failed")
+        except Exception as exc:
+            log.error("Download failed for '%s': %s", name, exc, exc_info=True)
+            return SyncResult(SyncStatus.FAILURE, str(exc))
 
     # ------------------------------------------------------------------
     # Utility methods
