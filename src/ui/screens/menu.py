@@ -26,6 +26,7 @@ class MenuScreen(Screen):
             font_renderer=self._font,
             selected_color=SETTINGS.UI_THEME.YELLOW,
             unselected_color=SETTINGS.UI_THEME.PURPLE,
+            font_size=SETTINGS.UI_TYPOGRAPHY.TITLE,
         )
 
     def handle_events(self, events: List[pygame.event.Event]) -> Optional[str]:

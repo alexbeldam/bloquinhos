@@ -130,14 +130,14 @@ class GameplayConfig:
 
 @dataclass(frozen=True)
 class UITypographyConfig:
-    FONT_NAME: str = "PressStart2P-Regular.ttf"
-    TINY: int = 8
-    SMALL: int = 12
-    MEDIUM: int = 14
-    BODY: int = 16
-    LARGE: int = 20
-    TITLE: int = 24
-    DISPLAY: int = 32
+    FONT_NAME: str = "Ruler 9.ttf"
+    ANTIALIAS: bool = False
+    TINY: int = 12
+    SMALL: int = 16
+    BODY: int = 25
+    LARGE: int = 32
+    TITLE: int = 40
+    DISPLAY: int = 48
     
     @property
     def all_sizes(self) -> Tuple[int, ...]:

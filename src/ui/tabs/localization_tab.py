@@ -75,6 +75,7 @@ class LocalizationTab(SettingsTab):
                 row_rect,
                 label,
                 row_font,
+                text_size=SETTINGS.UI_TYPOGRAPHY.BODY,
                 is_hovered=is_hovered,
                 is_selected=is_selected,
                 selected_bg=SETTINGS_STYLE.ROW_BG_SELECTED,

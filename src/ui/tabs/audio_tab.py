@@ -69,7 +69,11 @@ class AudioTab(SettingsTab):
                 except (KeyError, TypeError, ValueError):
                     is_muted = False
 
-            label_surface = row_font.render(label, True, SETTINGS.UI_THEME.TEXT_PRIMARY)
+            label_surface = self._render_text_surface(
+                label,
+                SETTINGS.UI_TYPOGRAPHY.BODY,
+                SETTINGS.UI_THEME.TEXT_PRIMARY,
+            )
             label_x = rect.x + self.CONTENT_PADDING
             label_y = row_y
             surface.blit(label_surface, (label_x, label_y))

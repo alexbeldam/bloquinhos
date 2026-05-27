@@ -10,10 +10,12 @@ if TYPE_CHECKING:
 
 
 class ControlsTab(SettingsTab):
-    CONTENT_PADDING = 30
-    OPTION_ROW_HEIGHT = 44
-    OPTION_ROW_GAP = 8
-    FOOTER_RESERVED_SPACE = 50
+    CONTENT_PADDING = 24
+    OPTION_ROW_HEIGHT = 40
+    OPTION_ROW_GAP = 6
+    FOOTER_HELP_BOTTOM_GAP = 4
+    FOOTER_HELP_TO_BUTTON_GAP = 8
+    FOOTER_STATUS_TO_HELP_GAP = 6
 
     OPTIONS = [
         ("Move Left", "controls.left"),
@@ -54,7 +56,7 @@ class ControlsTab(SettingsTab):
         )
         row_x = rect.x + self.CONTENT_PADDING
         row_width = rect.width - self.CONTENT_PADDING * 2
-        row_font = self._font(SETTINGS.UI_TYPOGRAPHY.MEDIUM)
+        row_font = self._font(SETTINGS.UI_TYPOGRAPHY.BODY)
 
         for index, (label, path) in enumerate(self.OPTIONS):
             row_y = options_start_y + index * (self.OPTION_ROW_HEIGHT + self.OPTION_ROW_GAP)
@@ -62,7 +64,14 @@ class ControlsTab(SettingsTab):
             self._option_hitboxes.append((path, row_rect))
 
             is_hovered = path == self.hovered_option_path
-            self._draw_option_row(surface, row_rect, label, row_font, is_hovered=is_hovered)
+            self._draw_option_row(
+                surface,
+                row_rect,
+                label,
+                row_font,
+                text_size=SETTINGS.UI_TYPOGRAPHY.BODY,
+                is_hovered=is_hovered,
+            )
 
             binding_text = "Unbound"
             if self._pending_keybind_path == path:
@@ -82,10 +91,40 @@ class ControlsTab(SettingsTab):
                 binding_text,
                 row_font,
                 SETTINGS.UI_THEME.CYAN if self._pending_keybind_path == path else SETTINGS.UI_THEME.TEXT_PRIMARY,
+                text_size=SETTINGS.UI_TYPOGRAPHY.BODY,
             )
 
         help_text = "Click an action to rebind, then press any key. Right-click to cancel."
-        help_y = rect.y + rect.height - self.CONTENT_PADDING - 8
+        help_height = self._wrapped_text_height(
+            help_text,
+            SETTINGS.UI_TYPOGRAPHY.SMALL,
+            row_width,
+            line_spacing=2,
+        )
+        status_height = 0
+        if self._status_message:
+            status_height = self._wrapped_text_height(
+                self._status_message,
+                SETTINGS.UI_TYPOGRAPHY.SMALL,
+                row_width,
+                line_spacing=2,
+            )
+
+        footer_text_height = help_height
+        if status_height > 0:
+            footer_text_height += self.FOOTER_STATUS_TO_HELP_GAP + status_height
+
+        reset_button_y = self._bottom_action_y(
+            rect,
+            self.CONTENT_PADDING,
+            action_height=42,
+            reserve_space=footer_text_height + self.FOOTER_HELP_TO_BUTTON_GAP + self.FOOTER_HELP_BOTTOM_GAP,
+        )
+
+        help_bottom = rect.y + rect.height - self.CONTENT_PADDING - self.FOOTER_HELP_BOTTOM_GAP
+        help_top = help_bottom - help_height
+        help_center_y = help_top + help_height // 2
+
         self._draw_wrapped_text(
             surface,
             help_text,
@@ -94,13 +133,15 @@ class ControlsTab(SettingsTab):
             row_width,
             line_spacing=2,
             x=content_center_x,
-            y=help_y,
+            y=help_center_y,
             align="center",
         )
 
         if self._status_message:
+            status_top = help_top - self.FOOTER_STATUS_TO_HELP_GAP - status_height
+            status_center_y = status_top + status_height // 2
             status_color = SETTINGS.UI_THEME.RED if self._status_is_error else SETTINGS.UI_THEME.GREEN
-            status_y = help_y - 40
+
             self._draw_wrapped_text(
                 surface,
                 self._status_message,
@@ -109,16 +150,10 @@ class ControlsTab(SettingsTab):
                 row_width,
                 line_spacing=2,
                 x=content_center_x,
-                y=status_y,
+                y=status_center_y,
                 align="center",
             )
-        
-        reset_button_y = self._bottom_action_y(
-            rect,
-            self.CONTENT_PADDING,
-            action_height=42,
-            reserve_space=self.FOOTER_RESERVED_SPACE,
-        )
+
         self.render_reset_button(surface, rect, reset_button_y)
 
     def handle_click(
@@ -205,3 +240,28 @@ class ControlsTab(SettingsTab):
             if isinstance(key_code, int) and key_code == new_key:
                 return action.replace("_", " ").title()
         return None
+
+    def _wrapped_text_height(
+        self,
+        text: str,
+        font_size: int,
+        max_width: int,
+        *,
+        line_spacing: int,
+    ) -> int:
+        font = self._font(font_size)
+        words = text.split()
+        if not words:
+            return 0
+
+        lines = 1
+        current_line = words[0]
+        for word in words[1:]:
+            candidate = f"{current_line} {word}"
+            if font.size(candidate)[0] <= max_width:
+                current_line = candidate
+            else:
+                lines += 1
+                current_line = word
+
+        return lines * (font.get_height() + line_spacing) - line_spacing

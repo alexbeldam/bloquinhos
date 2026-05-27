@@ -55,8 +55,11 @@ class Screen(ABC):
         color: Color,
         center: Tuple[int, int],
     ) -> None:
-        rendered = self._font(size).render(text, True, color)
+        rendered = self._render_text_surface(text, size, color)
         surface.blit(rendered, rendered.get_rect(center=center))
+
+    def _render_text_surface(self, text: str, size: int, color: Color) -> pygame.Surface:
+        return self._font(size).render(text, SETTINGS.UI_TYPOGRAPHY.ANTIALIAS, color)
     
     def _draw_wrapped_text(
         self,
@@ -92,7 +95,7 @@ class Screen(ABC):
         start_y = center[1] - total_height // 2
         
         for i, line in enumerate(lines):
-            rendered = font.render(line, True, color)
+            rendered = self._render_text_surface(line, size, color)
             line_rect = rendered.get_rect(center=(center[0], start_y + i * line_height))
             surface.blit(rendered, line_rect)
     
@@ -254,8 +257,11 @@ class Screen(ABC):
         tooltip: tuple[str, tuple[int, int]],
     ) -> None:
         text, pos = tooltip
-        font = self._font(SETTINGS.UI_TYPOGRAPHY.SMALL)
-        text_surface = font.render(text, True, SETTINGS.UI_THEME.TEXT_PRIMARY)
+        text_surface = self._render_text_surface(
+            text,
+            SETTINGS.UI_TYPOGRAPHY.SMALL,
+            SETTINGS.UI_THEME.TEXT_PRIMARY,
+        )
 
         padding_x = 10
         padding_y = 6

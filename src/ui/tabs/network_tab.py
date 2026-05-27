@@ -127,7 +127,14 @@ class NetworkTab(SettingsTab):
         self._checkbox_hitboxes.append((path, row_rect))
 
         is_hovered = path == self.hovered_checkbox_path
-        self._draw_option_row(surface, row_rect, label, row_font, is_hovered=is_hovered)
+        self._draw_option_row(
+            surface,
+            row_rect,
+            label,
+            row_font,
+            text_size=SETTINGS.UI_TYPOGRAPHY.BODY,
+            is_hovered=is_hovered,
+        )
 
         checkbox_checked = self._try_load_icon("checkbox-marked")
         checkbox_empty = self._try_load_icon("checkbox-blank")
@@ -151,7 +158,11 @@ class NetworkTab(SettingsTab):
         label_row_width = rect.width - self.CONTENT_PADDING * 2
         label_row_rect = pygame.Rect(label_row_x, y_pos, label_row_width, self.OPTION_ROW_HEIGHT)
         
-        label_surface = label_font.render(label, True, SETTINGS.UI_THEME.TEXT_PRIMARY)
+        label_surface = self._render_text_surface(
+            label,
+            SETTINGS.UI_TYPOGRAPHY.BODY,
+            SETTINGS.UI_THEME.TEXT_PRIMARY,
+        )
         label_rect = label_surface.get_rect(midleft=(label_row_rect.left + 16, label_row_rect.centery))
         surface.blit(label_surface, label_rect)
 
@@ -172,7 +183,11 @@ class NetworkTab(SettingsTab):
         pygame.draw.rect(surface, border_color, dropdown_rect, width=2, border_radius=8)
 
         value_text = self.POLICY_LABELS.get(current_value, current_value.capitalize())
-        value_surface = option_font.render(value_text, True, SETTINGS.UI_THEME.TEXT_PRIMARY)
+        value_surface = self._render_text_surface(
+            value_text,
+            SETTINGS.UI_TYPOGRAPHY.BODY,
+            SETTINGS.UI_THEME.TEXT_PRIMARY,
+        )
         value_rect = value_surface.get_rect(midleft=(dropdown_rect.left + 16, dropdown_rect.centery))
         surface.blit(value_surface, value_rect)
 
@@ -215,7 +230,11 @@ class NetworkTab(SettingsTab):
                 pygame.draw.rect(surface, option_bg_color, option_rect, border_radius=6)
 
                 option_label = self.POLICY_LABELS.get(option, option.capitalize())
-                option_surface = option_font.render(option_label, True, text_color)
+                option_surface = self._render_text_surface(
+                    option_label,
+                    SETTINGS.UI_TYPOGRAPHY.BODY,
+                    text_color,
+                )
                 option_text_rect = option_surface.get_rect(midleft=(option_rect.left + 16, option_rect.centery))
                 surface.blit(option_surface, option_text_rect)
 

@@ -57,7 +57,11 @@ class SettingsTab(ABC):
 
         font = self._font(SETTINGS.UI_TYPOGRAPHY.SMALL)
         label = "Reset This Section"
-        label_surface = font.render(label, True, SETTINGS.UI_THEME.TEXT_PRIMARY)
+        label_surface = self._render_text_surface(
+            label,
+            SETTINGS.UI_TYPOGRAPHY.SMALL,
+            SETTINGS.UI_THEME.TEXT_PRIMARY,
+        )
 
         icon = self._try_load_icon("back")
         icon_width = icon_size if icon is not None else 0
@@ -129,8 +133,16 @@ class SettingsTab(ABC):
         color: tuple[int, int, int],
         center: tuple[int, int],
     ) -> None:
-        rendered = self._font(size).render(text, True, color)
+        rendered = self._render_text_surface(text, size, color)
         surface.blit(rendered, rendered.get_rect(center=center))
+
+    def _render_text_surface(
+        self,
+        text: str,
+        size: int,
+        color: tuple[int, int, int],
+    ) -> pygame.Surface:
+        return self._font(size).render(text, SETTINGS.UI_TYPOGRAPHY.ANTIALIAS, color)
 
     def _draw_tab_background_and_title(
         self,
@@ -186,16 +198,17 @@ class SettingsTab(ABC):
         if align == "left":
             current_y = y
             for line in lines:
-                rendered = font.render(line, True, color)
+                rendered = self._render_text_surface(line, font_size, color)
                 surface.blit(rendered, (x, current_y))
                 current_y += rendered.get_height() + line_spacing
             return current_y
 
-        total_height = len(lines) * (font.get_height() + line_spacing) - line_spacing if lines else 0
+        line_height = font.get_height()
+        total_height = len(lines) * (line_height + line_spacing) - line_spacing if lines else 0
         start_y = y - total_height // 2
         for index, line in enumerate(lines):
-            rendered = font.render(line, True, color)
-            line_y = start_y + index * (font.get_height() + line_spacing)
+            rendered = self._render_text_surface(line, font_size, color)
+            line_y = start_y + index * (line_height + line_spacing)
             surface.blit(rendered, rendered.get_rect(center=(x, line_y)))
         return start_y + total_height
 
@@ -217,6 +230,7 @@ class SettingsTab(ABC):
         label: str,
         font: pygame.font.Font,
         *,
+        text_size: int = SETTINGS.UI_TYPOGRAPHY.BODY,
         is_hovered: bool = False,
         is_selected: bool = False,
         label_left_padding: int = 16,
@@ -235,7 +249,7 @@ class SettingsTab(ABC):
 
         pygame.draw.rect(surface, bg_color, row_rect, border_radius=border_radius)
 
-        label_surface = font.render(label, True, text_color)
+        label_surface = self._render_text_surface(label, text_size, text_color)
         label_rect = label_surface.get_rect(midleft=(row_rect.left + label_left_padding, row_rect.centery))
         surface.blit(label_surface, label_rect)
 
@@ -266,9 +280,10 @@ class SettingsTab(ABC):
         font: pygame.font.Font,
         color: tuple[int, int, int],
         *,
+        text_size: int = SETTINGS.UI_TYPOGRAPHY.BODY,
         right_padding: int = 16,
     ) -> None:
-        value_surface = font.render(value_text, True, color)
+        value_surface = self._render_text_surface(value_text, text_size, color)
         value_rect = value_surface.get_rect(midright=(row_rect.right - right_padding, row_rect.centery))
         surface.blit(value_surface, value_rect)
 

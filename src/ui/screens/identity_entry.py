@@ -106,7 +106,7 @@ class IdentityEntryScreen(Screen):
         display_text = self._text or "_"
         rendered_input = self._font(SETTINGS.UI_TYPOGRAPHY.BODY).render(
             display_text,
-            True,
+            SETTINGS.UI_TYPOGRAPHY.ANTIALIAS,
             SETTINGS.UI_THEME.YELLOW,
         )
         surface.blit(rendered_input, rendered_input.get_rect(center=input_rect.center))

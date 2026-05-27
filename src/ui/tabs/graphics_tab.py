@@ -54,7 +54,14 @@ class GraphicsTab(SettingsTab):
             self._option_hitboxes.append((path, row_rect))
 
             is_hovered = path == self.hovered_option_path
-            self._draw_option_row(surface, row_rect, label, row_font, is_hovered=is_hovered)
+            self._draw_option_row(
+                surface,
+                row_rect,
+                label,
+                row_font,
+                text_size=SETTINGS.UI_TYPOGRAPHY.BODY,
+                is_hovered=is_hovered,
+            )
 
             checked = False
             if self.settings_manager is not None:
