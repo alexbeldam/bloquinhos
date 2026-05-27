@@ -105,6 +105,22 @@ class UserDataDAO:
         data = self.load()
         return bool(data and data.get("pending_remote_validation", False))
 
+    def save_dict(self, data: dict[str, Any]) -> bool:
+        """Persist an arbitrary data dict to the local encrypted save file.
+
+        This is used by the synchronizer to overwrite local data with
+        a remote record that has a higher score.
+
+        Args:
+            data: A dict with keys ``name``, ``score``, ``lines``,
+                  ``level``, ``played_at`` (and optionally
+                  ``pending_remote_validation``).
+
+        Returns:
+            True if the write succeeded, False otherwise.
+        """
+        return self._write(data)
+
     def _write(self, data: dict[str, Any]) -> bool:
         try:
             os.makedirs(os.path.dirname(self._save_path), exist_ok=True)
