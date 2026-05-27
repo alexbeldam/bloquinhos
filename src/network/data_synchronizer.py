@@ -79,7 +79,6 @@ class DataSynchronizer:
         if remote_score > local_score:
             return self._download_remote(name, remote_data)
 
-        # Scores are equal — resolve by timestamp
         return self._resolve_tie(local_data, remote_data)
 
     def compare_scores(self, local: Dict[str, Any], remote: Optional[Dict[str, Any]]) -> bool:
@@ -100,26 +99,40 @@ class DataSynchronizer:
         if local_score < remote_score:
             return False
 
-        # Scores equal — use timestamp tie-breaker
         return self._local_timestamp_wins(local, remote)
 
     def upload_if_higher(self, user_data: Dict[str, Any]) -> bool:
-        """Upload local data to MongoDB if it beats the remote record.
+        """Upload local data to MongoDB ONLY if it beats the remote record.
+
+        Validates that the local score is strictly greater than the remote
+        score (or no remote record exists) before performing the upload.
 
         Args:
             user_data: The local user data dict to upload.
 
         Returns:
-            True if the upload succeeded or was not needed, False on error.
+            True if the upload succeeded, False if it was not needed or on error.
         """
         if not self._network.is_online or self._network.db is None:
+            log.debug("Upload skipped: network is offline or DB unavailable")
             return False
 
         name = user_data.get("name", "")
         if not name:
+            log.warning("Upload skipped: no name in user_data")
             return False
 
         try:
+            remote_data = self._query_remote(name)
+            
+            if not self.compare_scores(user_data, remote_data):
+                log.info(
+                    "Upload skipped for '%s': local score (%s) is not higher than remote",
+                    name,
+                    user_data.get("score", 0),
+                )
+                return False
+
             collection = self._network.db[SETTINGS.NETWORK.SCORES_COLLECTION]
             collection.update_one(
                 {"name": name},
@@ -160,16 +173,11 @@ class DataSynchronizer:
             return None
 
         try:
-            collection = self._network.db[SETTINGS.NETWORK.SCORES_COLLECTION]
-            remote_doc = collection.find_one({"name": name})
-            if remote_doc is None:
+            remote_data = self._query_remote(name)
+            if remote_data is None:
                 return None
 
-            remote_data = self._mongo_doc_to_dict(remote_doc, name)
-            local_data = self._dao.load()
-
-            if local_data is None or self._is_remote_higher(local_data, remote_data):
-                self._dao.save_dict(remote_data)
+            if self._persist_remote_if_higher(remote_data):
                 log.info(
                     "Downloaded remote data for '%s' (score=%s)",
                     name,
@@ -182,9 +190,25 @@ class DataSynchronizer:
             log.error("Download failed for '%s': %s", name, exc, exc_info=True)
             return None
 
-    # ------------------------------------------------------------------
-    # Internal helpers
-    # ------------------------------------------------------------------
+    def _persist_remote_if_higher(self, remote_data: Dict[str, Any]) -> bool:
+        """Helper: persist remote data only if it beats local record.
+
+        Used internally to avoid duplicate comparisons in _resolve_tie
+        and download_if_higher.
+
+        Args:
+            remote_data: The remote data dict to potentially persist.
+
+        Returns:
+            True if remote data was persisted, False otherwise.
+        """
+        local_data = self._dao.load()
+
+        if local_data is None or self._is_remote_higher(local_data, remote_data):
+            return self._dao.save_dict(remote_data)
+
+        return False
+
 
     def _query_remote(self, name: str) -> Optional[Dict[str, Any]]:
         """Query MongoDB for a document matching the given name."""
@@ -217,7 +241,6 @@ class DataSynchronizer:
 
         diff = abs((local_ts - remote_ts).total_seconds())
 
-        # Timestamps within 1 second → keep local (no unnecessary sync)
         if diff < 1.0:
             return True
 
@@ -233,21 +256,23 @@ class DataSynchronizer:
             local_ts = self._parse_played_at(local.get("played_at", ""))
             remote_ts = self._parse_played_at(remote.get("played_at", ""))
         except (ValueError, TypeError):
-            return SyncResult(SyncStatus.NO_CHANGE, "Scores equal, skipping sync")
+            return SyncResult(SyncStatus.NO_CHANGE, "No remote score changes")
 
         diff = abs((local_ts - remote_ts).total_seconds())
 
-        # Timestamps very close → no action needed
         if diff < 1.0:
             return SyncResult(
                 SyncStatus.NO_CHANGE,
-                "Scores equal with close timestamps, no action",
+                "No remote score changes",
             )
 
         if local_ts > remote_ts:
             return self._upload_local(local)
 
-        return self._download_remote(local.get("name", ""), remote)
+        if self._persist_remote_if_higher(remote):
+            return SyncResult(SyncStatus.SUCCESS, "Remote data downloaded locally")
+        
+        return SyncResult(SyncStatus.NO_CHANGE, "Remote data not newer")
 
     def _upload_local(self, local_data: Dict[str, Any]) -> SyncResult:
         """Helper: upload local data and wrap result."""
@@ -275,14 +300,16 @@ class DataSynchronizer:
             log.error("Download failed for '%s': %s", name, exc, exc_info=True)
             return SyncResult(SyncStatus.FAILURE, str(exc))
 
-    # ------------------------------------------------------------------
-    # Utility methods
-    # ------------------------------------------------------------------
-
     @staticmethod
     def _safe_int(value: Any) -> int:
-        """Return value if it is a non-negative int, otherwise 0."""
-        return value if isinstance(value, int) and value >= 0 else 0
+        """Return value if it is a non-negative number, otherwise 0.
+
+        Accepts both ``int`` and ``float`` since MongoDB's BSON deserializer
+        may return either type.
+        """
+        if isinstance(value, (int, float)) and value >= 0:
+            return int(value)
+        return 0
 
     @staticmethod
     def _utc_now() -> str:
@@ -296,8 +323,13 @@ class DataSynchronizer:
 
     @staticmethod
     def _parse_played_at(value: Any) -> datetime:
-        """Parse a played_at value into a datetime object."""
+        """Parse a played_at value into an offset-aware UTC datetime."""
         if isinstance(value, datetime):
+            if value.tzinfo is None:
+                return value.replace(tzinfo=timezone.utc)
             return value
         cleaned = str(value).replace("Z", "+00:00").replace("z", "+00:00")
-        return datetime.fromisoformat(cleaned)
+        dt = datetime.fromisoformat(cleaned)
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt
