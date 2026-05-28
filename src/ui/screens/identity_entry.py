@@ -7,7 +7,7 @@ from network import DataSynchronizer, SyncStatus
 from security.identity_manager import IdentityManager, IdentityStatus
 from settings import SETTINGS
 from ui.assets import AssetManager
-from ui.components.sync_indicator import SyncIndicator, SyncIndicatorStatus
+from ui.components.sync_indicator import SyncIndicator
 from ui.screen import Screen
 from utils.logger import log
 
