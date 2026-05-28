@@ -223,7 +223,7 @@ class DataSynchronizer:
             )
             return SyncResult(SyncStatus.SUCCESS, "Remote data downloaded locally")
         except Exception as exc:
-            log.error("Download failed for '%s': %s", name, exc, exc_info=True)
+            log.error("Download failed for '%s'", name, exc_info=True)
             return SyncResult(SyncStatus.FAILURE, str(exc))
 
     @staticmethod
