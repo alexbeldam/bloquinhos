@@ -64,7 +64,7 @@ class DataSynchronizer:
         try:
             remote_data = self._query_remote(name)
         except Exception as exc:
-            log.error(f"Sync failed: could not query remote data — {exc}", exc_info=True)
+            log.error("Sync failed: could not query remote data", exc_info=True)
             return SyncResult(SyncStatus.FAILURE, str(exc))
 
         if remote_data is None:
