@@ -153,7 +153,7 @@ class DataSynchronizer:
             )
             return True
         except Exception as exc:
-            log.error("Upload failed for '%s': %s", name, exc, exc_info=True)
+            log.error("Upload failed for '%s'", name, exc_info=True)
             return False
 
     def download_if_higher(self, name: str) -> Optional[Dict[str, Any]]:
