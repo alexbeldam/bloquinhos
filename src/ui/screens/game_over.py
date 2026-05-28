@@ -86,7 +86,7 @@ class GameOverScreen(Screen):
                 self._sync_indicator.set_offline(duration=2.0)
             elif result.status == SyncStatus.FAILURE:
                 self._sync_indicator.set_error(result.message, duration=3.0)
-            else:  # NO_CHANGE
+            else:
                 self._sync_indicator.set_idle()
         except Exception as exc:
             log.error("Sync after game over failed", exc_info=True)
@@ -112,5 +112,4 @@ class GameOverScreen(Screen):
         
         self.menu.render(surface, center_x, center_y + 20, self._draw_text)
         
-        # Render sync indicator at the top
         self._sync_indicator.render(surface, (center_x, 40))

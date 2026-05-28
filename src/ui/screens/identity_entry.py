@@ -53,12 +53,12 @@ class IdentityEntryScreen(Screen):
                 continue
             if event.key == pygame.K_RETURN:
                 if self._registering:
-                    continue  # Ignore input while registering
+                    continue
                     
                 if self.identity_manager.register_identity(self._text):
                     self._registering = True
                     self._sync_indicator.set_syncing()
-                    return None  # Wait for sync to complete
+                    return None
                 self._error = "Use 3-15 letters, numbers, or underscore. Name must be unique."
                 continue
 
@@ -77,7 +77,6 @@ class IdentityEntryScreen(Screen):
             self._sync_result_handled = True
             self._trigger_sync(self._text)
         
-        # Auto-proceed to next screen when sync completes successfully
         if self._registering and self._sync_indicator.is_visible() is False:
             self._registering = False
             return self._return_screen_provider()
@@ -99,7 +98,7 @@ class IdentityEntryScreen(Screen):
                 self._sync_indicator.set_offline(duration=1.5)
             elif result.status == SyncStatus.FAILURE:
                 self._sync_indicator.set_error(result.message, duration=2.0)
-            else:  # NO_CHANGE
+            else:  
                 self._sync_indicator.set_idle()
         except Exception as exc:
             log.error("Sync after registration failed", exc_info=True)
@@ -158,7 +157,6 @@ class IdentityEntryScreen(Screen):
             (center_x, center_y + 105),
         )
         
-        # Render sync indicator at the bottom if registering
         if self._registering:
             self._sync_indicator.render(surface, (center_x, surface.get_height() - 50))
 
@@ -179,18 +177,3 @@ class IdentityEntryScreen(Screen):
             "help": "3-15: letters, numbers, and _",
         }
 
-    def handle_sync_result(self, sync_status: str, message: str = "") -> None:
-        """Handle sync result during registration.
-
-        Args:
-            sync_status: One of 'success', 'offline', 'error', 'no_change'.
-            message: Optional message with error details.
-        """
-        if sync_status == "success":
-            self._sync_indicator.set_success(duration=1.5)
-        elif sync_status == "offline":
-            self._sync_indicator.set_offline(duration=1.5)
-        elif sync_status == "error":
-            self._sync_indicator.set_error(message or "Erro ao sincronizar", duration=2.0)
-        else:  # no_change
-            self._sync_indicator.set_idle()
