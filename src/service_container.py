@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from security.identity_manager import IdentityManager
     from network.connection_manager import NetworkManager
     from network.data_synchronizer import DataSynchronizer
+    from network.leaderboard_manager import LeaderboardManager
     from network.user_data_dao import UserDataDAO
     from ui.assets import AssetManager
     from ui.audio import AudioManager
@@ -25,6 +26,7 @@ class ServiceContainer:
         self._identity_manager: Optional['IdentityManager'] = None
         self._data_synchronizer: Optional['DataSynchronizer'] = None
         self._settings_manager: Optional['SettingsManager'] = None
+        self._leaderboard_manager: Optional['LeaderboardManager'] = None
         self._identity_context_lock = threading.Lock()
         self._identity_entry_reason = "missing"
         self._identity_return_screen = SETTINGS.SCREEN_NAMES.MENU
@@ -70,6 +72,16 @@ class ServiceContainer:
             network = self.initialize_network()
             self._data_synchronizer = DataSynchronizer(dao, network)
         return self._data_synchronizer
+
+    def initialize_leaderboard_manager(self) -> 'LeaderboardManager':
+        if self._leaderboard_manager is None:
+            from network.leaderboard_manager import LeaderboardManager
+            from network.user_data_dao import UserDataDAO
+
+            dao = UserDataDAO()
+            network = self.initialize_network()
+            self._leaderboard_manager = LeaderboardManager(network, dao)
+        return self._leaderboard_manager
 
     def initialize_settings_manager(self) -> 'SettingsManager':
         if self._settings_manager is None:
@@ -124,6 +136,12 @@ class ServiceContainer:
         if self._data_synchronizer is None:
             raise RuntimeError("DataSynchronizer not initialized. Call initialize_synchronizer() first.")
         return self._data_synchronizer
+
+    @property
+    def leaderboard_manager(self) -> 'LeaderboardManager':
+        if self._leaderboard_manager is None:
+            raise RuntimeError("LeaderboardManager not initialized. Call initialize_leaderboard_manager() first.")
+        return self._leaderboard_manager
 
     @property
     def settings_manager(self) -> 'SettingsManager':
