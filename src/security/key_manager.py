@@ -63,10 +63,14 @@ class _UnixBackend(_KeyBackend):
     def load(self) -> Optional[bytes]:
         try:
             import keyring
+            from keyring.errors import NoKeyringError
             from settings import SETTINGS
 
             value = keyring.get_password(SETTINGS.SECURITY.KEYRING_SERVICE, SETTINGS.SECURITY.KEYRING_ACCOUNT)
             return value.encode("utf-8") if value is not None else None
+        except NoKeyringError:
+            log.warning("No keyring backend available; using fallback key storage")
+            return None
         except Exception:
             log.warning("Keyring load failed", exc_info=True)
             return None
@@ -74,10 +78,14 @@ class _UnixBackend(_KeyBackend):
     def store(self, key: bytes) -> bool:
         try:
             import keyring
+            from keyring.errors import NoKeyringError
             from settings import SETTINGS
 
             keyring.set_password(SETTINGS.SECURITY.KEYRING_SERVICE, SETTINGS.SECURITY.KEYRING_ACCOUNT, key.decode("utf-8"))
             return True
+        except NoKeyringError:
+            log.warning("No keyring backend available; using fallback key storage")
+            return False
         except Exception:
             log.warning("Keyring storage failed, using fallback", exc_info=True)
             return False

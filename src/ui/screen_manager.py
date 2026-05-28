@@ -14,6 +14,7 @@ class ScreenManager:
         self._screens: Dict[str, Screen] = {}
         self.current_screen: Optional[Screen] = None
         self._current_name: Optional[str] = None
+        self._previous_name: Optional[str] = None
         self._running = False
         self._transition_guard: Optional[Callable[[str], str]] = None
         self._create_window(width, height, decorated, icon)
@@ -62,12 +63,17 @@ class ScreenManager:
 
         log.debug(f"Switching to screen: {name}")
         pygame.event.clear()
+        self._previous_name = self._current_name
         self._current_name = name
         self.current_screen = self._screens[name]
 
     @property
     def current_name(self) -> Optional[str]:
         return self._current_name
+
+    @property
+    def previous_name(self) -> Optional[str]:
+        return self._previous_name
 
     def _apply_transition_guard(self, name: str) -> str:
         if self._transition_guard is None:

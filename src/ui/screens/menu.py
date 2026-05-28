@@ -15,6 +15,7 @@ class MenuScreen(Screen):
     OPTIONS: Sequence[Tuple[str, str]] = (
         ("Jogar", SETTINGS.SCREEN_NAMES.GAME),
         ("Ranking", SETTINGS.SCREEN_NAMES.RANKING),
+        ("Configurações", SETTINGS.SCREEN_NAMES.SETTINGS),
         ("Sair", SETTINGS.SCREEN_NAMES.QUIT),
     )
 
@@ -25,12 +26,16 @@ class MenuScreen(Screen):
             font_renderer=self._font,
             selected_color=SETTINGS.UI_THEME.YELLOW,
             unselected_color=SETTINGS.UI_THEME.PURPLE,
+            font_size=SETTINGS.UI_TYPOGRAPHY.TITLE,
         )
 
     def handle_events(self, events: List[pygame.event.Event]) -> Optional[str]:
         for event in events:
             if event.type == pygame.QUIT:
                 return SETTINGS.SCREEN_NAMES.QUIT
+
+            if self._handle_network_status_event(event):
+                continue
             
             if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 return SETTINGS.SCREEN_NAMES.QUIT
@@ -85,3 +90,4 @@ class MenuScreen(Screen):
         current_y += title_height + 60
         
         self.menu.render(surface, center_x, current_y, self._draw_text)
+        self._render_network_status(surface)

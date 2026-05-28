@@ -84,7 +84,7 @@ class PathConfig:
     DATA_DIR: str = "data"
     ENV_FILE: str = ".env"
     SAVE_FILE: str = ".user_data.bin"
-    PREFS_FILE: str = "preferences.json"
+    PREFS_FILE: str = "settings.json"
     IMG_DIR: str = "img"
     ICON_FILE: str = "logo.png"
     AUD_DIR: str = "aud"
@@ -130,13 +130,14 @@ class GameplayConfig:
 
 @dataclass(frozen=True)
 class UITypographyConfig:
-    FONT_NAME: str = "PressStart2P-Regular.ttf"
-    TINY: int = 8
-    SMALL: int = 12
-    BODY: int = 16
-    LARGE: int = 20
-    TITLE: int = 24
-    DISPLAY: int = 32
+    FONT_NAME: str = "Ruler 9.ttf"
+    ANTIALIAS: bool = False
+    TINY: int = 12
+    SMALL: int = 16
+    BODY: int = 25
+    LARGE: int = 32
+    TITLE: int = 40
+    DISPLAY: int = 48
     
     @property
     def all_sizes(self) -> Tuple[int, ...]:
@@ -203,6 +204,8 @@ class NetworkConfig:
     SERVER_SELECTION_TIMEOUT_MS: int = 2000
     HEARTBEAT_INTERVAL_S: int = 30
     SCORES_COLLECTION: str = "scores"
+    AUTO_MAX_RETRIES: int = 4
+    REQUEST_WAIT_S: float = 0.25
 
 @dataclass(frozen=True)
 class SecurityConfig:
@@ -214,10 +217,12 @@ class SecurityConfig:
 @dataclass(frozen=True)
 class LoadingMessagesConfig:
     SERVICES: str = "Warming up the engines..."
+    PREFERENCES: str = "Applying player preferences..."
     NETWORK: str = "Establishing uplink..."
     GAME: str = "Spawning first piece..."
     SCREENS: str = "Building the playfield..."
     IDENTITY: str = "Checking player identity..."
+    TABS: str = "Preparing the control room..."
     ASSETS: str = "Coloring the blocks..."
 
 @dataclass(frozen=True)
@@ -229,6 +234,7 @@ class ScreenNames:
     GAME_OVER: str = "game_over"
     PAUSE: str = "pause"
     RANKING: str = "ranking"
+    SETTINGS: str = "settings"
     QUIT: str = "quit"
 
 @dataclass(frozen=True)

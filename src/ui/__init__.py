@@ -17,6 +17,16 @@ from ui.screens import (
     MenuScreen,
     PauseScreen,
     RankingScreen,
+    SettingsScreen,
+)
+from ui.tabs import (
+    AudioTab,
+    ControlsTab,
+    GraphicsTab,
+    LocalizationTab,
+    NetworkTab,
+    SettingsTab,
+    SettingsTabRegistry,
 )
 
 __all__ = [
@@ -32,4 +42,12 @@ __all__ = [
     'PauseScreen',
     'RankingScreen',
     'LoadingScreen',
+    'SettingsScreen',
+    'SettingsTab',
+    'SettingsTabRegistry',
+    'AudioTab',
+    'ControlsTab',
+    'GraphicsTab',
+    'LocalizationTab',
+    'NetworkTab',
 ]

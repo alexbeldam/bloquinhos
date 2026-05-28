@@ -14,8 +14,9 @@ class AudioManager:
         self.bgm_volume: float = 1.0
         self.sfx_volume: float = 1.0
 
-        self.bgm_enabled: bool = True
-        self.sfx_enabled: bool = True
+        self.master_muted: bool = False
+        self.bgm_muted: bool = False
+        self.sfx_muted: bool = False
 
         self.current_bgm: Optional[str] = None
 
@@ -28,7 +29,7 @@ class AudioManager:
         log.debug("Audio mixer initialized")
 
     def play_bgm(self, name: str, loop: bool = True) -> None:
-        if not self.bgm_enabled:
+        if self.bgm_muted:
             return
 
         if self.current_bgm == name and pygame.mixer.music.get_busy():
@@ -49,7 +50,7 @@ class AudioManager:
         self.current_bgm = None
 
     def play_sfx(self, name: str) -> None:
-        if not self.sfx_enabled:
+        if self.master_muted or self.sfx_muted:
             return
 
         try:
@@ -73,20 +74,27 @@ class AudioManager:
         self.sfx_volume = max(0.0, min(1.0, volume))
 
     def _update_bgm_volume(self) -> None:
-        pygame.mixer.music.set_volume(self.master_volume * self.bgm_volume)
+        if pygame.mixer.get_init():
+            if self.master_muted or self.bgm_muted:
+                pygame.mixer.music.set_volume(0.0)
+            else:
+                pygame.mixer.music.set_volume(self.master_volume * self.bgm_volume)
 
-    def toggle_bgm(self) -> bool:
-        self.bgm_enabled = not self.bgm_enabled
-        if not self.bgm_enabled:
-            pygame.mixer.music.pause()
-        else:
-            if self.current_bgm:
+    def set_master_muted(self, muted: bool) -> None:
+        self.master_muted = muted
+        self._update_bgm_volume()
+
+    def set_bgm_muted(self, muted: bool) -> None:
+        self.bgm_muted = muted
+        if pygame.mixer.get_init():
+            if muted and pygame.mixer.music.get_busy():
+                pygame.mixer.music.pause()
+            elif not muted and self.current_bgm:
                 pygame.mixer.music.unpause()
-        return self.bgm_enabled
+        self._update_bgm_volume()
 
-    def toggle_sfx(self) -> bool:
-        self.sfx_enabled = not self.sfx_enabled
-        return self.sfx_enabled
+    def set_sfx_muted(self, muted: bool) -> None:
+        self.sfx_muted = muted
 
     def register_events(self, controller: GameController) -> None:
         def handle_piece_locked(piece) -> None:

@@ -1,19 +1,20 @@
 import os
+
 from dotenv import load_dotenv
+
 from .path_manager import PathManager as pm
 from .logger import log, update_log_level
 
-def load_env_vars():
+def load_env_vars() -> None:
     env_path = pm.get_env_path()
     
     if os.path.exists(env_path):
         load_dotenv(env_path)
-        log.debug("Environment configuration loaded from .env")
 
         log_level = os.getenv("LOG_LEVEL", "INFO")
         update_log_level(log_level)
     else:
         log.warning("Environment file not found - using default configuration")
 
-def get_env(key, default=None):
+def get_env(key: str, default: str | None = None) -> str | None:
     return os.getenv(key, default)
