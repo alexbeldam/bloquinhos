@@ -112,43 +112,59 @@ class LoadingScreen(Screen):
                         self.update_progress(SETTINGS.LOADING_MESSAGES.SERVICES, 10, 100)
                     else:
                         self.update_progress(SETTINGS.LOADING_MESSAGES.SERVICES, 10, 100)
+
+                    if 'preferences' in self.init_callbacks:
+                        self.update_progress(SETTINGS.LOADING_MESSAGES.PREFERENCES, 10, 100)
+                        log.debug("Starting preferences initialization phase")
+                        self.init_callbacks['preferences']()
+                        self.update_progress(SETTINGS.LOADING_MESSAGES.PREFERENCES, 20, 100)
+                    else:
+                        self.update_progress(SETTINGS.LOADING_MESSAGES.PREFERENCES, 20, 100)
                     
                     if 'network' in self.init_callbacks:
-                        self.update_progress(SETTINGS.LOADING_MESSAGES.NETWORK, 10, 100)
+                        self.update_progress(SETTINGS.LOADING_MESSAGES.NETWORK, 20, 100)
                         log.debug("Starting network initialization phase")
                         self.init_callbacks['network']()
-                        self.update_progress(SETTINGS.LOADING_MESSAGES.NETWORK, 25, 100)
+                        self.update_progress(SETTINGS.LOADING_MESSAGES.NETWORK, 30, 100)
                     else:
-                        self.update_progress(SETTINGS.LOADING_MESSAGES.NETWORK, 25, 100)
+                        self.update_progress(SETTINGS.LOADING_MESSAGES.NETWORK, 30, 100)
                     
                     if 'game' in self.init_callbacks:
-                        self.update_progress(SETTINGS.LOADING_MESSAGES.GAME, 25, 100)
+                        self.update_progress(SETTINGS.LOADING_MESSAGES.GAME, 30, 100)
                         log.debug("Starting game initialization phase")
                         self.init_callbacks['game']()
-                        self.update_progress(SETTINGS.LOADING_MESSAGES.GAME, 35, 100)
+                        self.update_progress(SETTINGS.LOADING_MESSAGES.GAME, 40, 100)
                     else:
-                        self.update_progress(SETTINGS.LOADING_MESSAGES.GAME, 35, 100)
+                        self.update_progress(SETTINGS.LOADING_MESSAGES.GAME, 40, 100)
                     
                     if 'screens' in self.init_callbacks:
-                        self.update_progress(SETTINGS.LOADING_MESSAGES.SCREENS, 35, 100)
+                        self.update_progress(SETTINGS.LOADING_MESSAGES.SCREENS, 40, 100)
                         log.debug("Starting screen creation phase")
                         self.init_callbacks['screens']()
-                        self.update_progress(SETTINGS.LOADING_MESSAGES.SCREENS, 45, 100)
+                        self.update_progress(SETTINGS.LOADING_MESSAGES.SCREENS, 50, 100)
                     else:
-                        self.update_progress(SETTINGS.LOADING_MESSAGES.SCREENS, 45, 100)
+                        self.update_progress(SETTINGS.LOADING_MESSAGES.SCREENS, 50, 100)
+
+                    if 'tabs' in self.init_callbacks:
+                        self.update_progress(SETTINGS.LOADING_MESSAGES.TABS, 50, 100)
+                        log.debug("Starting tabs registration phase")
+                        self.init_callbacks['tabs']()
+                        self.update_progress(SETTINGS.LOADING_MESSAGES.TABS, 55, 100)
+                    else:
+                        self.update_progress(SETTINGS.LOADING_MESSAGES.TABS, 55, 100)
 
                     if 'identity' in self.init_callbacks:
-                        self.update_progress(SETTINGS.LOADING_MESSAGES.IDENTITY, 45, 100)
+                        self.update_progress(SETTINGS.LOADING_MESSAGES.IDENTITY, 55, 100)
                         log.debug("Starting identity initialization phase")
                         next_screen = self.init_callbacks['identity']()
                         if isinstance(next_screen, str):
                             self._next_screen = next_screen
-                        self.update_progress(SETTINGS.LOADING_MESSAGES.IDENTITY, 55, 100)
+                        self.update_progress(SETTINGS.LOADING_MESSAGES.IDENTITY, 60, 100)
                     else:
-                        self.update_progress(SETTINGS.LOADING_MESSAGES.IDENTITY, 55, 100)
+                        self.update_progress(SETTINGS.LOADING_MESSAGES.IDENTITY, 60, 100)
                     
                     if self.assets is not None:
-                        self.update_progress(SETTINGS.LOADING_MESSAGES.ASSETS, 55, 100)
+                        self.update_progress(SETTINGS.LOADING_MESSAGES.ASSETS, 60, 100)
                         log.debug("Preparing asset loading work items")
                         self._prepare_asset_work_items()
                     

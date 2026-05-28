@@ -8,6 +8,7 @@ from security.identity_manager import IdentityStatus
 from service_container import ServiceContainer
 from settings import SETTINGS
 from ui.screen_factory import ScreenFactory
+from ui.tabs import AudioTab, ControlsTab, GraphicsTab, LocalizationTab, NetworkTab, SettingsTabRegistry
 from utils.path_manager import PathManager
 import utils.env_manager as env
 from utils.logger import log
@@ -35,9 +36,11 @@ class Application:
             
             init_callbacks = {
                 'services': self._init_services,
+                'preferences': self._init_preferences,
                 'network': self._init_network_connection,
                 'game': self._init_game,
                 'screens': self._init_screens,
+                'tabs': self._init_tabs,
                 'identity': self._init_identity,
             }
             
@@ -113,14 +116,85 @@ class Application:
     def _init_services(self) -> None:
         log.debug("Initializing services")
         self.services.initialize_assets()
+        self.services.initialize_settings_manager()
         self.services.initialize_audio()
-        network_manager = self.services.initialize_network()
-        self.services.initialize_identity_manager()
-        network_manager.add_reconnect_listener(self._on_network_reconnected)
+
+    def _init_preferences(self) -> None:
+        settings_manager = self.services.settings_manager
+        settings_manager.load()
+
+        self._apply_audio_preferences()
+        self._bind_runtime_settings_observers()
+
+    def _apply_audio_preferences(self) -> None:
+        settings_manager = self.services.settings_manager
+
+        audio_settings = settings_manager.get("audio")
+        master_settings = audio_settings.get("master", {})
+        music_settings = audio_settings.get("music", {})
+        sfx_settings = audio_settings.get("sfx", {})
+
+        audio_manager = self.services.audio_manager
+        audio_manager.set_master_volume(float(master_settings.get("volume", 0.7)))
+        audio_manager.set_bgm_volume(float(music_settings.get("volume", 0.7)))
+        audio_manager.set_sfx_volume(float(sfx_settings.get("volume", 0.8)))
+
+        audio_manager.set_master_muted(bool(master_settings.get("muted", False)))
+        audio_manager.set_bgm_muted(bool(music_settings.get("muted", False)))
+        audio_manager.set_sfx_muted(bool(sfx_settings.get("muted", False)))
+
+    def _bind_runtime_settings_observers(self) -> None:
+        settings_manager = self.services.settings_manager
+
+        def on_audio_setting_changed(path: str, _old_value, new_value) -> None:
+            audio_manager = self.services.audio_manager
+
+            if path == "audio.master.volume":
+                audio_manager.set_master_volume(float(new_value))
+            elif path == "audio.music.volume":
+                audio_manager.set_bgm_volume(float(new_value))
+            elif path == "audio.sfx.volume":
+                audio_manager.set_sfx_volume(float(new_value))
+            elif path == "audio.master.muted":
+                audio_manager.set_master_muted(bool(new_value))
+            elif path == "audio.music.muted":
+                audio_manager.set_bgm_muted(bool(new_value))
+            elif path == "audio.sfx.muted":
+                audio_manager.set_sfx_muted(bool(new_value))
+
+        def on_network_setting_changed(path: str, _old_value, new_value) -> None:
+            if path != "network.reconnect_policy" or not isinstance(new_value, str):
+                return
+
+            try:
+                network_manager = self.services.network_manager
+            except RuntimeError:
+                return
+
+            network_manager.update_reconnect_policy(new_value)
+
+        settings_manager.subscribe("audio.*", on_audio_setting_changed)
+        settings_manager.subscribe("network.reconnect_policy", on_network_setting_changed)
     
     def _init_network_connection(self) -> None:
+        start_offline = self.services.settings_manager.get_bool("network.start_offline")
+        reconnect_policy = self.services.settings_manager.get("network.reconnect_policy")
+        if not isinstance(reconnect_policy, str):
+            reconnect_policy = "auto"
+
+        network_manager = self.services.initialize_network(
+            start_offline=start_offline,
+            reconnect_policy=reconnect_policy,
+        )
+        self.services.initialize_identity_manager()
+        network_manager.add_reconnect_listener(self._on_network_reconnected)
+
+        if start_offline:
+            log.info("Network startup configured for offline mode")
+            return
+
         log.debug("Waiting for database connection...")
-        if not self.services.network_manager.wait_for_connection(timeout=SETTINGS.NETWORK.CONNECTION_TIMEOUT):
+        if not network_manager.wait_for_connection(timeout=SETTINGS.NETWORK.CONNECTION_TIMEOUT):
             log.warning(f"Database connection timeout after {SETTINGS.NETWORK.CONNECTION_TIMEOUT}s - running offline mode")
     
     def _init_game(self) -> None:
@@ -139,6 +213,19 @@ class Application:
         )
         ScreenFactory.register_screens(self.services.screen_manager, game_screens)
         log.debug(f"Registered {len(game_screens)} game screens")
+
+    def _init_tabs(self) -> None:
+        log.debug("Registering settings tabs...")
+        registry = SettingsTabRegistry()
+        registry.clear()
+        
+        registry.register(ControlsTab())
+        registry.register(GraphicsTab())
+        registry.register(AudioTab())
+        registry.register(NetworkTab())
+        registry.register(LocalizationTab())
+        
+        log.info("Settings tabs registered")
 
     def _init_identity(self) -> str:
         log.debug("Checking stored player identity...")
@@ -187,5 +274,9 @@ class Application:
     
     def _cleanup(self) -> None:
         log.debug("Shutting down application")
+        try:
+            self.services.settings_manager.save_on_exit()
+        except RuntimeError:
+            pass
         pygame.quit()
         log.info("Application closed")

@@ -13,6 +13,10 @@ if TYPE_CHECKING:
 
 
 class IdentityEntryScreen(Screen):
+    INPUT_HEIGHT = 46
+    INPUT_MAX_WIDTH = 380
+    INPUT_HORIZONTAL_MARGIN = 48
+
     def __init__(
         self,
         identity_manager: IdentityManager,
@@ -29,16 +33,29 @@ class IdentityEntryScreen(Screen):
         )
         self._text = ""
         self._error: Optional[str] = None
+        self._input_focused = True
 
     def handle_events(self, events: List[pygame.event.Event]) -> Optional[str]:
         for event in events:
             if event.type == pygame.QUIT:
                 return SETTINGS.SCREEN_NAMES.QUIT
+
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                input_rect = self._input_rect_for_surface(pygame.display.get_surface())
+                self._input_focused = input_rect.collidepoint(event.pos)
+
+            if self._handle_network_status_event(event, enabled=not self._input_focused or event.type == pygame.MOUSEBUTTONDOWN):
+                continue
+
             if event.type != pygame.KEYDOWN:
                 continue
 
             if event.key == pygame.K_ESCAPE:
                 return SETTINGS.SCREEN_NAMES.QUIT
+
+            if not self._input_focused:
+                continue
+
             if event.key == pygame.K_BACKSPACE:
                 self._text = self._text[:-1]
                 self._error = None
@@ -81,16 +98,15 @@ class IdentityEntryScreen(Screen):
             (center_x, center_y - 65),
         )
 
-        input_width = min(380, surface.get_width() - 48)
-        input_rect = pygame.Rect(0, 0, input_width, 46)
-        input_rect.center = (center_x, center_y)
+        input_rect = self._input_rect_for_surface(surface)
         pygame.draw.rect(surface, SETTINGS.UI_THEME.BG_MEDIUM, input_rect, border_radius=6)
-        pygame.draw.rect(surface, SETTINGS.UI_THEME.PURPLE, input_rect, 2, border_radius=6)
+        border_color = SETTINGS.UI_THEME.PURPLE if self._input_focused else SETTINGS.UI_THEME.TEXT_MUTED
+        pygame.draw.rect(surface, border_color, input_rect, 2, border_radius=6)
 
         display_text = self._text or "_"
         rendered_input = self._font(SETTINGS.UI_TYPOGRAPHY.BODY).render(
             display_text,
-            True,
+            SETTINGS.UI_TYPOGRAPHY.ANTIALIAS,
             SETTINGS.UI_THEME.YELLOW,
         )
         surface.blit(rendered_input, rendered_input.get_rect(center=input_rect.center))
@@ -107,11 +123,24 @@ class IdentityEntryScreen(Screen):
 
         self._draw_text(
             surface,
-            "Enter confirms",
+            "Click field to edit - Enter confirms",
             SETTINGS.UI_TYPOGRAPHY.SMALL,
             SETTINGS.UI_THEME.TEXT_MUTED,
             (center_x, center_y + 105),
         )
+        self._render_network_status(surface)
+
+    def _input_rect_for_surface(self, surface: Optional[pygame.Surface]) -> pygame.Rect:
+        surface_width = SETTINGS.GRID.GAME_WIDTH + SETTINGS.GRID.SIDEBAR_WIDTH
+        surface_height = SETTINGS.GRID.GAME_HEIGHT
+        if surface is not None:
+            surface_width = surface.get_width()
+            surface_height = surface.get_height()
+
+        input_width = min(self.INPUT_MAX_WIDTH, surface_width - self.INPUT_HORIZONTAL_MARGIN)
+        input_rect = pygame.Rect(0, 0, input_width, self.INPUT_HEIGHT)
+        input_rect.center = (surface_width // 2, surface_height // 2)
+        return input_rect
 
     def _copy_for_reason(self) -> dict[str, str]:
         reason = self._reason_provider()

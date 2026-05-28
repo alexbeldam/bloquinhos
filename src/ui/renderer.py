@@ -1,10 +1,13 @@
-from typing import Optional, Tuple
+from typing import Optional, Tuple, TYPE_CHECKING
 
 import pygame
 
 from engine import Board, GameController, GameSession, Tetromino, Tile
 from settings import SETTINGS
 from ui.assets import AssetManager
+
+if TYPE_CHECKING:
+    from utils.settings_manager import SettingsManager
 
 
 Color = Tuple[int, int, int]
@@ -17,19 +20,31 @@ class GameRenderer:
         assets: Optional[AssetManager],
         controller: GameController,
         session: GameSession,
+        settings_manager: Optional['SettingsManager'] = None,
     ) -> None:
         self.screen = screen
         self.assets = assets
         self.controller = controller
         self.session = session
+        self.settings_manager = settings_manager
 
     def render(self) -> None:
         self.screen.fill((10, 14, 22))
         self._render_board()
-        self._render_ghost_piece()
+        if self._setting_enabled("graphics.draw_ghost", True):
+            self._render_ghost_piece()
         self._render_active_piece()
-        self._render_grid_lines()
+        if self._setting_enabled("graphics.draw_grid", True):
+            self._render_grid_lines()
         self._render_sidebar()
+
+    def _setting_enabled(self, path: str, fallback: bool) -> bool:
+        if self.settings_manager is None:
+            return fallback
+        try:
+            return self.settings_manager.get_bool(path)
+        except (KeyError, TypeError, ValueError):
+            return fallback
 
     def _render_board(self) -> None:
         board_rect = pygame.Rect(
@@ -116,17 +131,17 @@ class GameRenderer:
 
         self._render_next_piece(left + 76, 50)
 
-        self._draw_text("SCORE", 16, (159, 173, 189), (left + 76, 210))
-        self._draw_text(str(self.session.score), 20, (242, 244, 248), (left + 76, 245))
+        self._draw_text("SCORE", SETTINGS.UI_TYPOGRAPHY.BODY, (159, 173, 189), (left + 76, 210))
+        self._draw_text(str(self.session.score), SETTINGS.UI_TYPOGRAPHY.BODY, (242, 244, 248), (left + 76, 245))
 
-        self._draw_text("LEVEL", 16, (159, 173, 189), (left + 76, 310))
-        self._draw_text(str(self.session.level), 20, (242, 244, 248), (left + 76, 345))
+        self._draw_text("LEVEL", SETTINGS.UI_TYPOGRAPHY.BODY, (159, 173, 189), (left + 76, 310))
+        self._draw_text(str(self.session.level), SETTINGS.UI_TYPOGRAPHY.BODY, (242, 244, 248), (left + 76, 345))
 
-        self._draw_text("LINES", 16, (159, 173, 189), (left + 76, 410))
-        self._draw_text(str(self.session.total_lines), 20, (242, 244, 248), (left + 76, 445))
+        self._draw_text("LINES", SETTINGS.UI_TYPOGRAPHY.BODY, (159, 173, 189), (left + 76, 410))
+        self._draw_text(str(self.session.total_lines), SETTINGS.UI_TYPOGRAPHY.BODY, (242, 244, 248), (left + 76, 445))
 
     def _render_next_piece(self, center_x: int, center_y: int) -> None:
-        self._draw_text("NEXT", 16, (159, 173, 189), (center_x, center_y))
+        self._draw_text("NEXT", SETTINGS.UI_TYPOGRAPHY.BODY, (159, 173, 189), (center_x, center_y))
 
         next_piece_type = self.controller.next_piece
         if next_piece_type is None:
@@ -208,7 +223,7 @@ class GameRenderer:
         self, text: str, size: int, color: Color, center: Tuple[int, int]
     ) -> None:
         font = self._get_font(size)
-        rendered = font.render(text, True, color)
+        rendered = font.render(text, SETTINGS.UI_TYPOGRAPHY.ANTIALIAS, color)
         self.screen.blit(rendered, rendered.get_rect(center=center))
 
     def _get_font(self, size: int) -> pygame.font.Font:
