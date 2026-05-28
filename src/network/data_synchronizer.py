@@ -187,7 +187,7 @@ class DataSynchronizer:
 
             return None
         except Exception as exc:
-            log.error("Download failed for '%s': %s", name, exc, exc_info=True)
+            log.error("Download failed for '%s'", name, exc_info=True)
             return None
 
     def _persist_remote_if_higher(self, remote_data: Dict[str, Any]) -> bool:
