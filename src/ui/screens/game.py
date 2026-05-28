@@ -43,6 +43,7 @@ class GameScreen(Screen):
         soft_drop_key = controls["soft_drop"]
         rotate_key = controls["rotate"]
         hard_drop_key = controls["hard_drop"]
+        hold_key = controls["hold"]
 
         for event in events:
             if event.type == pygame.QUIT:
@@ -73,6 +74,8 @@ class GameScreen(Screen):
                     self.audio_manager.play_sfx("rotate")
             elif event.key == hard_drop_key:
                 self.game_controller.hard_drop()
+            elif event.key == hold_key:
+                self.game_controller.hold_piece()
         return None
 
     def update(self, delta_time: float) -> Optional[str]:
@@ -107,6 +110,7 @@ class GameScreen(Screen):
             "soft_drop": pygame.K_DOWN,
             "rotate": pygame.K_UP,
             "hard_drop": pygame.K_SPACE,
+            "hold": pygame.K_c,
             "pause": pygame.K_ESCAPE,
         }
 

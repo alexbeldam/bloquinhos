@@ -1,13 +1,18 @@
-from typing import Callable, Protocol
+from enum import Enum, auto
+from typing import Callable
+
 from .tile import Tetromino as TetrominoType
 
 
-class GameEventHandler(Protocol):
-    def __call__(self, *args, **kwargs) -> None:
-        ...
-
+class EventType(Enum):
+    LINE_CLEAR = auto()
+    PIECE_LOCKED = auto()
+    GAME_OVER = auto()
+    NEXT_PIECE_CHANGED = auto()
+    HOLD = auto()
 
 LinesClearedHandler = Callable[[int], None]
 PieceLockedHandler = Callable[[TetrominoType], None]
 GameOverHandler = Callable[[], None]
 NextPieceChangedHandler = Callable[[TetrominoType], None]
+HoldHandler = Callable[[TetrominoType], None]
