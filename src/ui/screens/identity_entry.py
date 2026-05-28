@@ -3,10 +3,13 @@ from typing import Callable, List, Optional, TYPE_CHECKING
 
 import pygame
 
+from network import DataSynchronizer, SyncStatus
 from security.identity_manager import IdentityManager, IdentityStatus
 from settings import SETTINGS
 from ui.assets import AssetManager
+from ui.components.sync_indicator import SyncIndicator
 from ui.screen import Screen
+from utils.logger import log
 
 if TYPE_CHECKING:
     from ui.audio import AudioManager
@@ -20,6 +23,7 @@ class IdentityEntryScreen(Screen):
     def __init__(
         self,
         identity_manager: IdentityManager,
+        synchronizer: Optional[DataSynchronizer] = None,
         reason_provider: Optional[Callable[[], str]] = None,
         return_screen_provider: Optional[Callable[[], str]] = None,
         assets: Optional[AssetManager] = None,
@@ -27,12 +31,16 @@ class IdentityEntryScreen(Screen):
     ) -> None:
         super().__init__(assets, audio_manager)
         self.identity_manager = identity_manager
+        self._synchronizer = synchronizer
         self._reason_provider = reason_provider or (lambda: IdentityStatus.MISSING.value)
         self._return_screen_provider = return_screen_provider or (
             lambda: SETTINGS.SCREEN_NAMES.MENU
         )
         self._text = ""
         self._error: Optional[str] = None
+        self._sync_indicator = SyncIndicator(self._font)
+        self._registering = False
+        self._sync_result_handled = False
         self._input_focused = True
 
     def handle_events(self, events: List[pygame.event.Event]) -> Optional[str]:
@@ -61,8 +69,13 @@ class IdentityEntryScreen(Screen):
                 self._error = None
                 continue
             if event.key == pygame.K_RETURN:
+                if self._registering:
+                    continue
+                    
                 if self.identity_manager.register_identity(self._text):
-                    return self._return_screen_provider()
+                    self._registering = True
+                    self._sync_indicator.set_syncing()
+                    return None
                 self._error = "Use 3-15 letters, numbers, or underscore. Name must be unique."
                 continue
 
@@ -75,7 +88,38 @@ class IdentityEntryScreen(Screen):
         return None
 
     def update(self, delta_time: float) -> Optional[str]:
+        self._sync_indicator.update(delta_time)
+        
+        if self._registering and not self._sync_result_handled:
+            self._sync_result_handled = True
+            self._trigger_sync(self._text)
+        
+        if self._registering and self._sync_indicator.is_visible() is False:
+            self._registering = False
+            return self._return_screen_provider()
+        
         return None
+
+    def _trigger_sync(self, name: str) -> None:
+        if self._synchronizer is None:
+            self._sync_indicator.set_idle()
+            return
+        
+        try:
+            result = self._synchronizer.sync(name)
+            log.info("Sync result after registration: %s — %s", result.status.name, result.message)
+            
+            if result.status == SyncStatus.SUCCESS:
+                self._sync_indicator.set_success(duration=1.5)
+            elif result.status == SyncStatus.OFFLINE:
+                self._sync_indicator.set_offline(duration=1.5)
+            elif result.status == SyncStatus.FAILURE:
+                self._sync_indicator.set_error(result.message, duration=2.0)
+            else:  
+                self._sync_indicator.set_idle()
+        except Exception as exc:
+            log.error("Sync after registration failed", exc_info=True)
+            self._sync_indicator.set_error("Erro desconhecido", duration=2.0)
 
     def render(self, surface: pygame.Surface) -> None:
         surface.fill(SETTINGS.UI_THEME.BG_DARK)
@@ -128,6 +172,10 @@ class IdentityEntryScreen(Screen):
             SETTINGS.UI_THEME.TEXT_MUTED,
             (center_x, center_y + 105),
         )
+        
+        if self._registering:
+            self._sync_indicator.render(surface, (center_x, surface.get_height() - 50))
+        
         self._render_network_status(surface)
 
     def _input_rect_for_surface(self, surface: Optional[pygame.Surface]) -> pygame.Rect:
@@ -158,3 +206,4 @@ class IdentityEntryScreen(Screen):
             "title": "Player Name",
             "help": "3-15: letters, numbers, and _",
         }
+

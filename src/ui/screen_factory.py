@@ -71,6 +71,7 @@ class ScreenFactory:
             audio_manager=services.audio_manager,
             settings_manager=services.settings_manager,
         )
+        synchronizer = services.data_synchronizer
 
         def get_settings_return_screen() -> str:
             previous = services.screen_manager.previous_name
@@ -88,6 +89,7 @@ class ScreenFactory:
         screens = {
             SETTINGS.SCREEN_NAMES.IDENTITY_ENTRY: IdentityEntryScreen(
                 identity_manager=services.identity_manager,
+                synchronizer=synchronizer,
                 reason_provider=lambda: services.identity_entry_reason,
                 return_screen_provider=services.consume_identity_return_screen,
                 assets=None,
@@ -97,7 +99,12 @@ class ScreenFactory:
             SETTINGS.SCREEN_NAMES.RANKING: RankingScreen(assets=None, audio_manager=services.audio_manager),
             SETTINGS.SCREEN_NAMES.GAME: game_screen,
             SETTINGS.SCREEN_NAMES.PAUSE: PauseScreen(game_screen, assets=None, audio_manager=services.audio_manager),
-            SETTINGS.SCREEN_NAMES.GAME_OVER: GameOverScreen(game_screen, assets=None, audio_manager=services.audio_manager),
+            SETTINGS.SCREEN_NAMES.GAME_OVER: GameOverScreen(
+                game_screen,
+                synchronizer=synchronizer,
+                assets=None,
+                audio_manager=services.audio_manager,
+            ),
             SETTINGS.SCREEN_NAMES.SETTINGS: settings_screen,
         }
 

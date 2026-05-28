@@ -8,6 +8,8 @@ from settings import SETTINGS
 if TYPE_CHECKING:
     from security.identity_manager import IdentityManager
     from network.connection_manager import NetworkManager
+    from network.data_synchronizer import DataSynchronizer
+    from network.user_data_dao import UserDataDAO
     from ui.assets import AssetManager
     from ui.audio import AudioManager
     from ui.screen_manager import ScreenManager
@@ -21,6 +23,7 @@ class ServiceContainer:
         self._network_manager: Optional['NetworkManager'] = None
         self._screen_manager: Optional['ScreenManager'] = None
         self._identity_manager: Optional['IdentityManager'] = None
+        self._data_synchronizer: Optional['DataSynchronizer'] = None
         self._settings_manager: Optional['SettingsManager'] = None
         self._identity_context_lock = threading.Lock()
         self._identity_entry_reason = "missing"
@@ -57,6 +60,16 @@ class ServiceContainer:
             network_manager = self.initialize_network()
             self._identity_manager = IdentityManager(network_manager=network_manager)
         return self._identity_manager
+
+    def initialize_synchronizer(self) -> 'DataSynchronizer':
+        if self._data_synchronizer is None:
+            from network.data_synchronizer import DataSynchronizer
+            from network.user_data_dao import UserDataDAO
+
+            dao = UserDataDAO()
+            network = self.initialize_network()
+            self._data_synchronizer = DataSynchronizer(dao, network)
+        return self._data_synchronizer
 
     def initialize_settings_manager(self) -> 'SettingsManager':
         if self._settings_manager is None:
@@ -105,6 +118,12 @@ class ServiceContainer:
         if self._identity_manager is None:
             raise RuntimeError("IdentityManager not initialized. Call initialize_identity_manager() first.")
         return self._identity_manager
+
+    @property
+    def data_synchronizer(self) -> 'DataSynchronizer':
+        if self._data_synchronizer is None:
+            raise RuntimeError("DataSynchronizer not initialized. Call initialize_synchronizer() first.")
+        return self._data_synchronizer
 
     @property
     def settings_manager(self) -> 'SettingsManager':

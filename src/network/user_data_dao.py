@@ -105,6 +105,9 @@ class UserDataDAO:
         data = self.load()
         return bool(data and data.get("pending_remote_validation", False))
 
+    def save_dict(self, data: dict[str, Any]) -> bool:
+        return self._write(data)
+
     def _write(self, data: dict[str, Any]) -> bool:
         try:
             os.makedirs(os.path.dirname(self._save_path), exist_ok=True)

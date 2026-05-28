@@ -187,6 +187,7 @@ class Application:
             reconnect_policy=reconnect_policy,
         )
         self.services.initialize_identity_manager()
+        self.services.initialize_synchronizer()
         network_manager.add_reconnect_listener(self._on_network_reconnected)
 
         if start_offline:
