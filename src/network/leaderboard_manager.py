@@ -16,8 +16,6 @@ class LeaderboardEntry:
 
 
 class LeaderboardManager:
-    CACHE_DURATION = 30.0
-    
     def __init__(self, network: "NetworkManager", dao: "UserDataDAO") -> None:
         self.network = network
         self.dao = dao
@@ -41,10 +39,9 @@ class LeaderboardManager:
                 )
                 entries.append(entry)
             
-            self._cached_entries = entries
             return entries
         except Exception as e:
-            log.error(f"Failed to fetch leaderboard", exc_info=True)
+            log.error("Failed to fetch leaderboard", exc_info=True)
             return []
 
     def get_user_rank(self, name: str) -> Optional[int]:
@@ -63,7 +60,7 @@ class LeaderboardManager:
             
             return rank
         except Exception as e:
-            log.error(f"Failed to fetch rank for user '{name}'", exc_info=True)
+            log.error("Failed to fetch user rank", exc_info=True)
             return None
 
     def get_local_record(self) -> Optional[dict]:

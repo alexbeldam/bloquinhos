@@ -30,6 +30,7 @@ class RankingScreen(Screen):
             if event.type == pygame.QUIT:
                 return SETTINGS.SCREEN_NAMES.QUIT
             if self._handle_network_status_event(event):
+                self._last_fetch_time = 0.0
                 continue
             if event.type == pygame.KEYDOWN and event.key in (
                 pygame.K_ESCAPE,
@@ -44,7 +45,7 @@ class RankingScreen(Screen):
             self.audio_manager.play_bgm("menu")
         
         current_time = time.time()
-        if current_time - self._last_fetch_time >= 30.0:
+        if current_time - self._last_fetch_time >= SETTINGS.NETWORK.LEADERBOARD_CACHE_DURATION:
             self._fetch_data()
             self._last_fetch_time = current_time
         
