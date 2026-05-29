@@ -63,7 +63,7 @@ class LeaderboardManager:
             
             return rank
         except Exception as e:
-            log.error(f"Failed to fetch user rank: {e}")
+            log.error(f"Failed to fetch rank for user '{name}'", exc_info=True)
             return None
 
     def get_local_record(self) -> Optional[dict]:
