@@ -3,8 +3,10 @@ from typing import Optional, Tuple, TYPE_CHECKING
 import pygame
 
 from engine import Board, GameController, GameSession, Tetromino, Tile
+from engine.tile import Tetromino as TetrominoType
 from settings import SETTINGS
 from ui.assets import AssetManager
+from ui.styles import GAME_STYLE
 
 if TYPE_CHECKING:
     from utils.settings_manager import SettingsManager
@@ -127,39 +129,72 @@ class GameRenderer:
             )
 
     def _render_sidebar(self) -> None:
-        left = SETTINGS.GRID.GAME_WIDTH + 24
+        left = SETTINGS.GRID.GAME_WIDTH + GAME_STYLE.SIDEBAR_LEFT_OFFSET
+        center_x = left + GAME_STYLE.SIDEBAR_CENTER_X
 
-        self._render_next_piece(left + 76, 50)
+        self._render_hold_piece(center_x, GAME_STYLE.HOLD_TITLE_Y)
+        self._render_next_piece(center_x, GAME_STYLE.NEXT_TITLE_Y)
 
-        self._draw_text("SCORE", SETTINGS.UI_TYPOGRAPHY.BODY, (159, 173, 189), (left + 76, 210))
-        self._draw_text(str(self.session.score), SETTINGS.UI_TYPOGRAPHY.BODY, (242, 244, 248), (left + 76, 245))
+        self._draw_text("SCORE", SETTINGS.UI_TYPOGRAPHY.BODY, (159, 173, 189), (center_x, GAME_STYLE.SCORE_TITLE_Y))
+        self._draw_text(str(self.session.score), SETTINGS.UI_TYPOGRAPHY.BODY, (242, 244, 248), (center_x, GAME_STYLE.SCORE_VALUE_Y))
 
-        self._draw_text("LEVEL", SETTINGS.UI_TYPOGRAPHY.BODY, (159, 173, 189), (left + 76, 310))
-        self._draw_text(str(self.session.level), SETTINGS.UI_TYPOGRAPHY.BODY, (242, 244, 248), (left + 76, 345))
+        self._draw_text("LEVEL", SETTINGS.UI_TYPOGRAPHY.BODY, (159, 173, 189), (center_x, GAME_STYLE.LEVEL_TITLE_Y))
+        self._draw_text(str(self.session.level), SETTINGS.UI_TYPOGRAPHY.BODY, (242, 244, 248), (center_x, GAME_STYLE.LEVEL_VALUE_Y))
 
-        self._draw_text("LINES", SETTINGS.UI_TYPOGRAPHY.BODY, (159, 173, 189), (left + 76, 410))
-        self._draw_text(str(self.session.total_lines), SETTINGS.UI_TYPOGRAPHY.BODY, (242, 244, 248), (left + 76, 445))
+        self._draw_text("LINES", SETTINGS.UI_TYPOGRAPHY.BODY, (159, 173, 189), (center_x, GAME_STYLE.LINES_TITLE_Y))
+        self._draw_text(str(self.session.total_lines), SETTINGS.UI_TYPOGRAPHY.BODY, (242, 244, 248), (center_x, GAME_STYLE.LINES_VALUE_Y))
 
     def _render_next_piece(self, center_x: int, center_y: int) -> None:
-        self._draw_text("NEXT", SETTINGS.UI_TYPOGRAPHY.BODY, (159, 173, 189), (center_x, center_y))
+        self._render_piece_preview("NEXT", self.controller.next_piece, center_x, center_y)
 
-        next_piece_type = self.controller.next_piece
-        if next_piece_type is None:
+    def _render_hold_piece(self, center_x: int, center_y: int) -> None:
+        self._render_piece_preview("HOLD", self.controller.held_piece, center_x, center_y)
+
+    def _render_piece_preview(
+        self,
+        label: str,
+        piece_type: Optional[TetrominoType],
+        center_x: int,
+        center_y: int,
+    ) -> None:
+        self._draw_text(label, SETTINGS.UI_TYPOGRAPHY.BODY, (159, 173, 189), (center_x, center_y))
+
+        preview_size = SETTINGS.GRID.TILE_SIZE * 0.7
+        preview_padding = GAME_STYLE.PREVIEW_PADDING
+        preview_box_size = int(preview_size * 4 + preview_padding * 2)
+        box_left = int(center_x - preview_box_size / 2)
+        box_top = int(center_y + GAME_STYLE.PREVIEW_BOX_TOP_OFFSET)
+        preview_box = pygame.Rect(box_left, box_top, preview_box_size, preview_box_size)
+
+        pygame.draw.rect(self.screen, (24, 30, 42), preview_box, border_radius=6)
+        pygame.draw.rect(self.screen, (58, 69, 89), preview_box, width=2, border_radius=6)
+
+        if piece_type is None:
             return
 
         from engine.shapes import get_shape
 
-        matrix = get_shape(next_piece_type, 0)
-        tile_size = SETTINGS.GRID.TILE_SIZE
-        preview_size = tile_size * 0.7
+        matrix = get_shape(piece_type, 0)
+        occupied_cells = [
+            (row_index, col_index)
+            for row_index, row in enumerate(matrix)
+            for col_index, cell in enumerate(row)
+            if cell
+        ]
 
-        matrix_width = len(matrix[0])
-        matrix_height = len(matrix)
-        total_width = matrix_width * preview_size
-        total_height = matrix_height * preview_size
+        if not occupied_cells:
+            return
 
-        start_x = center_x - total_width / 2
-        start_y = center_y + 30
+        min_row = min(row for row, _ in occupied_cells)
+        max_row = max(row for row, _ in occupied_cells)
+        min_col = min(col for _, col in occupied_cells)
+        max_col = max(col for _, col in occupied_cells)
+
+        piece_width = (max_col - min_col + 1) * preview_size
+        piece_height = (max_row - min_row + 1) * preview_size
+
+        start_x = box_left + (preview_box_size - piece_width) / 2 - min_col * preview_size
+        start_y = box_top + (preview_box_size - piece_height) / 2 - min_row * preview_size
 
         for row_index, row in enumerate(matrix):
             for col_index, cell in enumerate(row):
@@ -167,8 +202,13 @@ class GameRenderer:
                     x = start_x + col_index * preview_size
                     y = start_y + row_index * preview_size
 
-                    tile = next_piece_type.tile
-                    rect = pygame.Rect(x, y, preview_size, preview_size)
+                    tile = piece_type.tile
+                    rect = pygame.Rect(
+                        int(x),
+                        int(y),
+                        int(preview_size),
+                        int(preview_size),
+                    )
 
                     if self.assets is not None:
                         try:
