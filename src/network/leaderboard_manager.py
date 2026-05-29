@@ -44,7 +44,7 @@ class LeaderboardManager:
             self._cached_entries = entries
             return entries
         except Exception as e:
-            log.error(f"Failed to fetch leaderboard: {e}")
+            log.error(f"Failed to fetch leaderboard", exc_info=True)
             return []
 
     def get_user_rank(self, name: str) -> Optional[int]:
