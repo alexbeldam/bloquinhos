@@ -8,6 +8,7 @@ from ui.assets import AssetManager
 from ui.screen import Screen
 
 if TYPE_CHECKING:
+    from network.connection_manager import NetworkManager
     from network.leaderboard_manager import LeaderboardManager
     from ui.audio import AudioManager
 
@@ -24,6 +25,18 @@ class RankingScreen(Screen):
         self._last_fetch_time = 0.0
         self._cached_entries = None
         self._cached_local_record = None
+        self._listener_registered = False
+        self._refresh_requested = False
+
+    def bind_network_manager(self, network_manager: Optional["NetworkManager"]) -> None:
+        super().bind_network_manager(network_manager)
+        if network_manager is not None and not self._listener_registered:
+            network_manager.add_status_listener(self._on_status_changed)
+            self._listener_registered = True
+
+    def _on_status_changed(self, snapshot: "ConnectionStatusSnapshot") -> None:
+        if snapshot.is_online:
+            self._refresh_requested = True
 
     def handle_events(self, events: List[pygame.event.Event]) -> Optional[str]:
         for event in events:
@@ -45,9 +58,12 @@ class RankingScreen(Screen):
             self.audio_manager.play_bgm("menu")
         
         current_time = time.time()
-        if current_time - self._last_fetch_time >= SETTINGS.NETWORK.LEADERBOARD_CACHE_DURATION:
-            self._fetch_data()
+        if self._refresh_requested or current_time - self._last_fetch_time >= SETTINGS.NETWORK.LEADERBOARD_CACHE_DURATION:
+            self._refresh_requested = False
             self._last_fetch_time = current_time
+            self._cached_entries = None
+            self._cached_local_record = None
+            self._fetch_data()
         
         return None
 
