@@ -378,7 +378,7 @@ class GameOverScreen(Screen):
 
             icon = self._try_load_image(icon_name)
             if icon:
-                icon_scaled = pygame.transform.smoothscale(icon, (icon_size, icon_size))
+                icon_scaled = pygame.transform.scale(icon, (icon_size, icon_size))
 
                 circle_radius = icon_size // 2 + 8
                 circle_center = (bx + icon_size // 2, by + icon_size // 2)
