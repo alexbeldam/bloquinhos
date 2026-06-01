@@ -3,6 +3,7 @@ from typing import List, Optional, TYPE_CHECKING
 import pygame
 
 from network import DataSynchronizer, SyncStatus
+from network.leaderboard_manager import LeaderboardManager
 from network.user_data_dao import UserDataDAO
 from settings import SETTINGS
 from ui.assets import AssetManager
@@ -12,71 +13,8 @@ from ui.screens.game import GameScreen
 from utils.logger import log
 
 if TYPE_CHECKING:
+    from network.connection_manager import NetworkManager
     from ui.audio import AudioManager
-
-
-class Leaderboard:
-    def __init__(self) -> None:
-        self._entries: List[dict] = []
-        self._load()
-
-    def get_position(self, score: int) -> Optional[int]:
-        for i, entry in enumerate(self._entries):
-            if score > entry["score"]:
-                return i + 1
-        if len(self._entries) < 10:
-            return len(self._entries) + 1
-        return None
-
-    def qualifies(self, score: int) -> bool:
-        if len(self._entries) < 10:
-            return True
-        return score > self._entries[-1]["score"]
-
-    def add_entry(self, name: str, score: int, lines: int, level: int) -> None:
-        from datetime import datetime, timezone
-
-        self._entries.append({
-            "name": name,
-            "score": score,
-            "lines": lines,
-            "level": level,
-            "played_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
-        })
-        self._entries.sort(key=lambda e: e["score"], reverse=True)
-        self._entries = self._entries[:10]
-        self._save()
-
-    def _load(self) -> None:
-        import json
-        import os
-
-        from utils.path_manager import PathManager
-
-        path = PathManager.get_data_path("leaderboard.json")
-        if not os.path.exists(path):
-            return
-        try:
-            with open(path, "r") as f:
-                data = json.load(f)
-            if isinstance(data, list):
-                self._entries = data[:10]
-        except Exception:
-            log.warning("Could not load leaderboard data", exc_info=True)
-
-    def _save(self) -> None:
-        import json
-
-        from utils.path_manager import PathManager
-
-        path = PathManager.get_data_path("leaderboard.json")
-        try:
-            import os
-            os.makedirs(os.path.dirname(path), exist_ok=True)
-            with open(path, "w") as f:
-                json.dump(self._entries, f, indent=2)
-        except Exception:
-            log.warning("Could not save leaderboard data", exc_info=True)
 
 
 class GameOverScreen(Screen):
@@ -86,6 +24,7 @@ class GameOverScreen(Screen):
     def __init__(
         self,
         game_screen: GameScreen,
+        leaderboard_manager: Optional[LeaderboardManager] = None,
         synchronizer: Optional[DataSynchronizer] = None,
         assets: Optional[AssetManager] = None,
         audio_manager: Optional["AudioManager"] = None,
@@ -93,14 +32,17 @@ class GameOverScreen(Screen):
         super().__init__(assets, audio_manager)
         self.game_screen = game_screen
         self.user_data_dao = UserDataDAO()
+        self._leaderboard_manager = leaderboard_manager
         self._synchronizer = synchronizer
         self._save_attempted = False
-        self._leaderboard = Leaderboard()
         self._new_high_score = False
         self._personal_best: Optional[int] = None
         self._rank_position: Optional[int] = None
         self._selected_option = 0
         self._sync_indicator = SyncIndicator(self._font)
+
+    def bind_network_manager(self, network_manager: Optional["NetworkManager"]) -> None:
+        super().bind_network_manager(network_manager)
 
     def handle_events(self, events: List[pygame.event.Event]) -> Optional[str]:
         for event in events:
@@ -131,6 +73,9 @@ class GameOverScreen(Screen):
         self._save_attempted = False
         self._sync_indicator.set_idle()
         self._selected_option = 0
+        self._new_high_score = False
+        self._personal_best = None
+        self._rank_position = None
 
     def update(self, delta_time: float) -> Optional[str]:
         self._sync_indicator.update(delta_time)
@@ -148,6 +93,9 @@ class GameOverScreen(Screen):
         return None
 
     def _evaluate_results(self) -> None:
+        self._new_high_score = False
+        self._rank_position = None
+
         session = self.game_screen.session
         high_score_data = self.user_data_dao.load()
 
@@ -159,13 +107,9 @@ class GameOverScreen(Screen):
         if self._personal_best is None or session.score > self._personal_best:
             self._new_high_score = True
 
-        name = self.user_data_dao.load_name()
-        if name and self._leaderboard.qualifies(session.score):
-            self._leaderboard.add_entry(name, session.score, session.total_lines, session.level)
-            self._rank_position = self._leaderboard.get_position(session.score)
-
     def _trigger_sync(self, name: str) -> None:
         if self._synchronizer is None:
+            self._try_fetch_rank_offline(name)
             return
 
         self._sync_indicator.set_syncing()
@@ -176,6 +120,7 @@ class GameOverScreen(Screen):
 
             if result.status == SyncStatus.SUCCESS:
                 self._sync_indicator.set_success(duration=2.0)
+                self._submit_and_fetch_rank(name)
             elif result.status == SyncStatus.OFFLINE:
                 self._sync_indicator.set_offline(duration=2.0)
             elif result.status == SyncStatus.FAILURE:
@@ -185,6 +130,17 @@ class GameOverScreen(Screen):
         except Exception as exc:
             log.error("Sync after game over failed", exc_info=True)
             self._sync_indicator.set_error("Erro desconhecido", duration=3.0)
+
+    def _submit_and_fetch_rank(self, name: str) -> None:
+        if self._leaderboard_manager is None:
+            return
+        session = self.game_screen.session
+        self._leaderboard_manager.submit_score(name, session.score, session.total_lines, session.level)
+        self._rank_position = self._leaderboard_manager.get_user_rank(name)
+
+    def _try_fetch_rank_offline(self, name: str) -> None:
+        if self._leaderboard_manager is not None and self._leaderboard_manager.network.is_online:
+            self._submit_and_fetch_rank(name)
 
     def render(self, surface: pygame.Surface) -> None:
         self.game_screen.render(surface)
@@ -269,7 +225,10 @@ class GameOverScreen(Screen):
             cur_y += 35
 
         if self._personal_best is not None:
-            pb_label = "High Score:" if not self._new_high_score else "High Score Anterior:"
+            if self._new_high_score:
+                pb_label = "Previous High Score:"
+            else:
+                pb_label = "High Score:"
             self._draw_text(
                 surface,
                 f"{pb_label} {self._personal_best:,}",
@@ -303,13 +262,20 @@ class GameOverScreen(Screen):
         stat_item_spacing = 24
 
         stat_row1 = [
-            f"Nivel:  {self.game_screen.session.level}",
-            f"Linhas: {self.game_screen.session.total_lines}",
+            f"Nivel:   {self.game_screen.session.level}",
+            f"Linhas:  {self.game_screen.session.total_lines}",
         ]
-        cell_w = panel_w // 2 - 20
+        stat_row2 = [
+            f"Singles: {self.game_screen.session.singles}",
+            f"Doubles: {self.game_screen.session.doubles}",
+            f"Triples: {self.game_screen.session.triples}",
+            f"Tetris:  {self.game_screen.session.tetris}",
+        ]
+
         row1_y = cur_y
+        cell_w2 = panel_w // 2
         for idx, item in enumerate(stat_row1):
-            item_cx = panel_x + cell_w // 2 + idx * cell_w + 10
+            item_cx = panel_x + cell_w2 // 2 + idx * cell_w2
             self._draw_text(
                 surface,
                 item,
@@ -319,14 +285,8 @@ class GameOverScreen(Screen):
             )
         cur_y += stat_item_spacing
 
-        stat_row2 = [
-            f"Singles: {self.game_screen.session.singles}",
-            f"Doubles: {self.game_screen.session.doubles}",
-            f"Triples: {self.game_screen.session.triples}",
-            f"Tetris:  {self.game_screen.session.tetris}",
-        ]
-        cell_w4 = panel_w // 4
         row2_y = cur_y
+        cell_w4 = panel_w // 4
         for idx, item in enumerate(stat_row2):
             item_cx = panel_x + cell_w4 // 2 + idx * cell_w4
             self._draw_text(

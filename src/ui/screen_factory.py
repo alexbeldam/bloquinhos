@@ -86,6 +86,8 @@ class ScreenFactory:
             settings_manager=services.settings_manager,
         )
 
+        leaderboard_manager = services.initialize_leaderboard_manager()
+
         screens = {
             SETTINGS.SCREEN_NAMES.IDENTITY_ENTRY: IdentityEntryScreen(
                 identity_manager=services.identity_manager,
@@ -97,7 +99,7 @@ class ScreenFactory:
             ),
             SETTINGS.SCREEN_NAMES.MENU: MenuScreen(assets=None, audio_manager=services.audio_manager),
             SETTINGS.SCREEN_NAMES.RANKING: RankingScreen(
-                leaderboard_manager=services.initialize_leaderboard_manager(),
+                leaderboard_manager=leaderboard_manager,
                 assets=None,
                 audio_manager=services.audio_manager,
             ),
@@ -105,6 +107,7 @@ class ScreenFactory:
             SETTINGS.SCREEN_NAMES.PAUSE: PauseScreen(game_screen, assets=None, audio_manager=services.audio_manager),
             SETTINGS.SCREEN_NAMES.GAME_OVER: GameOverScreen(
                 game_screen,
+                leaderboard_manager=leaderboard_manager,
                 synchronizer=synchronizer,
                 assets=None,
                 audio_manager=services.audio_manager,

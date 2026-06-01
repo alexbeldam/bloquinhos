@@ -29,7 +29,7 @@ class LeaderboardManager:
         try:
             collection = self.network.db["scores"]
             cursor = collection.find().sort("score", -1).limit(5)
-            
+
             entries = []
             for rank, doc in enumerate(cursor, 1):
                 entry = LeaderboardEntry(
@@ -38,7 +38,7 @@ class LeaderboardManager:
                     score=int(doc.get("score", 0))
                 )
                 entries.append(entry)
-            
+
             return entries
         except Exception as e:
             log.error("Failed to fetch leaderboard", exc_info=True)
@@ -51,23 +51,43 @@ class LeaderboardManager:
         try:
             collection = self.network.db["scores"]
             user_doc = collection.find_one({"name": name})
-            
+
             if not user_doc:
                 return None
-            
+
             user_score = user_doc.get("score", 0)
             rank = collection.count_documents({"score": {"$gt": user_score}}) + 1
-            
+
             return rank
         except Exception as e:
             log.error("Failed to fetch user rank", exc_info=True)
             return None
 
+    def submit_score(self, name: str, score: int, lines: int, level: int) -> bool:
+        if not self.network.is_online or self.network.db is None:
+            return False
+
+        try:
+            collection = self.network.db["scores"]
+            existing = collection.find_one({"name": name})
+            if existing and int(existing.get("score", 0)) >= score:
+                return False
+            collection.update_one(
+                {"name": name},
+                {"$set": {"score": score, "lines": lines, "level": level}},
+                upsert=True,
+            )
+            log.info("Score submitted for '%s' (score=%s)", name, score)
+            return True
+        except Exception as e:
+            log.error("Failed to submit score", exc_info=True)
+            return False
+
     def get_local_record(self) -> Optional[dict]:
         data = self.dao.load()
         if data is None:
             return None
-        
+
         return {
             "name": data.get("name", "Desconhecido"),
             "score": int(data.get("score", 0))
