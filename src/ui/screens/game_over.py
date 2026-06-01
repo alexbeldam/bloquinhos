@@ -269,7 +269,7 @@ class GameOverScreen(Screen):
             cur_y += 35
 
         if self._personal_best is not None:
-            pb_label = "PB:" if not self._new_high_score else "Antes:"
+            pb_label = "High Score:" if not self._new_high_score else "High Score Anterior:"
             self._draw_text(
                 surface,
                 f"{pb_label} {self._personal_best:,}",
@@ -378,7 +378,7 @@ class GameOverScreen(Screen):
 
             icon = self._try_load_image(icon_name)
             if icon:
-                icon_scaled = pygame.transform.smoothscale(icon, (icon_size, icon_size))
+                icon_scaled = pygame.transform.scale(icon, (icon_size, icon_size))
 
                 circle_radius = icon_size // 2 + 8
                 circle_center = (bx + icon_size // 2, by + icon_size // 2)
