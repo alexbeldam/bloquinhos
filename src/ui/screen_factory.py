@@ -96,7 +96,11 @@ class ScreenFactory:
                 audio_manager=services.audio_manager,
             ),
             SETTINGS.SCREEN_NAMES.MENU: MenuScreen(assets=None, audio_manager=services.audio_manager),
-            SETTINGS.SCREEN_NAMES.RANKING: RankingScreen(assets=None, audio_manager=services.audio_manager),
+            SETTINGS.SCREEN_NAMES.RANKING: RankingScreen(
+                leaderboard_manager=services.initialize_leaderboard_manager(),
+                assets=None,
+                audio_manager=services.audio_manager,
+            ),
             SETTINGS.SCREEN_NAMES.GAME: game_screen,
             SETTINGS.SCREEN_NAMES.PAUSE: PauseScreen(game_screen, assets=None, audio_manager=services.audio_manager),
             SETTINGS.SCREEN_NAMES.GAME_OVER: GameOverScreen(

@@ -206,6 +206,7 @@ class NetworkConfig:
     SCORES_COLLECTION: str = "scores"
     AUTO_MAX_RETRIES: int = 4
     REQUEST_WAIT_S: float = 0.25
+    LEADERBOARD_CACHE_DURATION: float = 30.0
 
 @dataclass(frozen=True)
 class SecurityConfig:
