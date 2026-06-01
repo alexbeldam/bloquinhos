@@ -269,7 +269,7 @@ class GameOverScreen(Screen):
             cur_y += 35
 
         if self._personal_best is not None:
-            pb_label = "PB:" if not self._new_high_score else "Antes:"
+            pb_label = "High Score:" if not self._new_high_score else "High Score Anterior:"
             self._draw_text(
                 surface,
                 f"{pb_label} {self._personal_best:,}",
