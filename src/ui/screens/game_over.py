@@ -120,13 +120,14 @@ class GameOverScreen(Screen):
 
             if result.status == SyncStatus.SUCCESS:
                 self._sync_indicator.set_success(duration=2.0)
-                self._submit_and_fetch_rank(name)
             elif result.status == SyncStatus.OFFLINE:
                 self._sync_indicator.set_offline(duration=2.0)
             elif result.status == SyncStatus.FAILURE:
                 self._sync_indicator.set_error(result.message, duration=3.0)
             else:
                 self._sync_indicator.set_idle()
+            if self._leaderboard_manager is not None and self._leaderboard_manager.network.is_online:
+                self._submit_and_fetch_rank(name)
         except Exception as exc:
             log.error("Sync after game over failed", exc_info=True)
             self._sync_indicator.set_error("Erro desconhecido", duration=3.0)
@@ -265,9 +266,11 @@ class GameOverScreen(Screen):
             f"Nivel:   {self.game_screen.session.level}",
             f"Linhas:  {self.game_screen.session.total_lines}",
         ]
-        stat_row2 = [
+        stat_row2a = [
             f"Singles: {self.game_screen.session.singles}",
             f"Doubles: {self.game_screen.session.doubles}",
+        ]
+        stat_row2b = [
             f"Triples: {self.game_screen.session.triples}",
             f"Tetris:  {self.game_screen.session.tetris}",
         ]
@@ -285,16 +288,27 @@ class GameOverScreen(Screen):
             )
         cur_y += stat_item_spacing
 
-        row2_y = cur_y
-        cell_w4 = panel_w // 4
-        for idx, item in enumerate(stat_row2):
-            item_cx = panel_x + cell_w4 // 2 + idx * cell_w4
+        row2a_y = cur_y
+        for idx, item in enumerate(stat_row2a):
+            item_cx = panel_x + cell_w2 // 2 + idx * cell_w2
             self._draw_text(
                 surface,
                 item,
                 SETTINGS.UI_TYPOGRAPHY.SMALL,
                 SETTINGS.UI_THEME.TEXT_PRIMARY,
-                (item_cx, row2_y),
+                (item_cx, row2a_y),
+            )
+        cur_y += stat_item_spacing
+
+        row2b_y = cur_y
+        for idx, item in enumerate(stat_row2b):
+            item_cx = panel_x + cell_w2 // 2 + idx * cell_w2
+            self._draw_text(
+                surface,
+                item,
+                SETTINGS.UI_TYPOGRAPHY.SMALL,
+                SETTINGS.UI_THEME.TEXT_PRIMARY,
+                (item_cx, row2b_y),
             )
         cur_y += stat_item_spacing + 10
 
