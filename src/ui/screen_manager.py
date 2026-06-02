@@ -66,8 +66,11 @@ class ScreenManager:
         name = self._apply_transition_guard(name)
         if name not in self._screens:
             raise KeyError(f"Screen '{name}' is not registered.")
+        if self._current_name == name and self.current_screen is not None:
+            return
 
         log.debug(f"Switching to screen: {name}")
+        previous_screen = self.current_screen
 
         if self._transition is not None:
             self._finish_transition()
@@ -79,11 +82,14 @@ class ScreenManager:
         ):
             transition = determine_transition(self._current_name, name)
             if transition is not None:
+                if previous_screen is not None:
+                    previous_screen.on_exit()
                 from_surface = self.surface.copy()
                 pygame.event.clear()
                 self._previous_name = self._current_name
                 self._current_name = name
                 self.current_screen = self._screens[name]
+                self.current_screen.on_enter()
                 self.current_screen.render(self.surface)
                 to_surface = self.surface.copy()
                 transition.start(from_surface, to_surface)
@@ -93,7 +99,10 @@ class ScreenManager:
         pygame.event.clear()
         self._previous_name = self._current_name
         self._current_name = name
+        if previous_screen is not None:
+            previous_screen.on_exit()
         self.current_screen = self._screens[name]
+        self.current_screen.on_enter()
 
     def _finish_transition(self) -> None:
         if self._transition is not None:

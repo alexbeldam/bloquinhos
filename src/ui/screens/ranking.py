@@ -8,7 +8,7 @@ from ui.assets import AssetManager
 from ui.screen import Screen
 
 if TYPE_CHECKING:
-    from network.connection_manager import NetworkManager
+    from network.connection_manager import NetworkManager, ConnectionStatusSnapshot
     from network.leaderboard_manager import LeaderboardManager
     from ui.audio import AudioManager
 
@@ -53,10 +53,7 @@ class RankingScreen(Screen):
                 return SETTINGS.SCREEN_NAMES.MENU
         return None
 
-    def update(self, delta_time: float) -> Optional[str]:
-        if self.audio_manager:
-            self.audio_manager.play_bgm("menu")
-        
+    def update(self, _delta_time: float) -> Optional[str]:
         current_time = time.time()
         if self._refresh_requested or current_time - self._last_fetch_time >= SETTINGS.NETWORK.LEADERBOARD_CACHE_DURATION:
             self._refresh_requested = False

@@ -59,7 +59,7 @@ class PauseScreen(Screen):
 
         return None
 
-    def update(self, delta_time: float) -> Optional[str]:
+    def update(self, _delta_time: float) -> Optional[str]:
         return None
 
     def render(self, surface: pygame.Surface) -> None:
