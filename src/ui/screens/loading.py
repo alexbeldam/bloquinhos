@@ -9,6 +9,7 @@ from ui.assets import AssetManager
 from ui.screen import Screen
 from ui.screens.loading_animation import MorphingEngine
 from ui.screens.loading_pipeline import LoadingPipeline
+from utils.localization import tr
 from utils.logger import log
 
 if TYPE_CHECKING:
@@ -101,7 +102,7 @@ class LoadingScreen(Screen):
             def run_initialization():
                 try:
                     if 'services' in self.init_callbacks:
-                        self.update_progress(SETTINGS.LOADING_MESSAGES.SERVICES, 0, 100)
+                        self.update_progress(tr("loading.phases.services"), 0, 100)
                         log.debug("Starting services initialization phase")
                         self.init_callbacks['services']()
                         if self.services and not self.assets:
@@ -109,62 +110,62 @@ class LoadingScreen(Screen):
                                 self.assets = self.services.asset_manager
                             except RuntimeError:
                                 pass
-                        self.update_progress(SETTINGS.LOADING_MESSAGES.SERVICES, 10, 100)
+                        self.update_progress(tr("loading.phases.services"), 10, 100)
                     else:
-                        self.update_progress(SETTINGS.LOADING_MESSAGES.SERVICES, 10, 100)
+                        self.update_progress(tr("loading.phases.services"), 10, 100)
 
                     if 'preferences' in self.init_callbacks:
-                        self.update_progress(SETTINGS.LOADING_MESSAGES.PREFERENCES, 10, 100)
+                        self.update_progress(tr("loading.phases.preferences"), 10, 100)
                         log.debug("Starting preferences initialization phase")
                         self.init_callbacks['preferences']()
-                        self.update_progress(SETTINGS.LOADING_MESSAGES.PREFERENCES, 20, 100)
+                        self.update_progress(tr("loading.phases.preferences"), 20, 100)
                     else:
-                        self.update_progress(SETTINGS.LOADING_MESSAGES.PREFERENCES, 20, 100)
+                        self.update_progress(tr("loading.phases.preferences"), 20, 100)
                     
                     if 'network' in self.init_callbacks:
-                        self.update_progress(SETTINGS.LOADING_MESSAGES.NETWORK, 20, 100)
+                        self.update_progress(tr("loading.phases.network"), 20, 100)
                         log.debug("Starting network initialization phase")
                         self.init_callbacks['network']()
-                        self.update_progress(SETTINGS.LOADING_MESSAGES.NETWORK, 30, 100)
+                        self.update_progress(tr("loading.phases.network"), 30, 100)
                     else:
-                        self.update_progress(SETTINGS.LOADING_MESSAGES.NETWORK, 30, 100)
+                        self.update_progress(tr("loading.phases.network"), 30, 100)
                     
                     if 'game' in self.init_callbacks:
-                        self.update_progress(SETTINGS.LOADING_MESSAGES.GAME, 30, 100)
+                        self.update_progress(tr("loading.phases.game"), 30, 100)
                         log.debug("Starting game initialization phase")
                         self.init_callbacks['game']()
-                        self.update_progress(SETTINGS.LOADING_MESSAGES.GAME, 40, 100)
+                        self.update_progress(tr("loading.phases.game"), 40, 100)
                     else:
-                        self.update_progress(SETTINGS.LOADING_MESSAGES.GAME, 40, 100)
+                        self.update_progress(tr("loading.phases.game"), 40, 100)
                     
                     if 'screens' in self.init_callbacks:
-                        self.update_progress(SETTINGS.LOADING_MESSAGES.SCREENS, 40, 100)
+                        self.update_progress(tr("loading.phases.screens"), 40, 100)
                         log.debug("Starting screen creation phase")
                         self.init_callbacks['screens']()
-                        self.update_progress(SETTINGS.LOADING_MESSAGES.SCREENS, 50, 100)
+                        self.update_progress(tr("loading.phases.screens"), 50, 100)
                     else:
-                        self.update_progress(SETTINGS.LOADING_MESSAGES.SCREENS, 50, 100)
+                        self.update_progress(tr("loading.phases.screens"), 50, 100)
 
                     if 'tabs' in self.init_callbacks:
-                        self.update_progress(SETTINGS.LOADING_MESSAGES.TABS, 50, 100)
+                        self.update_progress(tr("loading.phases.tabs"), 50, 100)
                         log.debug("Starting tabs registration phase")
                         self.init_callbacks['tabs']()
-                        self.update_progress(SETTINGS.LOADING_MESSAGES.TABS, 55, 100)
+                        self.update_progress(tr("loading.phases.tabs"), 55, 100)
                     else:
-                        self.update_progress(SETTINGS.LOADING_MESSAGES.TABS, 55, 100)
+                        self.update_progress(tr("loading.phases.tabs"), 55, 100)
 
                     if 'identity' in self.init_callbacks:
-                        self.update_progress(SETTINGS.LOADING_MESSAGES.IDENTITY, 55, 100)
+                        self.update_progress(tr("loading.phases.identity"), 55, 100)
                         log.debug("Starting identity initialization phase")
                         next_screen = self.init_callbacks['identity']()
                         if isinstance(next_screen, str):
                             self._next_screen = next_screen
-                        self.update_progress(SETTINGS.LOADING_MESSAGES.IDENTITY, 60, 100)
+                        self.update_progress(tr("loading.phases.identity"), 60, 100)
                     else:
-                        self.update_progress(SETTINGS.LOADING_MESSAGES.IDENTITY, 60, 100)
+                        self.update_progress(tr("loading.phases.identity"), 60, 100)
                     
                     if self.assets is not None:
-                        self.update_progress(SETTINGS.LOADING_MESSAGES.ASSETS, 60, 100)
+                        self.update_progress(tr("loading.phases.assets"), 60, 100)
                         log.debug("Preparing asset loading work items")
                         self._prepare_asset_work_items()
                     
@@ -279,7 +280,7 @@ class LoadingScreen(Screen):
         if self.error_state:
             self._draw_text(
                 surface,
-                "Loading Failed",
+                tr("loading.error.title"),
                 SETTINGS.UI_TYPOGRAPHY.TITLE,
                 SETTINGS.UI_THEME.RED,
                 (screen_center_x, ui_element_y),
@@ -299,19 +300,21 @@ class LoadingScreen(Screen):
             quit_msg_y = error_msg_y + 60
             self._draw_text(
                 surface,
-                "Press ESC to quit",
+                tr("loading.error.quit"),
                 SETTINGS.UI_TYPOGRAPHY.BODY,
                 SETTINGS.UI_THEME.YELLOW,
                 (screen_center_x, quit_msg_y),
             )
         
         elif self.loading_complete:
-            self._draw_text(
+            max_continue_width = int(surface.get_width() * 0.7)
+            self._draw_wrapped_text(
                 surface,
-                "Press any key to continue",
+                tr("loading.continue"),
                 SETTINGS.UI_TYPOGRAPHY.BODY,
                 SETTINGS.UI_THEME.YELLOW,
                 (screen_center_x, ui_element_y),
+                max_continue_width,
             )
         else:
             self._draw_progress_bar(surface, screen_center_x, ui_element_y)

@@ -14,6 +14,7 @@ from ui.screens import (
     RankingScreen,
     SettingsScreen,
 )
+from utils.localization import tr
 
 
 class ScreenFactory:
@@ -38,7 +39,7 @@ class ScreenFactory:
             services.screen_manager.reconfigure_window(
                 screen_width,
                 screen_height,
-                SETTINGS.APP_NAME,
+                tr("app.name"),
                 icon,
                 decorated=True
             )

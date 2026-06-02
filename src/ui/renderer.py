@@ -7,6 +7,7 @@ from engine.tile import Tetromino as TetrominoType
 from settings import SETTINGS
 from ui.assets import AssetManager
 from ui.styles import GAME_STYLE
+from utils.localization import format_int, tr
 
 if TYPE_CHECKING:
     from utils.settings_manager import SettingsManager
@@ -135,20 +136,20 @@ class GameRenderer:
         self._render_hold_piece(center_x, GAME_STYLE.HOLD_TITLE_Y)
         self._render_next_piece(center_x, GAME_STYLE.NEXT_TITLE_Y)
 
-        self._draw_text("SCORE", SETTINGS.UI_TYPOGRAPHY.BODY, (159, 173, 189), (center_x, GAME_STYLE.SCORE_TITLE_Y))
-        self._draw_text(str(self.session.score), SETTINGS.UI_TYPOGRAPHY.BODY, (242, 244, 248), (center_x, GAME_STYLE.SCORE_VALUE_Y))
+        self._draw_text(tr("hud.score"), SETTINGS.UI_TYPOGRAPHY.BODY, (159, 173, 189), (center_x, GAME_STYLE.SCORE_TITLE_Y))
+        self._draw_text(format_int(self.session.score), SETTINGS.UI_TYPOGRAPHY.BODY, (242, 244, 248), (center_x, GAME_STYLE.SCORE_VALUE_Y))
 
-        self._draw_text("LEVEL", SETTINGS.UI_TYPOGRAPHY.BODY, (159, 173, 189), (center_x, GAME_STYLE.LEVEL_TITLE_Y))
-        self._draw_text(str(self.session.level), SETTINGS.UI_TYPOGRAPHY.BODY, (242, 244, 248), (center_x, GAME_STYLE.LEVEL_VALUE_Y))
+        self._draw_text(tr("hud.level"), SETTINGS.UI_TYPOGRAPHY.BODY, (159, 173, 189), (center_x, GAME_STYLE.LEVEL_TITLE_Y))
+        self._draw_text(format_int(self.session.level), SETTINGS.UI_TYPOGRAPHY.BODY, (242, 244, 248), (center_x, GAME_STYLE.LEVEL_VALUE_Y))
 
-        self._draw_text("LINES", SETTINGS.UI_TYPOGRAPHY.BODY, (159, 173, 189), (center_x, GAME_STYLE.LINES_TITLE_Y))
-        self._draw_text(str(self.session.total_lines), SETTINGS.UI_TYPOGRAPHY.BODY, (242, 244, 248), (center_x, GAME_STYLE.LINES_VALUE_Y))
+        self._draw_text(tr("hud.lines"), SETTINGS.UI_TYPOGRAPHY.BODY, (159, 173, 189), (center_x, GAME_STYLE.LINES_TITLE_Y))
+        self._draw_text(format_int(self.session.total_lines), SETTINGS.UI_TYPOGRAPHY.BODY, (242, 244, 248), (center_x, GAME_STYLE.LINES_VALUE_Y))
 
     def _render_next_piece(self, center_x: int, center_y: int) -> None:
-        self._render_piece_preview("NEXT", self.controller.next_piece, center_x, center_y)
+        self._render_piece_preview(tr("hud.next"), self.controller.next_piece, center_x, center_y)
 
     def _render_hold_piece(self, center_x: int, center_y: int) -> None:
-        self._render_piece_preview("HOLD", self.controller.held_piece, center_x, center_y)
+        self._render_piece_preview(tr("hud.hold"), self.controller.held_piece, center_x, center_y)
 
     def _render_piece_preview(
         self,

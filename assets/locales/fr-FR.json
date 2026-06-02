@@ -1,0 +1,170 @@
+{
+  "meta": {
+    "display_name": "Français",
+    "separators": {
+      "decimal": ",",
+      "thousands": " "
+    }
+  },
+  "app": {
+    "name": "Blocs"
+  },
+  "loading": {
+    "phases": {
+      "services": "Mise en route des moteurs...",
+      "preferences": "Application des préférences du joueur...",
+      "network": "Établissement de la connexion...",
+      "game": "Préparation de la première pièce...",
+      "screens": "Construction du plateau...",
+      "identity": "Vérification de l'identité du joueur...",
+      "tabs": "Préparation du centre de contrôle...",
+      "assets": "Coloration des blocs..."
+    },
+    "error": {
+      "title": "Échec du chargement",
+      "quit": "Appuyez sur Échap pour quitter"
+    },
+    "continue": "Appuyez sur une touche pour continuer"
+  },
+  "menu": {
+    "play": "Jouer",
+    "ranking": "Classement",
+    "settings": "Paramètres",
+    "quit": "Quitter"
+  },
+  "pause": {
+    "resume": "Reprendre",
+    "settings": "Paramètres",
+    "main_menu": "Menu principal"
+  },
+  "game_over": {
+    "title": "PARTIE TERMINÉE",
+    "new_high_score": "Nouveau meilleur score !",
+    "previous_high_score": "Meilleur score précédent :",
+    "high_score": "Meilleur score :",
+    "statistics": "Statistiques",
+    "stats": {
+      "level": "Niveau : %{value}",
+      "lines": "Lignes : %{value}",
+      "singles": "Simples : %{value}",
+      "doubles": "Doubles : %{value}",
+      "triples": "Triples : %{value}",
+      "tetris": "Tetris : %{value}"
+    },
+    "rank_position": "Rang n°%{rank} au classement !",
+    "unknown_error": "Erreur inconnue"
+  },
+  "ranking": {
+    "title": "CLASSEMENT",
+    "empty": "Aucune entrée pour le moment",
+    "local_best": "VOTRE MEILLEUR SCORE",
+    "unknown_player": "Joueur inconnu",
+    "offline": {
+      "title": "Aucune connexion au serveur",
+      "subtitle": "Classement indisponible"
+    }
+  },
+  "identity": {
+    "title": {
+      "default": "Nom du joueur",
+      "conflict": "Choisissez un nouveau nom",
+      "corrupted": "Recréez le nom du joueur"
+    },
+    "help": {
+      "default": "3-15 : lettres, chiffres et _",
+      "conflict": "Votre nom hors ligne est déjà utilisé en ligne.",
+      "corrupted": "Les données locales d'identité n'ont pas pu être lues."
+    },
+    "error": {
+      "invalid_name": "Utilisez 3 à 15 lettres, chiffres ou underscores. Le nom doit être unique."
+    },
+    "instruction": "Cliquez sur le champ pour modifier, Entrée valide"
+  },
+  "sync": {
+    "syncing": "Synchronisation...",
+    "success": "Synchronisé",
+    "offline": "Hors ligne",
+    "error": "Échec de la synchronisation"
+  },
+  "network": {
+    "tooltip": {
+      "reconnect": "Reconnecter (R)",
+      "online": "En ligne",
+      "reconnecting": "Reconnexion...",
+      "offline": "Hors ligne"
+    }
+  },
+  "settings": {
+    "empty": {
+      "title": "Aucun paramètre disponible",
+      "description": "Aucun onglet de paramètres n'a été enregistré"
+    },
+    "reset": {
+      "all": "Réinitialiser tous les paramètres",
+      "confirm": "Cliquez à nouveau pour tout réinitialiser",
+      "section": "Réinitialiser cette section"
+    },
+    "tabs": {
+      "controls": "Commandes",
+      "graphics": "Vidéo",
+      "network": "Réseau",
+      "localization": "Langue"
+    }
+  },
+  "audio": {
+    "master_volume": "Volume principal",
+    "music_volume": "Volume de la musique",
+    "sfx_volume": "Volume des effets"
+  },
+  "controls": {
+    "actions": {
+      "left": "Déplacer à gauche",
+      "right": "Déplacer à droite",
+      "soft_drop": "Descente douce",
+      "hard_drop": "Chute rapide",
+      "rotate": "Pivoter",
+      "hold": "Garder",
+      "pause": "Pause"
+    },
+    "binding": {
+      "unbound": "Non attribuée",
+      "press_key": "Appuyez sur une touche...",
+      "help": "Cliquez sur une action pour la réaffecter, puis appuyez sur une touche. Clic droit pour annuler.",
+      "prompt": "Appuyez sur une touche pour réaffecter. Clic droit pour annuler.",
+      "conflict": "Cette touche est déjà attribuée à %{action}. Choisissez-en une autre.",
+      "updated": "Raccourci mis à jour.",
+      "failed": "Impossible de mettre à jour le raccourci.",
+      "canceled": "Changement de raccourci annulé."
+    }
+  },
+  "graphics": {
+    "draw_grid": "Afficher la grille",
+    "draw_ghost": "Afficher le fantôme"
+  },
+  "network_settings": {
+    "start_offline": "Démarrer hors ligne",
+    "start_offline_help": "Lance le jeu sans se connecter au serveur",
+    "reconnection_policy": "Politique de reconnexion",
+    "policies": {
+      "auto": {
+        "label": "Automatique",
+        "description": "Se reconnecte automatiquement lorsque la connexion est perdue"
+      },
+      "manual": {
+        "label": "Manuelle",
+        "description": "Nécessite une action de l'utilisateur pour se reconnecter"
+      },
+      "always": {
+        "label": "Toujours",
+        "description": "Continue à tenter la reconnexion indéfiniment"
+      }
+    }
+  },
+  "hud": {
+    "score": "SCORE",
+    "level": "NIVEAU",
+    "lines": "LIGNES",
+    "next": "SUIVANT",
+    "hold": "RÉSERVE"
+  }
+}

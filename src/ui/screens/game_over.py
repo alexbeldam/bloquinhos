@@ -10,10 +10,10 @@ from ui.assets import AssetManager
 from ui.components.sync_indicator import SyncIndicator
 from ui.screen import Screen
 from ui.screens.game import GameScreen
+from utils.localization import format_int, tr
 from utils.logger import log
 
 if TYPE_CHECKING:
-    from network.connection_manager import NetworkManager
     from ui.audio import AudioManager
 
 
@@ -40,9 +40,6 @@ class GameOverScreen(Screen):
         self._rank_position: Optional[int] = None
         self._selected_option = 0
         self._sync_indicator = SyncIndicator(self._font)
-
-    def bind_network_manager(self, network_manager: Optional["NetworkManager"]) -> None:
-        super().bind_network_manager(network_manager)
 
     def handle_events(self, events: List[pygame.event.Event]) -> Optional[str]:
         for event in events:
@@ -130,7 +127,7 @@ class GameOverScreen(Screen):
                 self._submit_and_fetch_rank(name)
         except Exception as exc:
             log.error("Sync after game over failed", exc_info=True)
-            self._sync_indicator.set_error("Erro desconhecido", duration=3.0)
+            self._sync_indicator.set_error(tr("game_over.unknown_error"), duration=3.0)
 
     def _submit_and_fetch_rank(self, name: str) -> None:
         if self._leaderboard_manager is None:
@@ -173,7 +170,7 @@ class GameOverScreen(Screen):
         title_y = panel_y + 40
         self._draw_text(
             surface,
-            "GAME OVER",
+            tr("game_over.title"),
             SETTINGS.UI_TYPOGRAPHY.DISPLAY,
             SETTINGS.UI_THEME.RED,
             (cx, title_y),
@@ -189,7 +186,7 @@ class GameOverScreen(Screen):
         )
 
         score_y = sep1_y + 60
-        score_text = f"{self.game_screen.session.score:,}"
+        score_text = format_int(self.game_screen.session.score)
         score_surf = self._render_text_surface(
             score_text,
             SETTINGS.UI_TYPOGRAPHY.DISPLAY + 24,
@@ -207,8 +204,9 @@ class GameOverScreen(Screen):
         cur_y = score_y + 42
 
         if self._new_high_score:
+            new_high_score_text = tr("game_over.new_high_score")
             hs_surf = self._render_text_surface(
-                "New High Score!",
+                new_high_score_text,
                 SETTINGS.UI_TYPOGRAPHY.LARGE,
                 SETTINGS.UI_THEME.GREEN,
             )
@@ -216,7 +214,7 @@ class GameOverScreen(Screen):
             for dx, dy in [(1, 1), (-1, -1), (1, -1), (-1, 1)]:
                 surface.blit(
                     self._render_text_surface(
-                        "New High Score!",
+                        new_high_score_text,
                         SETTINGS.UI_TYPOGRAPHY.LARGE,
                         (255, 255, 255, 30),
                     ),
@@ -227,12 +225,12 @@ class GameOverScreen(Screen):
 
         if self._personal_best is not None:
             if self._new_high_score:
-                pb_label = "Previous High Score:"
+                pb_label = tr("game_over.previous_high_score")
             else:
-                pb_label = "High Score:"
+                pb_label = tr("game_over.high_score")
             self._draw_text(
                 surface,
-                f"{pb_label} {self._personal_best:,}",
+                f"{pb_label} {format_int(self._personal_best)}",
                 SETTINGS.UI_TYPOGRAPHY.SMALL,
                 SETTINGS.UI_THEME.TEXT_MUTED,
                 (cx, cur_y),
@@ -253,7 +251,7 @@ class GameOverScreen(Screen):
 
         self._draw_text(
             surface,
-            "Estatisticas",
+            tr("game_over.statistics"),
             SETTINGS.UI_TYPOGRAPHY.BODY,
             SETTINGS.UI_THEME.CYAN,
             (cx, cur_y),
@@ -263,16 +261,16 @@ class GameOverScreen(Screen):
         stat_item_spacing = 24
 
         stat_row1 = [
-            f"Nivel:   {self.game_screen.session.level}",
-            f"Linhas:  {self.game_screen.session.total_lines}",
+            tr("game_over.stats.level", value=format_int(self.game_screen.session.level)),
+            tr("game_over.stats.lines", value=format_int(self.game_screen.session.total_lines)),
         ]
         stat_row2a = [
-            f"Singles: {self.game_screen.session.singles}",
-            f"Doubles: {self.game_screen.session.doubles}",
+            tr("game_over.stats.singles", value=format_int(self.game_screen.session.singles)),
+            tr("game_over.stats.doubles", value=format_int(self.game_screen.session.doubles)),
         ]
         stat_row2b = [
-            f"Triples: {self.game_screen.session.triples}",
-            f"Tetris:  {self.game_screen.session.tetris}",
+            tr("game_over.stats.triples", value=format_int(self.game_screen.session.triples)),
+            tr("game_over.stats.tetris", value=format_int(self.game_screen.session.tetris)),
         ]
 
         row1_y = cur_y
@@ -325,7 +323,7 @@ class GameOverScreen(Screen):
         if self._rank_position is not None:
             self._draw_text(
                 surface,
-                f"Rank #{self._rank_position} no Leaderboard!",
+                tr("game_over.rank_position", rank=format_int(self._rank_position)),
                 SETTINGS.UI_TYPOGRAPHY.BODY,
                 SETTINGS.UI_THEME.PURPLE,
                 (cx, cur_y),

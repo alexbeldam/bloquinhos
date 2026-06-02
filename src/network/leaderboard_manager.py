@@ -34,7 +34,7 @@ class LeaderboardManager:
             for rank, doc in enumerate(cursor, 1):
                 entry = LeaderboardEntry(
                     rank=rank,
-                    name=doc.get("name", "Desconhecido"),
+                    name=str(doc.get("name") or ""),
                     score=int(doc.get("score", 0))
                 )
                 entries.append(entry)
@@ -89,6 +89,6 @@ class LeaderboardManager:
             return None
 
         return {
-            "name": data.get("name", "Desconhecido"),
+            "name": str(data.get("name") or ""),
             "score": int(data.get("score", 0))
         }

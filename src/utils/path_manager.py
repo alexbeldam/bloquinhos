@@ -63,6 +63,10 @@ class PathManager:
         return cls.get_assets_path(cls._get_paths().FONT_DIR)
 
     @classmethod
+    def get_locales_path(cls) -> str:
+        return cls.get_assets_path(cls._get_paths().LOCALES_DIR)
+
+    @classmethod
     def get_env_path(cls) -> str:
         return os.path.join(cls._get_static_base(bundled=True), cls._get_paths().ENV_FILE)
 

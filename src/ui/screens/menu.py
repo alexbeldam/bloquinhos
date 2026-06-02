@@ -6,30 +6,44 @@ from settings import SETTINGS
 from ui.assets import AssetManager
 from ui.components import Menu
 from ui.screen import Screen
+from utils.localization import tr
 
 if TYPE_CHECKING:
     from ui.audio import AudioManager
 
 
 class MenuScreen(Screen):
-    OPTIONS: Sequence[Tuple[str, str]] = (
-        ("Jogar", SETTINGS.SCREEN_NAMES.GAME),
-        ("Ranking", SETTINGS.SCREEN_NAMES.RANKING),
-        ("Configurações", SETTINGS.SCREEN_NAMES.SETTINGS),
-        ("Sair", SETTINGS.SCREEN_NAMES.QUIT),
+    OPTION_TARGETS: Sequence[str] = (
+        SETTINGS.SCREEN_NAMES.GAME,
+        SETTINGS.SCREEN_NAMES.RANKING,
+        SETTINGS.SCREEN_NAMES.SETTINGS,
+        SETTINGS.SCREEN_NAMES.QUIT,
     )
 
     def __init__(self, assets: Optional[AssetManager] = None, audio_manager: Optional["AudioManager"] = None) -> None:
         super().__init__(assets, audio_manager)
         self.menu = Menu(
-            options=self.OPTIONS,
+            options=self._build_options(),
             font_renderer=self._font,
             selected_color=SETTINGS.UI_THEME.YELLOW,
             unselected_color=SETTINGS.UI_THEME.PURPLE,
             font_size=SETTINGS.UI_TYPOGRAPHY.TITLE,
         )
 
+    def _build_options(self) -> Sequence[Tuple[str, str]]:
+        labels = (
+            tr("menu.play"),
+            tr("menu.ranking"),
+            tr("menu.settings"),
+            tr("menu.quit"),
+        )
+        return tuple(zip(labels, self.OPTION_TARGETS, strict=False))
+
+    def _sync_menu_options(self) -> None:
+        self.menu.options = self._build_options()
+
     def handle_events(self, events: List[pygame.event.Event]) -> Optional[str]:
+        self._sync_menu_options()
         for event in events:
             if event.type == pygame.QUIT:
                 return SETTINGS.SCREEN_NAMES.QUIT
@@ -47,6 +61,7 @@ class MenuScreen(Screen):
         return None
 
     def update(self, delta_time: float) -> Optional[str]:
+        self._sync_menu_options()
         if self.audio_manager:
             self.audio_manager.play_bgm("menu")
         return None
@@ -68,7 +83,7 @@ class MenuScreen(Screen):
         title_height = title_font.get_height()
         
         menu_item_spacing = 50
-        menu_height = len(self.OPTIONS) * menu_item_spacing
+        menu_height = len(self.menu.options) * menu_item_spacing
         
         total_height = logo_height + 30 + title_height + 60 + menu_height
         start_y = center_y - total_height // 2
@@ -82,7 +97,7 @@ class MenuScreen(Screen):
         
         self._draw_text(
             surface,
-            SETTINGS.APP_NAME,
+            self._localized_app_name(),
             SETTINGS.UI_TYPOGRAPHY.TITLE,
             SETTINGS.UI_THEME.TEXT_PRIMARY,
             (center_x, current_y),
@@ -91,3 +106,10 @@ class MenuScreen(Screen):
         
         self.menu.render(surface, center_x, current_y, self._draw_text)
         self._render_network_status(surface)
+
+    @staticmethod
+    def _localized_app_name() -> str:
+        localized = tr("app.name")
+        if not localized or localized == "app.name":
+            return SETTINGS.APP_NAME
+        return localized

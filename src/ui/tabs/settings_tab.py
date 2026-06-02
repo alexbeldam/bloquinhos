@@ -5,6 +5,7 @@ import pygame
 
 from settings import SETTINGS
 from ui.styles import SETTINGS_STYLE
+from utils.localization import tr
 
 if TYPE_CHECKING:
     from ui.assets import AssetManager
@@ -12,9 +13,16 @@ if TYPE_CHECKING:
 
 
 class SettingsTab(ABC):
-    def __init__(self, id: str, title: str, icon_name: str, order: int, category: str) -> None:
+    def __init__(
+        self,
+        id: str,
+        icon_name: str,
+        order: int,
+        category: str,
+        title_key: str,
+    ) -> None:
         self.id = id
-        self.title = title
+        self.title_key = title_key
         self.icon_name = icon_name
         self.order = order
         self.category = category
@@ -56,7 +64,7 @@ class SettingsTab(ABC):
         icon_text_gap = 10
 
         font = self._font(SETTINGS.UI_TYPOGRAPHY.SMALL)
-        label = "Reset This Section"
+        label = tr("settings.reset.section")
         label_surface = self._render_text_surface(
             label,
             SETTINGS.UI_TYPOGRAPHY.SMALL,
@@ -168,6 +176,9 @@ class SettingsTab(ABC):
 
         return title_y, content_center_x, content_start_y
 
+    def get_title(self) -> str:
+        return tr(self.title_key)
+
     def _draw_wrapped_text(
         self,
         surface: pygame.Surface,
@@ -179,7 +190,7 @@ class SettingsTab(ABC):
         *,
         x: int,
         y: int,
-        align: Literal["left", "center"] = "left",
+        align: Literal["left", "center", "right"] = "left",
     ) -> int:
         font = self._font(font_size)
         words = text.split()
@@ -203,6 +214,15 @@ class SettingsTab(ABC):
             for line in lines:
                 rendered = self._render_text_surface(line, font_size, color)
                 surface.blit(rendered, (x, current_y))
+                current_y += rendered.get_height() + line_spacing
+            return current_y
+
+        if align == "right":
+            current_y = y
+            for line in lines:
+                rendered = self._render_text_surface(line, font_size, color)
+                line_rect = rendered.get_rect(topright=(x, current_y))
+                surface.blit(rendered, line_rect)
                 current_y += rendered.get_height() + line_spacing
             return current_y
 
@@ -314,7 +334,7 @@ class SettingsTabRegistry:
     def get_all(self) -> list[SettingsTab]:
         sorted_tabs = sorted(
             self._tabs.values(),
-            key=lambda t: (t.order, t.title, t.id)
+            key=lambda t: (t.order, t.id)
         )
         return sorted_tabs
 

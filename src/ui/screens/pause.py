@@ -7,16 +7,17 @@ from ui.assets import AssetManager
 from ui.components import Menu
 from ui.screen import Screen
 from ui.screens.game import GameScreen
+from utils.localization import tr
 
 if TYPE_CHECKING:
     from ui.audio import AudioManager
 
 
 class PauseScreen(Screen):
-    OPTIONS: Sequence[Tuple[str, str]] = (
-        ("Continuar", "__resume__"),
-        ("Configurações", SETTINGS.SCREEN_NAMES.SETTINGS),
-        ("Menu Principal", SETTINGS.SCREEN_NAMES.MENU),
+    OPTION_TARGETS: Sequence[str] = (
+        "__resume__",
+        SETTINGS.SCREEN_NAMES.SETTINGS,
+        SETTINGS.SCREEN_NAMES.MENU,
     )
 
     def __init__(
@@ -28,7 +29,7 @@ class PauseScreen(Screen):
         super().__init__(assets, audio_manager)
         self.game_screen = game_screen
         self.menu = Menu(
-            options=self.OPTIONS,
+            options=self._build_options(),
             font_renderer=self._font,
             selected_color=SETTINGS.UI_THEME.YELLOW,
             unselected_color=SETTINGS.UI_THEME.TEXT_PRIMARY,
@@ -36,7 +37,19 @@ class PauseScreen(Screen):
             item_spacing=40,
         )
 
+    def _build_options(self) -> Sequence[Tuple[str, str]]:
+        labels = (
+            tr("pause.resume"),
+            tr("pause.settings"),
+            tr("pause.main_menu"),
+        )
+        return tuple(zip(labels, self.OPTION_TARGETS, strict=False))
+
+    def _sync_menu_options(self) -> None:
+        self.menu.options = self._build_options()
+
     def handle_events(self, events: List[pygame.event.Event]) -> Optional[str]:
+        self._sync_menu_options()
         for event in events:
             if event.type == pygame.QUIT:
                 return SETTINGS.SCREEN_NAMES.QUIT
@@ -60,6 +73,7 @@ class PauseScreen(Screen):
         return None
 
     def update(self, delta_time: float) -> Optional[str]:
+        self._sync_menu_options()
         return None
 
     def render(self, surface: pygame.Surface) -> None:
@@ -73,7 +87,7 @@ class PauseScreen(Screen):
 
         self._draw_text(
             surface,
-            "PAUSE",
+            tr("pause.title"),
             SETTINGS.UI_TYPOGRAPHY.DISPLAY,
             SETTINGS.UI_THEME.TEXT_PRIMARY,
             (center_x, center_y - 100),

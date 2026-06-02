@@ -1,0 +1,176 @@
+{
+  "meta": {
+    "display_name": "English",
+    "separators": {
+      "decimal": ".",
+      "thousands": ","
+    }
+  },
+  "app": {
+    "name": "Blockies"
+  },
+  "loading": {
+    "phases": {
+      "services": "Warming up the engines...",
+      "preferences": "Applying player preferences...",
+      "network": "Establishing uplink...",
+      "game": "Spawning first piece...",
+      "screens": "Building the playfield...",
+      "identity": "Checking player identity...",
+      "tabs": "Preparing the control room...",
+      "assets": "Coloring the blocks..."
+    },
+    "error": {
+      "title": "Loading Failed",
+      "quit": "Press ESC to quit"
+    },
+    "continue": "Press any key to continue"
+  },
+  "menu": {
+    "play": "Play",
+    "ranking": "Ranking",
+    "settings": "Settings",
+    "quit": "Quit"
+  },
+  "pause": {
+    "title": "PAUSE",
+    "resume": "Resume",
+    "settings": "Settings",
+    "main_menu": "Main Menu"
+  },
+  "game_over": {
+    "title": "GAME OVER",
+    "new_high_score": "New High Score!",
+    "previous_high_score": "Previous High Score:",
+    "high_score": "High Score:",
+    "statistics": "Statistics",
+    "stats": {
+      "level": "Level: %{value}",
+      "lines": "Lines: %{value}",
+      "singles": "Singles: %{value}",
+      "doubles": "Doubles: %{value}",
+      "triples": "Triples: %{value}",
+      "tetris": "Tetris: %{value}"
+    },
+    "rank_position": "Rank #%{rank} on Leaderboard!",
+    "unknown_error": "Unknown error"
+  },
+  "ranking": {
+    "title": "RANKING",
+    "top_five": "TOP 5",
+    "empty": "No entries yet",
+    "local_best": "YOUR BEST",
+    "unknown_player": "Unknown player",
+    "local_record": "%{name}: %{score}",
+    "local_record_with_rank": "#%{rank} %{name}: %{score}",
+    "offline": {
+      "title": "No server connection",
+      "subtitle": "Leaderboard unavailable"
+    }
+  },
+  "identity": {
+    "title": {
+      "default": "Player Name",
+      "conflict": "Choose a New Name",
+      "corrupted": "Recreate Player Name"
+    },
+    "help": {
+      "default": "3-15: letters, numbers, and _",
+      "conflict": "Your offline name is already taken online.",
+      "corrupted": "Local identity data could not be read."
+    },
+    "error": {
+      "invalid_name": "Use 3-15 letters, numbers, or underscore. Name must be unique."
+    },
+    "instruction": "Click field to edit - Enter confirms"
+  },
+  "sync": {
+    "syncing": "Syncing...",
+    "success": "Synced",
+    "offline": "Offline",
+    "error": "Sync failed"
+  },
+  "network": {
+    "tooltip": {
+      "reconnect": "Reconnect (R)",
+      "online": "Online",
+      "reconnecting": "Reconnecting...",
+      "offline": "Offline"
+    }
+  },
+  "settings": {
+    "empty": {
+      "title": "No Settings Available",
+      "description": "No settings tabs have been registered"
+    },
+    "reset": {
+      "all": "Reset All Settings",
+      "confirm": "Click again to reset all settings",
+      "section": "Reset This Section"
+    },
+    "tabs": {
+      "audio": "Audio",
+      "controls": "Controls",
+      "graphics": "Video",
+      "network": "Network",
+      "localization": "Language"
+    }
+  },
+  "audio": {
+    "master_volume": "Master Volume",
+    "music_volume": "Music Volume",
+    "sfx_volume": "SFX Volume"
+  },
+  "controls": {
+    "actions": {
+      "left": "Move Left",
+      "right": "Move Right",
+      "soft_drop": "Soft Drop",
+      "hard_drop": "Hard Drop",
+      "rotate": "Rotate",
+      "hold": "Hold",
+      "pause": "Pause"
+    },
+    "binding": {
+      "unbound": "Unbound",
+      "press_key": "Press key...",
+      "help": "Click an action to rebind, then press any key. Right-click to cancel.",
+      "prompt": "Press any key to rebind. Right-click to cancel.",
+      "conflict": "Key already bound to %{action}. Pick another key.",
+      "updated": "Key binding updated.",
+      "failed": "Could not update key binding.",
+      "canceled": "Key binding change canceled."
+    }
+  },
+  "graphics": {
+    "draw_grid": "Draw Grid",
+    "draw_ghost": "Draw Ghost",
+    "animations": "Animations"
+  },
+  "network_settings": {
+    "start_offline": "Start Offline",
+    "start_offline_help": "Launch the game without connecting to the server",
+    "reconnection_policy": "Reconnection Policy",
+    "policies": {
+      "auto": {
+        "label": "Automatic",
+        "description": "Reconnect automatically when connection is lost"
+      },
+      "manual": {
+        "label": "Manual",
+        "description": "Require user action to reconnect"
+      },
+      "always": {
+        "label": "Always",
+        "description": "Keep trying to reconnect indefinitely"
+      }
+    }
+  },
+  "hud": {
+    "score": "SCORE",
+    "level": "LEVEL",
+    "lines": "LINES",
+    "next": "NEXT",
+    "hold": "HOLD"
+  }
+}
