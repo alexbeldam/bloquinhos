@@ -59,6 +59,8 @@ def build_schema() -> SchemaNode:
             "draw_grid": SettingField(SettingType.BOOL, True),
             "draw_ghost": SettingField(SettingType.BOOL, True),
             "animations": SettingField(SettingType.BOOL, True),
+            "transition_duration": SettingField(SettingType.FLOAT, 0.3, minimum=0.0, maximum=2.0, precision=2),
+            "transition_enabled": SettingField(SettingType.BOOL, True),
         },
         "localization": {
             "language": SettingField(SettingType.STRING, "en"),
