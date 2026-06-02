@@ -108,40 +108,45 @@ class GameOverScreen(Screen):
             self._new_high_score = True
 
     def _trigger_sync(self, name: str) -> None:
-        if self._synchronizer is None:
-            self._try_fetch_rank_offline(name)
+        should_submit_score = self._synchronizer is None
+
+        if self._synchronizer is not None:
+            self._sync_indicator.set_syncing()
+
+            try:
+                result = self._synchronizer.sync(name)
+                log.info("Sync result: %s — %s", result.status.name, result.message)
+
+                if result.status == SyncStatus.SUCCESS:
+                    self._sync_indicator.set_success(duration=2.0)
+                    should_submit_score = False
+                elif result.status == SyncStatus.OFFLINE:
+                    self._sync_indicator.set_offline(duration=2.0)
+                    should_submit_score = True
+                elif result.status == SyncStatus.FAILURE:
+                    self._sync_indicator.set_error(result.message, duration=3.0)
+                    should_submit_score = True
+                else:
+                    self._sync_indicator.set_idle()
+                    should_submit_score = False
+            except Exception:
+                log.error("Sync after game over failed", exc_info=True)
+                self._sync_indicator.set_error("Erro desconhecido", duration=3.0)
+                should_submit_score = True
+
+        if should_submit_score:
+            self._submit_score_for_rank(name)
             return
 
-        self._sync_indicator.set_syncing()
+        if self._leaderboard_manager is not None:
+            self._rank_position = self._leaderboard_manager.get_user_rank(name, force_refresh=True)
 
-        try:
-            result = self._synchronizer.sync(name)
-            log.info("Sync result: %s — %s", result.status.name, result.message)
-
-            if result.status == SyncStatus.SUCCESS:
-                self._sync_indicator.set_success(duration=2.0)
-            elif result.status == SyncStatus.OFFLINE:
-                self._sync_indicator.set_offline(duration=2.0)
-            elif result.status == SyncStatus.FAILURE:
-                self._sync_indicator.set_error(result.message, duration=3.0)
-            else:
-                self._sync_indicator.set_idle()
-            if self._leaderboard_manager is not None and self._leaderboard_manager.network.is_online:
-                self._submit_and_fetch_rank(name)
-        except Exception as exc:
-            log.error("Sync after game over failed", exc_info=True)
-            self._sync_indicator.set_error("Erro desconhecido", duration=3.0)
-
-    def _submit_and_fetch_rank(self, name: str) -> None:
+    def _submit_score_for_rank(self, name: str) -> None:
         if self._leaderboard_manager is None:
             return
         session = self.game_screen.session
         self._leaderboard_manager.submit_score(name, session.score, session.total_lines, session.level)
         self._rank_position = self._leaderboard_manager.get_user_rank(name)
-
-    def _try_fetch_rank_offline(self, name: str) -> None:
-        if self._leaderboard_manager is not None and self._leaderboard_manager.network.is_online:
-            self._submit_and_fetch_rank(name)
 
     def render(self, surface: pygame.Surface) -> None:
         self.game_screen.render(surface)
