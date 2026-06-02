@@ -1,6 +1,7 @@
 from enum import Enum, auto
 from typing import Type
 
+from .events import EventType
 from .game_controller import GameController
 from .physics import GravityController
 from .progression import LevelManager
@@ -87,6 +88,7 @@ class GameSession:
         if level_changed:
             log.info(f"Level up! Now at level {self.level}")
             self._sync_gravity_interval()
+            self.game_controller.emit_event(EventType.LEVEL_UP, self.level)
 
     def _on_game_over(self) -> None:
         self._state = GameState.GAME_OVER

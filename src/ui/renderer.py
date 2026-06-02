@@ -31,6 +31,10 @@ class GameRenderer:
         self.settings_manager = settings_manager
 
     def render(self) -> None:
+        self.render_game_area()
+        self._render_sidebar()
+
+    def render_game_area(self) -> None:
         self.screen.fill((10, 14, 22))
         self._render_board()
         if self._setting_enabled("graphics.draw_ghost", True):
@@ -38,7 +42,6 @@ class GameRenderer:
         self._render_active_piece()
         if self._setting_enabled("graphics.draw_grid", True):
             self._render_grid_lines()
-        self._render_sidebar()
 
     def _setting_enabled(self, path: str, fallback: bool) -> bool:
         if self.settings_manager is None:

@@ -5,7 +5,9 @@ from .board import Board
 from .events import (
     EventType,
     GameOverHandler,
+    HardDropHandler,
     HoldHandler,
+    LevelUpHandler,
     LinesClearedHandler,
     NextPieceChangedHandler,
     PieceLockedHandler,
@@ -28,12 +30,15 @@ class GameController:
         
         self._piece_bag: List[TetrominoType] = []
         self._hold_used_this_cycle: bool = False
+        self.last_cleared_rows: List[int] = []
         self._event_handlers: Dict[EventType, List] = {
             EventType.LINE_CLEAR: [],
             EventType.PIECE_LOCKED: [],
             EventType.GAME_OVER: [],
             EventType.NEXT_PIECE_CHANGED: [],
             EventType.HOLD: [],
+            EventType.HARD_DROP: [],
+            EventType.LEVEL_UP: [],
         }
         
         self._initialize_game()
@@ -95,6 +100,7 @@ class GameController:
         
         distance = self.current_piece.fall(self.board)
         self._lock_piece()
+        self._emit_event(EventType.HARD_DROP)
         
         return distance
 
@@ -123,6 +129,12 @@ class GameController:
 
     def on_hold(self, handler: HoldHandler) -> None:
         self._event_handlers[EventType.HOLD].append(handler)
+
+    def on_hard_drop(self, handler: HardDropHandler) -> None:
+        self._event_handlers[EventType.HARD_DROP].append(handler)
+
+    def on_level_up(self, handler: LevelUpHandler) -> None:
+        self._event_handlers[EventType.LEVEL_UP].append(handler)
 
     def hold_piece(self) -> bool:
         if self.is_game_over or self.current_piece is None:
@@ -170,8 +182,10 @@ class GameController:
         
         self._emit_event(EventType.PIECE_LOCKED, self.current_piece.piece)
         
-        cleared_lines = self.board.clear_full_rows()
+        self.last_cleared_rows = self.board.get_full_row_indices()
+        cleared_lines = len(self.last_cleared_rows)
         if cleared_lines > 0:
+            self.board.clear_full_rows()
             self._emit_event(EventType.LINE_CLEAR, cleared_lines)
         
         self._spawn_new_piece()
@@ -237,6 +251,9 @@ class GameController:
         
         return self._piece_bag.pop()
 
-    def _emit_event(self, event_type: EventType, *args) -> None:
+    def emit_event(self, event_type: EventType, *args) -> None:
         for handler in self._event_handlers.get(event_type, []):
             handler(*args)
+
+    def _emit_event(self, event_type: EventType, *args) -> None:
+        self.emit_event(event_type, *args)

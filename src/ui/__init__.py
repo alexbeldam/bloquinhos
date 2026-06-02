@@ -6,6 +6,14 @@ This module handles user interface rendering and interaction.
 
 from ui.assets import AssetLoader
 from ui.audio import AudioManager
+from ui.effects import (
+    Effect,
+    EffectManager,
+    LevelUpNotification,
+    LineClearFlash,
+    ScreenShake,
+    TetrisCombo,
+)
 from ui.renderer import GameRenderer
 from ui.screen import Screen
 from ui.screen_manager import ScreenManager
@@ -32,6 +40,12 @@ from ui.tabs import (
 __all__ = [
     'AssetLoader',
     'AudioManager',
+    'Effect',
+    'EffectManager',
+    'LevelUpNotification',
+    'LineClearFlash',
+    'ScreenShake',
+    'TetrisCombo',
     'GameRenderer',
     'Screen',
     'ScreenManager',
