@@ -3,7 +3,7 @@ import random
 
 import pygame
 
-from engine import GameController, GameSession, GameState
+from engine import GameController, GameSession, GameState, GravityController
 from settings import SETTINGS
 from ui.assets import AssetManager
 from ui.renderer import GameRenderer
@@ -15,6 +15,9 @@ if TYPE_CHECKING:
 
 
 class GameScreen(Screen):
+    SANS_GRAVITY_INTERVAL = 0.08
+    SANS_SHAKE_PIXELS = 5
+
     def __init__(
         self,
         game_controller: GameController,
@@ -27,7 +30,9 @@ class GameScreen(Screen):
         self.game_controller = game_controller
         self.session = session
         self.renderer: Optional[GameRenderer] = None
+        self._shake_canvas: Optional[pygame.Surface] = None
         self.settings_manager = settings_manager
+        self.sans_mode = False
         
         self.ingame_tracks = ["score1", "score2", "score3"]
         self.current_track = random.choice(self.ingame_tracks)
@@ -84,24 +89,64 @@ class GameScreen(Screen):
         
         if self.session.state == GameState.RUNNING:
             if self.audio_manager:
-                if self.audio_manager.current_bgm not in self.ingame_tracks:
+                if self.sans_mode:
+                    self.current_track = "megalovania"
+                elif self.audio_manager.current_bgm not in self.ingame_tracks:
                     self.current_track = random.choice(self.ingame_tracks)
                 self.audio_manager.play_bgm(self.current_track)
+            if self.sans_mode:
+                self.game_controller.gravity_interval = self.SANS_GRAVITY_INTERVAL
             self.game_controller.update(delta_time)
         
         return None
 
     def render(self, surface: pygame.Surface) -> None:
+        target_surface = self._get_render_surface(surface)
+
         if self.renderer is None:
             self.renderer = GameRenderer(
-                surface,
+                target_surface,
                 self.assets,
                 self.game_controller,
                 self.session,
                 self.settings_manager,
+                sans_mode=self.sans_mode,
             )
+        else:
+            self.renderer.screen = target_surface
+            self.renderer.sans_mode = self.sans_mode
 
         self.renderer.render()
+        if self.sans_mode:
+            self._blit_shaken(surface, target_surface)
+
+    def set_sans_mode(self, enabled: bool) -> None:
+        self.sans_mode = enabled
+        if enabled:
+            self.current_track = "megalovania"
+            self.game_controller.gravity_interval = self.SANS_GRAVITY_INTERVAL
+        elif self.current_track == "megalovania":
+            self.current_track = random.choice(self.ingame_tracks)
+            self.game_controller.gravity_interval = GravityController.calculate_gravity_interval(self.session.level)
+        if self.renderer is not None:
+            self.renderer.sans_mode = enabled
+
+    def _get_render_surface(self, surface: pygame.Surface) -> pygame.Surface:
+        if not self.sans_mode:
+            return surface
+
+        if self._shake_canvas is None or self._shake_canvas.get_size() != surface.get_size():
+            self._shake_canvas = pygame.Surface(surface.get_size()).convert()
+
+        return self._shake_canvas
+
+    def _blit_shaken(self, surface: pygame.Surface, target_surface: pygame.Surface) -> None:
+        surface.fill((10, 14, 22))
+        offset = (
+            random.randint(-self.SANS_SHAKE_PIXELS, self.SANS_SHAKE_PIXELS),
+            random.randint(-self.SANS_SHAKE_PIXELS, self.SANS_SHAKE_PIXELS),
+        )
+        surface.blit(target_surface, offset)
 
     def _get_controls(self) -> dict[str, int]:
         defaults = {

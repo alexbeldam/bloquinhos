@@ -23,15 +23,17 @@ class GameRenderer:
         controller: GameController,
         session: GameSession,
         settings_manager: Optional['SettingsManager'] = None,
+        sans_mode: bool = False,
     ) -> None:
         self.screen = screen
         self.assets = assets
         self.controller = controller
         self.session = session
         self.settings_manager = settings_manager
+        self.sans_mode = sans_mode
 
     def render(self) -> None:
-        self.screen.fill((10, 14, 22))
+        self._render_background()
         self._render_board()
         if self._setting_enabled("graphics.draw_ghost", True):
             self._render_ghost_piece()
@@ -48,6 +50,29 @@ class GameRenderer:
         except (KeyError, TypeError, ValueError):
             return fallback
 
+    def _render_background(self) -> None:
+        self.screen.fill((10, 14, 22))
+        if not self.sans_mode or self.assets is None:
+            return
+
+        try:
+            sans = self.assets.get_image("sans")
+        except (KeyError, FileNotFoundError, pygame.error):
+            return
+
+        target_height = int(self.screen.get_height() * 0.74)
+        scale = target_height / sans.get_height()
+        target_width = int(sans.get_width() * scale)
+        scaled_sans = pygame.transform.scale(sans, (target_width, target_height))
+        scaled_sans.set_alpha(95)
+        rect = scaled_sans.get_rect(
+            center=(
+                SETTINGS.GRID.GAME_WIDTH // 2,
+                self.screen.get_height() // 2,
+            )
+        )
+        self.screen.blit(scaled_sans, rect)
+
     def _render_board(self) -> None:
         board_rect = pygame.Rect(
             0,
@@ -55,7 +80,12 @@ class GameRenderer:
             SETTINGS.GRID.GAME_WIDTH,
             SETTINGS.GRID.GAME_HEIGHT,
         )
-        pygame.draw.rect(self.screen, (24, 30, 42), board_rect)
+        if self.sans_mode:
+            board_overlay = pygame.Surface(board_rect.size, pygame.SRCALPHA)
+            board_overlay.fill((24, 30, 42, 190))
+            self.screen.blit(board_overlay, board_rect)
+        else:
+            pygame.draw.rect(self.screen, (24, 30, 42), board_rect)
 
         for y, row in enumerate(self.controller.board.grid):
             for x, tile in enumerate(row):
