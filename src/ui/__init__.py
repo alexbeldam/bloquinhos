@@ -13,6 +13,7 @@ from ui.effects import (
     LineClearFlash,
     ScreenShake,
     TetrisCombo,
+    hsv_to_rgb,
 )
 from ui.renderer import GameRenderer
 from ui.screen import Screen

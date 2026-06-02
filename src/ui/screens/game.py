@@ -7,7 +7,6 @@ from engine import GameController, GameSession, GameState
 from settings import SETTINGS
 from ui.assets import AssetManager
 from ui.effects import (
-    Effect,
     EffectManager,
     LevelUpNotification,
     LineClearFlash,
@@ -36,35 +35,38 @@ class GameScreen(Screen):
         self.session = session
         self.renderer: Optional[GameRenderer] = None
         self.settings_manager = settings_manager
-        self._effect_manager = EffectManager()
         
         self.ingame_tracks = ["score1", "score2", "score3"]
         self.current_track = random.choice(self.ingame_tracks)
         
         if self.audio_manager:
             self.audio_manager.register_events(self.game_controller)
-        
-        self._register_effect_events()
     
+    def _get_effect_manager(self) -> EffectManager:
+        """Get the EffectManager from the renderer, if available."""
+        if self.renderer is not None:
+            return self.renderer.effect_manager
+        return EffectManager()
+
     def _register_effect_events(self) -> None:
         def on_line_clear(lines: int) -> None:
             if not self._effects_enabled():
                 return
             full_rows = list(self.game_controller.last_cleared_rows)
             if full_rows:
-                self._effect_manager.add_effect(LineClearFlash(full_rows))
+                self._get_effect_manager().add_effect(LineClearFlash(full_rows))
             if lines >= 4:
-                self._effect_manager.add_effect(TetrisCombo())
+                self._get_effect_manager().add_effect(TetrisCombo())
         
         def on_level_up(new_level: int) -> None:
             if not self._effects_enabled():
                 return
-            self._effect_manager.add_effect(LevelUpNotification(new_level))
+            self._get_effect_manager().add_effect(LevelUpNotification(new_level))
         
         def on_hard_drop() -> None:
             if not self._effects_enabled():
                 return
-            self._effect_manager.add_effect(ScreenShake())
+            self._get_effect_manager().add_effect(ScreenShake())
         
         self.game_controller.on_line_clear(on_line_clear)
         self.game_controller.on_level_up(on_level_up)
@@ -132,7 +134,8 @@ class GameScreen(Screen):
                 self.audio_manager.play_bgm(self.current_track)
             self.game_controller.update(delta_time)
         
-        self._effect_manager.update(delta_time)
+        if self.renderer is not None:
+            self.renderer.effect_manager.update(delta_time)
         
         return None
 
@@ -145,27 +148,11 @@ class GameScreen(Screen):
                 self.session,
                 self.settings_manager,
             )
-
-        shake_offset_x = 0
-        shake_offset_y = 0
-        for effect in self._effect_manager.get_active_effects():
-            if isinstance(effect, ScreenShake):
-                shake_offset_x = effect.offset_x
-                shake_offset_y = effect.offset_y
-                break
-
-        if shake_offset_x or shake_offset_y:
-            buffer = surface.copy()
-            self.renderer.screen = buffer
-            self.renderer.render_game_area()
-            self._effect_manager.render(buffer)
-            self.renderer.render_sidebar()
-            self.renderer.screen = surface
-            surface.blit(buffer, (shake_offset_x, shake_offset_y))
+            self._register_effect_events()
         else:
-            self.renderer.render_game_area()
-            self._effect_manager.render(surface)
-            self.renderer.render_sidebar()
+            self.renderer.screen = surface
+
+        self.renderer.render()
 
     def _get_controls(self) -> dict[str, int]:
         defaults = {
