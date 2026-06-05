@@ -30,7 +30,6 @@ class _Particle:
         if self._elapsed >= self._life:
             return
         t = self._elapsed / self._life
-        alpha = max(0, int((1.0 - t) * 255))  # kept for future use
         hue = (self._elapsed * 120) % 360
         color = hsv_to_rgb(hue, 1.0, 1.0)
         radius = max(1, int(4 * (1.0 - t)))

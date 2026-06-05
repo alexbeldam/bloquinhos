@@ -1,7 +1,7 @@
 from enum import Enum, auto
 from typing import Type
 
-from .events import EventType
+from .events import LevelUpHandler
 from .game_controller import GameController
 from .physics import GravityController
 from .progression import LevelManager
@@ -29,10 +29,14 @@ class GameSession:
         self._gravity_controller = gravity_controller
         self._score = 0
         self._state = GameState.RUNNING
+        self._level_up_handlers: list[LevelUpHandler] = []
 
         self.game_controller.on_line_clear(self._on_line_clear)
         self.game_controller.on_game_over(self._on_game_over)
         self._sync_gravity_interval()
+    
+    def on_level_up(self, handler: LevelUpHandler) -> None:
+        self._level_up_handlers.append(handler)
 
     @property
     def score(self) -> int:
@@ -88,7 +92,8 @@ class GameSession:
         if level_changed:
             log.info(f"Level up! Now at level {self.level}")
             self._sync_gravity_interval()
-            self.game_controller.emit_event(EventType.LEVEL_UP, self.level)
+            for handler in self._level_up_handlers:
+                handler(self.level)
 
     def _on_game_over(self) -> None:
         self._state = GameState.GAME_OVER

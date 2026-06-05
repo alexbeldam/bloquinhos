@@ -7,7 +7,6 @@ from .events import (
     GameOverHandler,
     HardDropHandler,
     HoldHandler,
-    LevelUpHandler,
     LinesClearedHandler,
     NextPieceChangedHandler,
     PieceLockedHandler,
@@ -38,7 +37,6 @@ class GameController:
             EventType.NEXT_PIECE_CHANGED: [],
             EventType.HOLD: [],
             EventType.HARD_DROP: [],
-            EventType.LEVEL_UP: [],
         }
         
         self._initialize_game()
@@ -132,9 +130,6 @@ class GameController:
 
     def on_hard_drop(self, handler: HardDropHandler) -> None:
         self._event_handlers[EventType.HARD_DROP].append(handler)
-
-    def on_level_up(self, handler: LevelUpHandler) -> None:
-        self._event_handlers[EventType.LEVEL_UP].append(handler)
 
     def hold_piece(self) -> bool:
         if self.is_game_over or self.current_piece is None:
@@ -251,9 +246,6 @@ class GameController:
         
         return self._piece_bag.pop()
 
-    def emit_event(self, event_type: EventType, *args) -> None:
+    def _emit_event(self, event_type: EventType, *args) -> None:
         for handler in self._event_handlers.get(event_type, []):
             handler(*args)
-
-    def _emit_event(self, event_type: EventType, *args) -> None:
-        self.emit_event(event_type, *args)

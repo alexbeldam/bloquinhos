@@ -69,7 +69,7 @@ class GameScreen(Screen):
             self._get_effect_manager().add_effect(ScreenShake())
         
         self.game_controller.on_line_clear(on_line_clear)
-        self.game_controller.on_level_up(on_level_up)
+        self.session.on_level_up(on_level_up)
         self.game_controller.on_hard_drop(on_hard_drop)
     
     def _effects_enabled(self) -> bool:
