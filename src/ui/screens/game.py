@@ -122,15 +122,22 @@ class GameScreen(Screen):
                 self.game_controller.hold_piece()
         return None
 
+    def on_enter(self) -> None:
+        if not self.audio_manager:
+            return
+
+        if self.audio_manager.current_bgm not in self.ingame_tracks:
+            self.current_track = random.choice(self.ingame_tracks)
+        else:
+            self.current_track = self.audio_manager.current_bgm
+
+        self.audio_manager.play_bgm(self.current_track)
+
     def update(self, delta_time: float) -> Optional[str]:
         if self.session.state == GameState.GAME_OVER:
             return SETTINGS.SCREEN_NAMES.GAME_OVER
         
         if self.session.state == GameState.RUNNING:
-            if self.audio_manager:
-                if self.audio_manager.current_bgm not in self.ingame_tracks:
-                    self.current_track = random.choice(self.ingame_tracks)
-                self.audio_manager.play_bgm(self.current_track)
             self.game_controller.update(delta_time)
         
         if self.renderer is not None:

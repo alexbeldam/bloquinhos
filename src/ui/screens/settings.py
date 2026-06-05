@@ -213,7 +213,7 @@ class SettingsScreen(Screen):
         elif active_tab is not None:
             active_tab.set_reset_button_hovered((-1, -1))
 
-    def update(self, delta_time: float) -> Optional[str]:
+    def update(self, _delta_time: float) -> Optional[str]:
         if self._reset_all_armed_until_ms > 0 and pygame.time.get_ticks() > self._reset_all_armed_until_ms:
             self._reset_all_armed_until_ms = 0
         return None

@@ -60,10 +60,11 @@ class MenuScreen(Screen):
         
         return None
 
-    def update(self, delta_time: float) -> Optional[str]:
-        self._sync_menu_options()
+    def on_enter(self) -> None:
         if self.audio_manager:
             self.audio_manager.play_bgm("menu")
+
+    def update(self, _delta_time: float) -> Optional[str]:
         return None
 
     def render(self, surface: pygame.Surface) -> None:

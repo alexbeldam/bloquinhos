@@ -40,6 +40,12 @@ class Screen(ABC):
     def render(self, surface: pygame.Surface) -> None:
         """Draw the screen."""
 
+    def on_enter(self) -> None:
+        """Run logic once when this screen becomes active."""
+
+    def on_exit(self) -> None:
+        """Run cleanup once before leaving this screen."""
+
     def _font(self, size: int) -> pygame.font.Font:
         if self.assets is not None:
             try:

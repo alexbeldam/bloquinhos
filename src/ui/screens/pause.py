@@ -63,8 +63,6 @@ class PauseScreen(Screen):
                 self.game_screen.session.resume()
                 return SETTINGS.SCREEN_NAMES.GAME
             elif result == SETTINGS.SCREEN_NAMES.MENU:
-                if self.game_screen.audio_manager:
-                    self.game_screen.audio_manager.stop_bgm()
                 self.game_screen.session.reset()
                 return SETTINGS.SCREEN_NAMES.MENU
             elif result:
@@ -72,8 +70,7 @@ class PauseScreen(Screen):
 
         return None
 
-    def update(self, delta_time: float) -> Optional[str]:
-        self._sync_menu_options()
+    def update(self, _delta_time: float) -> Optional[str]:
         return None
 
     def render(self, surface: pygame.Surface) -> None:
