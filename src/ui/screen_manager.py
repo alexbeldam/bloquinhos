@@ -82,16 +82,19 @@ class ScreenManager:
         ):
             transition = determine_transition(self._current_name, name)
             if transition is not None:
-                if previous_screen is not None:
-                    previous_screen.on_exit()
                 from_surface = self.surface.copy()
                 pygame.event.clear()
+                
                 self._previous_name = self._current_name
                 self._current_name = name
                 self.current_screen = self._screens[name]
-                self.current_screen.on_enter()
+                
+                if previous_screen is not None:
+                    previous_screen.on_exit()
+                
                 self.current_screen.render(self.surface)
                 to_surface = self.surface.copy()
+                
                 transition.start(from_surface, to_surface)
                 self._transition = transition
                 return
@@ -99,8 +102,10 @@ class ScreenManager:
         pygame.event.clear()
         self._previous_name = self._current_name
         self._current_name = name
+
         if previous_screen is not None:
             previous_screen.on_exit()
+
         self.current_screen = self._screens[name]
         self.current_screen.on_enter()
 
@@ -110,6 +115,9 @@ class ScreenManager:
             pygame.display.flip()
         self._transition = None
         pygame.event.clear()
+        
+        if self.current_screen is not None:
+            self.current_screen.on_enter()
 
     @property
     def current_name(self) -> Optional[str]:

@@ -50,8 +50,6 @@ class PauseScreen(Screen):
                 self.game_screen.session.resume()
                 return SETTINGS.SCREEN_NAMES.GAME
             elif result == SETTINGS.SCREEN_NAMES.MENU:
-                if self.game_screen.audio_manager:
-                    self.game_screen.audio_manager.stop_bgm()
                 self.game_screen.session.reset()
                 return SETTINGS.SCREEN_NAMES.MENU
             elif result:
