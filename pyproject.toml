@@ -21,6 +21,7 @@ dependencies = [
   "pygame",
   "pymongo",
   "python-dotenv",
+  "python-i18n",
   "cryptography",
   "certifi",
   "keyring",

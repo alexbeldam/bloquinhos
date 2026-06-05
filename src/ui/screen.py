@@ -6,6 +6,7 @@ import pygame
 from settings import SETTINGS
 from ui.assets import AssetManager
 from ui.styles import SETTINGS_STYLE
+from utils.localization import tr
 
 if TYPE_CHECKING:
     from network.connection_manager import ConnectionStatusSnapshot, NetworkManager
@@ -239,7 +240,7 @@ class Screen(ABC):
         tooltip: Optional[tuple[str, tuple[int, int]]] = None
 
         if self._network_retry_hitbox is not None and self._network_retry_hitbox.collidepoint(mouse_pos):
-            tooltip = ("Reconnect (R)", mouse_pos)
+            tooltip = (tr("network.tooltip.reconnect"), mouse_pos)
         elif self._network_status_hitbox is not None and self._network_status_hitbox.collidepoint(mouse_pos):
             tooltip = (self._network_tooltip_text(snapshot), mouse_pos)
 
@@ -250,12 +251,10 @@ class Screen(ABC):
 
     def _network_tooltip_text(self, snapshot: "ConnectionStatusSnapshot") -> str:
         if snapshot.is_online:
-            return "Online"
+            return tr("network.tooltip.online")
         if snapshot.is_retrying:
-            return "Reconnecting..."
-        if snapshot.can_retry:
-            return "Offline"
-        return "Offline: waiting for next automatic retry"
+            return tr("network.tooltip.reconnecting")
+        return tr("network.tooltip.offline")
 
     def _render_tooltip(
         self,

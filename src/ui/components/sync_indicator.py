@@ -5,6 +5,7 @@ from typing import Callable, Optional
 import pygame
 
 from settings import SETTINGS
+from utils.localization import tr
 
 
 class SyncIndicatorStatus(Enum):
@@ -26,27 +27,27 @@ class SyncIndicator:
 
     def set_syncing(self) -> None:
         self._status = SyncIndicatorStatus.SYNCING
-        self._message = "Sincronizando..."
+        self._message = tr("sync.syncing")
         self._animation_time = 0.0
         self._auto_hide = False
 
     def set_success(self, duration: float = 2.0) -> None:
         self._status = SyncIndicatorStatus.SUCCESS
-        self._message = "Sincronizado"
+        self._message = tr("sync.success")
         self._animation_time = 0.0
         self._display_duration = duration
         self._auto_hide = duration > 0
 
     def set_offline(self, duration: float = 0.0) -> None:
         self._status = SyncIndicatorStatus.OFFLINE
-        self._message = "Offline"
+        self._message = tr("sync.offline")
         self._animation_time = 0.0
         self._display_duration = duration
         self._auto_hide = duration > 0
 
-    def set_error(self, message: str = "Erro ao sincronizar", duration: float = 3.0) -> None:
+    def set_error(self, message: str = "", duration: float = 3.0) -> None:
         self._status = SyncIndicatorStatus.ERROR
-        self._message = message
+        self._message = message or tr("sync.error")
         self._animation_time = 0.0
         self._display_duration = duration
         self._auto_hide = duration > 0

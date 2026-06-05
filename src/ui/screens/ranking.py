@@ -6,6 +6,7 @@ import pygame
 from settings import SETTINGS
 from ui.assets import AssetManager
 from ui.screen import Screen
+from utils.localization import format_int, tr
 
 if TYPE_CHECKING:
     from network.connection_manager import NetworkManager, ConnectionStatusSnapshot
@@ -84,7 +85,7 @@ class RankingScreen(Screen):
         
         self._draw_text(
             surface,
-            "RANKING GLOBAL",
+            tr("ranking.title"),
             SETTINGS.UI_TYPOGRAPHY.DISPLAY,
             SETTINGS.UI_THEME.TEXT_PRIMARY,
             (surface.get_width() // 2, 80),
@@ -131,7 +132,7 @@ class RankingScreen(Screen):
         title_y = start_y
         self._draw_text(
             surface,
-            "TOP 5",
+            tr("ranking.top_five"),
             SETTINGS.UI_TYPOGRAPHY.TITLE,
             SETTINGS.UI_THEME.YELLOW,
             (center_x, title_y),
@@ -141,9 +142,9 @@ class RankingScreen(Screen):
         item_spacing = 40
         
         for entry in entries:
-            rank_text = f"#{entry.rank}"
-            name_text = entry.name[:15]
-            score_text = self._format_score(entry.score)
+            rank_text = f"#{format_int(entry.rank)}"
+            name_text = self._display_name(entry.name)
+            score_text = format_int(entry.score)
             
             self._draw_text(
                 surface,
@@ -179,7 +180,7 @@ class RankingScreen(Screen):
     ) -> None:
         self._draw_text(
             surface,
-            "Sem conexão com servidor",
+            tr("ranking.offline.title"),
             SETTINGS.UI_TYPOGRAPHY.LARGE,
             SETTINGS.UI_THEME.PURPLE,
             (center_x, start_y + 40),
@@ -187,7 +188,7 @@ class RankingScreen(Screen):
         
         self._draw_text(
             surface,
-            "Ranking indisponível",
+            tr("ranking.offline.subtitle"),
             SETTINGS.UI_TYPOGRAPHY.BODY,
             SETTINGS.UI_THEME.TEXT_MUTED,
             (center_x, start_y + 100),
@@ -216,7 +217,7 @@ class RankingScreen(Screen):
     ) -> None:
         self._draw_text(
             surface,
-            "SEU MELHOR",
+            tr("ranking.local_best"),
             SETTINGS.UI_TYPOGRAPHY.TITLE,
             SETTINGS.UI_THEME.YELLOW,
             (center_x, start_y),
@@ -224,12 +225,17 @@ class RankingScreen(Screen):
         
         name = record.name
         score = record.score
-        score_text = self._format_score(score)
+        score_text = format_int(score)
         rank = record.rank
         
-        record_text = f"{name}: {score_text}"
+        record_text = tr("ranking.local_record", name=name, score=score_text)
         if rank is not None:
-            record_text += f" (Rank #{rank})"
+            record_text = tr(
+                "ranking.local_record_with_rank",
+                name=name,
+                score=score_text,
+                rank=format_int(rank),
+            )
         
         self._draw_text(
             surface,
@@ -240,5 +246,7 @@ class RankingScreen(Screen):
         )
 
     @staticmethod
-    def _format_score(score: int) -> str:
-        return f"{score:,}".replace(",", ".")
+    def _display_name(name: object) -> str:
+        if isinstance(name, str) and name.strip():
+            return name[:15]
+        return tr("ranking.unknown_player")

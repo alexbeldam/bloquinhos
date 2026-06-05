@@ -9,6 +9,7 @@ from service_container import ServiceContainer
 from settings import SETTINGS
 from ui.screen_factory import ScreenFactory
 from ui.tabs import AudioTab, ControlsTab, GraphicsTab, LocalizationTab, NetworkTab, SettingsTabRegistry
+from utils.localization import tr, DEFAULT_LOCALE
 from utils.path_manager import PathManager
 import utils.env_manager as env
 from utils.logger import log
@@ -115,14 +116,18 @@ class Application:
     
     def _init_services(self) -> None:
         log.debug("Initializing services")
+        self.services.initialize_localization()
         self.services.initialize_assets()
         self.services.initialize_settings_manager()
+        locale_value = self.services.settings_manager.get("localization.locale")
+        if not isinstance(locale_value, str):
+            locale_value = DEFAULT_LOCALE
+        resolved_locale = self.services.localization_manager.set_locale(locale_value)
+        if resolved_locale != locale_value:
+            self.services.settings_manager.set("localization.locale", resolved_locale)
         self.services.initialize_audio()
 
     def _init_preferences(self) -> None:
-        settings_manager = self.services.settings_manager
-        settings_manager.load()
-
         self._apply_audio_preferences()
         self._bind_runtime_settings_observers()
 
@@ -173,8 +178,24 @@ class Application:
 
             network_manager.update_reconnect_policy(new_value)
 
+        def on_localization_setting_changed(path: str, _old_value, new_value) -> None:
+            if path != "localization.locale" or not isinstance(new_value, str):
+                return
+
+            resolved_locale = self.services.localization_manager.set_locale(new_value)
+            pygame.display.set_caption(tr("app.name"))
+            if resolved_locale != new_value:
+                try:
+                    current_locale = self.services.settings_manager.get("localization.locale")
+                except (KeyError, TypeError, ValueError):
+                    current_locale = None
+
+                if current_locale != resolved_locale:
+                    self.services.settings_manager.set("localization.locale", resolved_locale)
+
         settings_manager.subscribe("audio.*", on_audio_setting_changed)
         settings_manager.subscribe("network.reconnect_policy", on_network_setting_changed)
+        settings_manager.subscribe("localization.locale", on_localization_setting_changed)
     
     def _init_network_connection(self) -> None:
         start_offline = self.services.settings_manager.get_bool("network.start_offline")

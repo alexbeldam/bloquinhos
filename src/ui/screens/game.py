@@ -43,7 +43,6 @@ class GameScreen(Screen):
             self.audio_manager.register_events(self.game_controller)
     
     def _get_effect_manager(self) -> EffectManager:
-        """Get the EffectManager from the renderer, if available."""
         if self.renderer is not None:
             return self.renderer.effect_manager
         return EffectManager()

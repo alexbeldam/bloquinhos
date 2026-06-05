@@ -5,6 +5,7 @@ import pygame
 from settings import SETTINGS
 from ui.styles import SETTINGS_STYLE
 from ui.tabs.settings_tab import SettingsTab
+from utils.localization import format_percent, tr
 
 
 class AudioTab(SettingsTab):
@@ -18,18 +19,18 @@ class AudioTab(SettingsTab):
     ICON_SPACING = 16
 
     SLIDERS = [
-        ("Master Volume", "audio.master.volume", "audio.master.muted"),
-        ("Music Volume", "audio.music.volume", "audio.music.muted"),
-        ("SFX Volume", "audio.sfx.volume", "audio.sfx.muted"),
+        ("audio.master_volume", "audio.master.volume", "audio.master.muted"),
+        ("audio.music_volume", "audio.music.volume", "audio.music.muted"),
+        ("audio.sfx_volume", "audio.sfx.volume", "audio.sfx.muted"),
     ]
 
     def __init__(self) -> None:
         super().__init__(
             id="audio",
-            title="Audio",
             icon_name="headphones",
             order=0,
             category="audio",
+            title_key="settings.tabs.audio",
         )
         self._slider_hitboxes: list[tuple[str, pygame.Rect]] = []
         self._icon_hitboxes: list[tuple[str, pygame.Rect]] = []
@@ -48,14 +49,14 @@ class AudioTab(SettingsTab):
         title_y, _, _ = self._draw_tab_background_and_title(
             surface,
             rect,
-            self.title,
+            self.get_title(),
             self.CONTENT_PADDING,
         )
 
         sliders_start_y = title_y + 60
         row_font = self._font(SETTINGS.UI_TYPOGRAPHY.BODY)
 
-        for index, (label, volume_path, mute_path) in enumerate(self.SLIDERS):
+        for index, (label_key, volume_path, mute_path) in enumerate(self.SLIDERS):
             row_y = sliders_start_y + index * (self.SLIDER_ROW_HEIGHT + self.SLIDER_ROW_GAP)
             
             volume = 1.0
@@ -71,7 +72,7 @@ class AudioTab(SettingsTab):
                     is_muted = False
 
             label_surface = self._render_text_surface(
-                label,
+                tr(label_key),
                 SETTINGS.UI_TYPOGRAPHY.BODY,
                 SETTINGS.UI_THEME.TEXT_PRIMARY,
             )
@@ -122,6 +123,16 @@ class AudioTab(SettingsTab):
                 if is_icon_hovered:
                     icon_scaled.set_alpha(200)
                 surface.blit(icon_scaled, (icon_x_screen, icon_y_screen))
+
+            percent_text = format_percent(volume, precision=0, is_fraction=True)
+            percent_surface = self._render_text_surface(
+                percent_text,
+                SETTINGS.UI_TYPOGRAPHY.SMALL,
+                SETTINGS.UI_THEME.TEXT_MUTED,
+            )
+            percent_x = icon_x_screen - 12 - percent_surface.get_width()
+            percent_y = row_y + (label_surface.get_height() - percent_surface.get_height()) // 2
+            surface.blit(percent_surface, (percent_x, percent_y))
         
         reset_button_y = self._bottom_action_y(rect, self.CONTENT_PADDING, action_height=42)
         self.render_reset_button(surface, rect, reset_button_y)

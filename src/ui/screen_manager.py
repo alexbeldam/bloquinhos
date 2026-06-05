@@ -7,6 +7,7 @@ from settings import SETTINGS
 from ui.screen import Screen
 from ui.transitions import TransitionEffect, determine_transition
 from utils.logger import log
+from utils.localization import tr
 
 
 class ScreenManager:
@@ -25,7 +26,7 @@ class ScreenManager:
         self._center_window()
         flags = 0 if decorated else pygame.NOFRAME
         self.surface = pygame.display.set_mode((width, height), flags)
-        pygame.display.set_caption(SETTINGS.APP_NAME)
+        pygame.display.set_caption(self._localized_app_name())
         
         if icon is not None:
             pygame.display.set_icon(icon)
@@ -51,6 +52,13 @@ class ScreenManager:
         
         if caption:
             pygame.display.set_caption(caption)
+
+    @staticmethod
+    def _localized_app_name() -> str:
+        localized = tr("app.name")
+        if not localized or localized == "app.name":
+            return SETTINGS.APP_NAME
+        return localized
 
     def register_screen(self, name: str, screen: Screen) -> None:
         self._screens[name] = screen

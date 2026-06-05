@@ -10,10 +10,10 @@ if TYPE_CHECKING:
     from network.connection_manager import NetworkManager
     from network.data_synchronizer import DataSynchronizer
     from network.leaderboard_manager import LeaderboardManager
-    from network.user_data_dao import UserDataDAO
     from ui.assets import AssetManager
     from ui.audio import AudioManager
     from ui.screen_manager import ScreenManager
+    from utils.localization import LocalizationManager
     from utils.settings_manager import SettingsManager
 
 
@@ -27,6 +27,7 @@ class ServiceContainer:
         self._data_synchronizer: Optional['DataSynchronizer'] = None
         self._settings_manager: Optional['SettingsManager'] = None
         self._leaderboard_manager: Optional['LeaderboardManager'] = None
+        self._localization_manager: Optional['LocalizationManager'] = None
         self._identity_context_lock = threading.Lock()
         self._identity_entry_reason = "missing"
         self._identity_return_screen = SETTINGS.SCREEN_NAMES.MENU
@@ -88,6 +89,14 @@ class ServiceContainer:
             from utils.settings_manager import SettingsManager
             self._settings_manager = SettingsManager()
         return self._settings_manager
+
+    def initialize_localization(self) -> 'LocalizationManager':
+        if self._localization_manager is None:
+            from utils.localization import LocalizationManager, set_localization_manager
+
+            self._localization_manager = LocalizationManager()
+            set_localization_manager(self._localization_manager)
+        return self._localization_manager
     
     def initialize_screen_manager(
         self,
@@ -148,6 +157,12 @@ class ServiceContainer:
         if self._settings_manager is None:
             raise RuntimeError("SettingsManager not initialized. Call initialize_settings_manager() first.")
         return self._settings_manager
+
+    @property
+    def localization_manager(self) -> 'LocalizationManager':
+        if self._localization_manager is None:
+            raise RuntimeError("LocalizationManager not initialized. Call initialize_localization() first.")
+        return self._localization_manager
 
     def set_identity_entry_context(
         self,
