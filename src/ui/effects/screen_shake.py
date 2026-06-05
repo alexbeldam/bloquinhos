@@ -7,9 +7,9 @@ from ui.effects.base import Effect
 
 class ScreenShake(Effect):
     def __init__(self) -> None:
-        self._duration = 0.2
+        self._duration = 0.25
         self._elapsed = 0.0
-        self._intensity = 5
+        self._intensity = 3
         self._completed = False
         self.offset_x = 0
         self.offset_y = 0
@@ -25,9 +25,9 @@ class ScreenShake(Effect):
             return True
 
         decay = 1.0 - (self._elapsed / self._duration)
-        intensity = self._intensity * decay
-        self.offset_x = int(sin(self._elapsed * 60.0) * intensity)
-        self.offset_y = int(sin(self._elapsed * 50.0 + 1.0) * intensity)
+        intensity = self._intensity * decay * decay
+        self.offset_x = int(sin(self._elapsed * 40.0) * intensity)
+        self.offset_y = int(sin(self._elapsed * 35.0 + 1.0) * intensity)
         return False
 
     def render(self, surface: "pygame.Surface") -> None:

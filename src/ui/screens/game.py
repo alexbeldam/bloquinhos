@@ -36,11 +36,25 @@ class GameScreen(Screen):
         self.renderer: Optional[GameRenderer] = None
         self.settings_manager = settings_manager
         
-        self.ingame_tracks = ["score1", "score2", "score3"]
-        self.current_track = random.choice(self.ingame_tracks)
+        # Playlist de trilhas em-jogo. Tema pode ser adicionado aqui após validação.
+        self.ingame_tracks = self._build_ingame_playlist()
+        self.current_track = random.choice(self.ingame_tracks) if self.ingame_tracks else "score1"
         
         if self.audio_manager:
             self.audio_manager.register_events(self.game_controller)
+    
+    def _build_ingame_playlist(self) -> list:
+        """Build in-game music playlist, including theme if available."""
+        base_tracks = ["score1", "score2", "score3", "score4"]
+        
+        # Try to include theme if it exists in assets
+        if self.assets is not None:
+            asset_files = self.assets.list_asset_files()
+            music_files = asset_files.get("music", [])
+            if "theme.ogg" in music_files:
+                base_tracks.append("theme")
+        
+        return base_tracks
     
     def _get_effect_manager(self) -> EffectManager:
         if self.renderer is not None:
@@ -58,6 +72,8 @@ class GameScreen(Screen):
                 self._get_effect_manager().add_effect(TetrisCombo())
         
         def on_level_up(new_level: int) -> None:
+            if self.audio_manager:
+                self.audio_manager.play_sfx("levelup")
             if not self._effects_enabled():
                 return
             self._get_effect_manager().add_effect(LevelUpNotification(new_level))
@@ -132,6 +148,11 @@ class GameScreen(Screen):
             self.current_track = self.audio_manager.current_bgm
 
         self.audio_manager.play_bgm(self.current_track)
+
+    def on_exit(self) -> None:
+        """Called when leaving game screen (e.g., to game over or pause)."""
+        # BGM is managed by the destination screen's on_enter
+        pass
 
     def update(self, delta_time: float) -> Optional[str]:
         if self.session.state == GameState.GAME_OVER:

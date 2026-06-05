@@ -34,6 +34,15 @@ class RankingScreen(Screen):
             network_manager.add_status_listener(self._on_status_changed)
             self._listener_registered = True
 
+    def on_enter(self) -> None:
+        """Called when entering ranking screen."""
+        if self.audio_manager:
+            self.audio_manager.play_sfx("open")
+
+    def on_exit(self) -> None:
+        """Called when leaving ranking screen."""
+        pass
+
     def _on_status_changed(self, snapshot: "ConnectionStatusSnapshot") -> None:
         if snapshot.is_online:
             self._refresh_requested = True
@@ -50,6 +59,8 @@ class RankingScreen(Screen):
                 pygame.K_RETURN,
                 pygame.K_SPACE,
             ):
+                if self.audio_manager:
+                    self.audio_manager.play_sfx("cancel")
                 return SETTINGS.SCREEN_NAMES.MENU
         return None
 

@@ -35,6 +35,8 @@ class PauseScreen(Screen):
             unselected_color=SETTINGS.UI_THEME.TEXT_PRIMARY,
             font_size=SETTINGS.UI_TYPOGRAPHY.BODY,
             item_spacing=40,
+            on_navigate=self._on_menu_navigate,
+            on_select=self._on_menu_select,
         )
 
     def _build_options(self) -> Sequence[Tuple[str, str]]:
@@ -47,6 +49,16 @@ class PauseScreen(Screen):
 
     def _sync_menu_options(self) -> None:
         self.menu.options = self._build_options()
+
+    def _on_menu_navigate(self) -> None:
+        """Triggered when menu selection changes."""
+        if self.audio_manager:
+            self.audio_manager.play_sfx("nav")
+
+    def _on_menu_select(self) -> None:
+        """Triggered when menu item is selected."""
+        if self.audio_manager:
+            self.audio_manager.play_sfx("select")
 
     def handle_events(self, events: List[pygame.event.Event]) -> Optional[str]:
         self._sync_menu_options()
@@ -72,6 +84,15 @@ class PauseScreen(Screen):
 
     def update(self, _delta_time: float) -> Optional[str]:
         return None
+
+    def on_enter(self) -> None:
+        """Called when entering pause screen."""
+        if self.audio_manager:
+            self.audio_manager.play_sfx("open")
+
+    def on_exit(self) -> None:
+        """Called when leaving pause screen."""
+        pass
 
     def render(self, surface: pygame.Surface) -> None:
         self.game_screen.render(surface)

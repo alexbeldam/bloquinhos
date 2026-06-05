@@ -48,14 +48,22 @@ class GameOverScreen(Screen):
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
+                    if self.audio_manager:
+                        self.audio_manager.play_sfx("cancel")
                     self._reset_state()
                     return SETTINGS.SCREEN_NAMES.MENU
 
                 if event.key in (pygame.K_LEFT, pygame.K_a):
                     self._selected_option = (self._selected_option - 1) % 2
+                    if self.audio_manager:
+                        self.audio_manager.play_sfx("nav")
                 elif event.key in (pygame.K_RIGHT, pygame.K_d):
                     self._selected_option = (self._selected_option + 1) % 2
+                    if self.audio_manager:
+                        self.audio_manager.play_sfx("nav")
                 elif event.key in (pygame.K_RETURN, pygame.K_SPACE):
+                    if self.audio_manager:
+                        self.audio_manager.play_sfx("select")
                     if self._selected_option == 0:
                         self._reset_state()
                         return SETTINGS.SCREEN_NAMES.GAME
@@ -149,6 +157,12 @@ class GameOverScreen(Screen):
         snapshot = self._leaderboard_manager.get_snapshot(name)
         self._rank_position = snapshot.local_record.rank if snapshot.local_record else None
 
+    def on_enter(self) -> None:
+        return None
+
+    def on_exit(self) -> None:
+        pass
+
     def render(self, surface: pygame.Surface) -> None:
         self.game_screen.render(surface)
 
@@ -210,7 +224,7 @@ class GameOverScreen(Screen):
         surface.blit(score_shadow, (score_rect.x + 3, score_rect.y + 3))
         surface.blit(score_surf, score_rect)
 
-        cur_y = score_y + 42
+        cur_y = score_y + 50
 
         if self._new_high_score:
             new_high_score_text = tr("game_over.new_high_score")
@@ -220,17 +234,8 @@ class GameOverScreen(Screen):
                 SETTINGS.UI_THEME.GREEN,
             )
             hs_rect = hs_surf.get_rect(center=(cx, cur_y))
-            for dx, dy in [(1, 1), (-1, -1), (1, -1), (-1, 1)]:
-                surface.blit(
-                    self._render_text_surface(
-                        new_high_score_text,
-                        SETTINGS.UI_TYPOGRAPHY.LARGE,
-                        (255, 255, 255, 30),
-                    ),
-                    (hs_rect.x + dx, hs_rect.y + dy),
-                )
             surface.blit(hs_surf, hs_rect)
-            cur_y += 35
+            cur_y += 42
 
         if self._personal_best is not None:
             if self._new_high_score:
@@ -246,8 +251,27 @@ class GameOverScreen(Screen):
             )
             cur_y += 30
 
-        cur_y += 15
+            if self._rank_position is not None:
+                self._draw_text(
+                    surface,
+                    tr("game_over.rank_position", rank=format_int(self._rank_position)),
+                    SETTINGS.UI_TYPOGRAPHY.SMALL,
+                    SETTINGS.UI_THEME.PURPLE,
+                    (cx, cur_y),
+                )
+                cur_y += 28
+        elif self._rank_position is not None:
+            self._draw_text(
+                surface,
+                tr("game_over.rank_position", rank=format_int(self._rank_position)),
+                SETTINGS.UI_TYPOGRAPHY.SMALL,
+                SETTINGS.UI_THEME.PURPLE,
+                (cx, cur_y),
+            )
+            cur_y += 28
 
+        gap_after_rank = 8 if self._rank_position is not None else 15
+        cur_y += gap_after_rank
         sep2_y = cur_y
         pygame.draw.line(
             surface,
@@ -317,32 +341,24 @@ class GameOverScreen(Screen):
                 SETTINGS.UI_THEME.TEXT_PRIMARY,
                 (item_cx, row2b_y),
             )
-        cur_y += stat_item_spacing + 10
+        cur_y += stat_item_spacing
 
-        sep3_y = cur_y
-        pygame.draw.line(
-            surface,
-            SETTINGS.UI_THEME.BG_LIGHT,
-            (cx - 130, sep3_y),
-            (cx + 130, sep3_y),
-            1,
-        )
-        cur_y = sep3_y + 20
+        icon_y = panel_y + panel_h - 75
 
-        if self._rank_position is not None:
-            self._draw_text(
+        if not (self._personal_best is not None and self._rank_position is not None):
+            sep3_y = cur_y
+            pygame.draw.line(
                 surface,
-                tr("game_over.rank_position", rank=format_int(self._rank_position)),
-                SETTINGS.UI_TYPOGRAPHY.BODY,
-                SETTINGS.UI_THEME.PURPLE,
-                (cx, cur_y),
+                SETTINGS.UI_THEME.BG_LIGHT,
+                (cx - 130, sep3_y),
+                (cx + 130, sep3_y),
+                1,
             )
-            cur_y += 45
 
-        cur_y = panel_y + panel_h - 75
+        cur_y = icon_y
 
-        icon_size = 48
-        icon_gap = 30
+        icon_size = 36
+        icon_gap = 24
         total_icons_w = 2 * icon_size + icon_gap
         icon_start_x = cx - total_icons_w // 2
 

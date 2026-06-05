@@ -57,7 +57,7 @@ class GameRenderer:
         self.effect_manager.render(buffer)
         self._render_sidebar()
         self.screen = original_surface
-        original_surface.fill((0, 0, 0))
+        original_surface.fill((10, 14, 22))
         original_surface.blit(buffer, (offset_x, offset_y))
 
     def _render_game_area(self) -> None:
