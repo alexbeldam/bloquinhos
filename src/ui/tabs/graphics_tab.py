@@ -4,6 +4,7 @@ import pygame
 
 from settings import SETTINGS
 from ui.tabs.settings_tab import SettingsTab
+from utils.localization import tr
 
 
 class GraphicsTab(SettingsTab):
@@ -12,18 +13,18 @@ class GraphicsTab(SettingsTab):
     OPTION_ROW_GAP = 8
 
     OPTIONS = [
-        ("Draw Grid", "graphics.draw_grid"),
-        ("Draw Ghost", "graphics.draw_ghost"),
-        ("Animations", "graphics.animations"),
+        ("graphics.draw_grid", "graphics.draw_grid"),
+        ("graphics.draw_ghost", "graphics.draw_ghost"),
+        ("graphics.animations", "graphics.animations"),
     ]
 
     def __init__(self) -> None:
         super().__init__(
             id="graphics",
-            title="Graphics",
             icon_name="video",
             order=20,
             category="graphics",
+            title_key="settings.tabs.graphics",
         )
         self._option_hitboxes: list[tuple[str, pygame.Rect]] = []
         self.hovered_option_path: Optional[str] = None
@@ -38,7 +39,7 @@ class GraphicsTab(SettingsTab):
         _, _, options_start_y = self._draw_tab_background_and_title(
             surface,
             rect,
-            self.title,
+            self.get_title(),
             self.CONTENT_PADDING,
         )
         row_x = rect.x + self.CONTENT_PADDING
@@ -48,7 +49,7 @@ class GraphicsTab(SettingsTab):
         checkbox_checked = self._try_load_icon("checkbox-marked")
         checkbox_empty = self._try_load_icon("checkbox-blank")
 
-        for index, (label, path) in enumerate(self.OPTIONS):
+        for index, (label_key, path) in enumerate(self.OPTIONS):
             row_y = options_start_y + index * (self.OPTION_ROW_HEIGHT + self.OPTION_ROW_GAP)
             row_rect = pygame.Rect(row_x, row_y, row_width, self.OPTION_ROW_HEIGHT)
             self._option_hitboxes.append((path, row_rect))
@@ -57,7 +58,7 @@ class GraphicsTab(SettingsTab):
             self._draw_option_row(
                 surface,
                 row_rect,
-                label,
+                tr(label_key),
                 row_font,
                 text_size=SETTINGS.UI_TYPOGRAPHY.BODY,
                 is_hovered=is_hovered,

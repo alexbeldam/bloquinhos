@@ -9,6 +9,7 @@ from settings import SETTINGS
 from ui.assets import AssetManager
 from ui.components.sync_indicator import SyncIndicator
 from ui.screen import Screen
+from utils.localization import tr
 from utils.logger import log
 
 if TYPE_CHECKING:
@@ -76,7 +77,7 @@ class IdentityEntryScreen(Screen):
                     self._registering = True
                     self._sync_indicator.set_syncing()
                     return None
-                self._error = "Use 3-15 letters, numbers, or underscore. Name must be unique."
+                self._error = tr("identity.error.invalid_name")
                 continue
 
             if event.unicode and len(self._text) < 15:
@@ -119,7 +120,7 @@ class IdentityEntryScreen(Screen):
                 self._sync_indicator.set_idle()
         except Exception as exc:
             log.error("Sync after registration failed", exc_info=True)
-            self._sync_indicator.set_error("Erro desconhecido", duration=2.0)
+            self._sync_indicator.set_error(tr("game_over.unknown_error"), duration=2.0)
 
     def render(self, surface: pygame.Surface) -> None:
         surface.fill(SETTINGS.UI_THEME.BG_DARK)
@@ -167,7 +168,7 @@ class IdentityEntryScreen(Screen):
 
         self._draw_text(
             surface,
-            "Click field to edit - Enter confirms",
+            tr("identity.instruction"),
             SETTINGS.UI_TYPOGRAPHY.SMALL,
             SETTINGS.UI_THEME.TEXT_MUTED,
             (center_x, center_y + 105),
@@ -194,16 +195,16 @@ class IdentityEntryScreen(Screen):
         reason = self._reason_provider()
         if reason == IdentityStatus.CONFLICT.value:
             return {
-                "title": "Choose a New Name",
-                "help": "Your offline name is already taken online.",
+                "title": tr("identity.title.conflict"),
+                "help": tr("identity.help.conflict"),
             }
         if reason == IdentityStatus.CORRUPTED.value:
             return {
-                "title": "Recreate Player Name",
-                "help": "Local identity data could not be read.",
+                "title": tr("identity.title.corrupted"),
+                "help": tr("identity.help.corrupted"),
             }
         return {
-            "title": "Player Name",
-            "help": "3-15: letters, numbers, and _",
+            "title": tr("identity.title.default"),
+            "help": tr("identity.help.default"),
         }
 

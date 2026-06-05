@@ -7,6 +7,7 @@ from ui.assets import AssetManager
 from ui.screen import Screen
 from ui.styles import SETTINGS_STYLE
 from ui.tabs import SettingsTab, SettingsTabRegistry
+from utils.localization import tr
 
 if TYPE_CHECKING:
     from ui.audio import AudioManager
@@ -190,9 +191,9 @@ class SettingsScreen(Screen):
             self._reset_all_hovered = True
             is_armed = pygame.time.get_ticks() <= self._reset_all_armed_until_ms
             if is_armed:
-                self._tooltip = ("Click again to reset all settings", pos)
+                self._tooltip = (tr("settings.reset.confirm"), pos)
             else:
-                self._tooltip = ("Reset All Settings", pos)
+                self._tooltip = (tr("settings.reset.all"), pos)
             return
 
         for tab_id, rect in self._tab_hitboxes.items():
@@ -200,7 +201,7 @@ class SettingsScreen(Screen):
                 self.hovered_tab_id = tab_id
                 tab = self.registry.get_by_id(tab_id)
                 if tab is not None:
-                    self._tooltip = (tab.title, pos)
+                    self._tooltip = (tab.get_title(), pos)
                 break
 
         active_tab = self._get_active_tab()
@@ -254,7 +255,7 @@ class SettingsScreen(Screen):
         
         self._draw_text(
             surface,
-            "No Settings Available",
+            tr("settings.empty.title"),
             SETTINGS.UI_TYPOGRAPHY.TITLE,
             SETTINGS.UI_THEME.TEXT_MUTED,
             (center_x, center_y - 60)
@@ -262,7 +263,7 @@ class SettingsScreen(Screen):
         
         self._draw_wrapped_text(
             surface,
-            "No settings tabs have been registered",
+            tr("settings.empty.description"),
             SETTINGS.UI_TYPOGRAPHY.BODY,
             SETTINGS.UI_THEME.TEXT_MUTED,
             (center_x, center_y),

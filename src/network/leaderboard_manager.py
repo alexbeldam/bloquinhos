@@ -72,7 +72,7 @@ class LeaderboardManager:
             for rank, doc in enumerate(cursor, 1):
                 entry = LeaderboardEntry(
                     rank=rank,
-                    name=doc.get("name", "Desconhecido"),
+                    name=str(doc.get("name") or ""),
                     score=int(doc.get("score", 0))
                 )
                 entries.append(entry)

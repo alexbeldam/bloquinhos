@@ -1,0 +1,170 @@
+{
+  "meta": {
+    "display_name": "Español",
+    "separators": {
+      "decimal": ".",
+      "thousands": ","
+    }
+  },
+  "app": {
+    "name": "Bloquecitos"
+  },
+  "loading": {
+    "phases": {
+      "services": "Calentando los motores...",
+      "preferences": "Aplicando preferencias del jugador...",
+      "network": "Estableciendo conexión...",
+      "game": "Preparando la primera pieza...",
+      "screens": "Construyendo el campo de juego...",
+      "identity": "Verificando la identidad del jugador...",
+      "tabs": "Preparando el centro de control...",
+      "assets": "Coloreando los bloques..."
+    },
+    "error": {
+      "title": "Error de carga",
+      "quit": "Presiona ESC para salir"
+    },
+    "continue": "Presiona cualquier tecla para continuar"
+  },
+  "menu": {
+    "play": "Jugar",
+    "ranking": "Clasificación",
+    "settings": "Configuración",
+    "quit": "Salir"
+  },
+  "pause": {
+    "resume": "Continuar",
+    "settings": "Configuración",
+    "main_menu": "Menú principal"
+  },
+  "game_over": {
+    "title": "FIN DE LA PARTIDA",
+    "new_high_score": "¡Nuevo récord personal!",
+    "previous_high_score": "Récord anterior:",
+    "high_score": "Récord:",
+    "statistics": "Estadísticas",
+    "stats": {
+      "level": "Nivel: %{value}",
+      "lines": "Líneas: %{value}",
+      "singles": "Simples: %{value}",
+      "doubles": "Dobles: %{value}",
+      "triples": "Triples: %{value}",
+      "tetris": "Tetris: %{value}"
+    },
+    "rank_position": "Puesto #%{rank} en la clasificación!",
+    "unknown_error": "Error desconocido"
+  },
+  "ranking": {
+    "title": "CLASIFICACIÓN",
+    "empty": "Todavía no hay registros",
+    "local_best": "TU MEJOR MARCA",
+    "unknown_player": "Jugador desconocido",
+    "offline": {
+      "title": "Sin conexión con el servidor",
+      "subtitle": "Clasificación no disponible"
+    }
+  },
+  "identity": {
+    "title": {
+      "default": "Nombre del jugador",
+      "conflict": "Elige un nombre nuevo",
+      "corrupted": "Recrea el nombre del jugador"
+    },
+    "help": {
+      "default": "3-15: letras, números y _",
+      "conflict": "Tu nombre offline ya está en uso online.",
+      "corrupted": "No se pudieron leer los datos locales de identidad."
+    },
+    "error": {
+      "invalid_name": "Usa 3-15 letras, números o guion bajo. El nombre debe ser único."
+    },
+    "instruction": "Haz clic en el campo para editar; Enter confirma"
+  },
+  "sync": {
+    "syncing": "Sincronizando...",
+    "success": "Sincronizado",
+    "offline": "Sin conexión",
+    "error": "Error al sincronizar"
+  },
+  "network": {
+    "tooltip": {
+      "reconnect": "Reconectar (R)",
+      "online": "En línea",
+      "reconnecting": "Reconectando...",
+      "offline": "Sin conexión"
+    }
+  },
+  "settings": {
+    "empty": {
+      "title": "No hay configuración disponible",
+      "description": "No se registró ninguna pestaña de configuración"
+    },
+    "reset": {
+      "all": "Restablecer toda la configuración",
+      "confirm": "Haz clic de nuevo para restablecer toda la configuración",
+      "section": "Restablecer esta sección"
+    },
+    "tabs": {
+      "controls": "Controles",
+      "network": "Red",
+      "localization": "Idioma"
+    }
+  },
+  "audio": {
+    "master_volume": "Volumen general",
+    "music_volume": "Volumen de la música",
+    "sfx_volume": "Volumen de efectos"
+  },
+  "controls": {
+    "actions": {
+      "left": "Mover a la izquierda",
+      "right": "Mover a la derecha",
+      "soft_drop": "Caída suave",
+      "hard_drop": "Caída rápida",
+      "rotate": "Girar",
+      "hold": "Guardar",
+      "pause": "Pausar"
+    },
+    "binding": {
+      "unbound": "Sin asignar",
+      "press_key": "Presiona una tecla...",
+      "help": "Haz clic en una acción para reasignarla y luego presiona una tecla. Clic derecho para cancelar.",
+      "prompt": "Presiona cualquier tecla para reasignar. Clic derecho para cancelar.",
+      "conflict": "La tecla ya está asignada a %{action}. Elige otra.",
+      "updated": "Asignación actualizada.",
+      "failed": "No se pudo actualizar la asignación.",
+      "canceled": "Cambio de asignación cancelado."
+    }
+  },
+  "graphics": {
+    "draw_grid": "Dibujar cuadrícula",
+    "draw_ghost": "Dibujar fantasma",
+    "animations": "Animaciones"
+  },
+  "network_settings": {
+    "start_offline": "Iniciar sin conexión",
+    "start_offline_help": "Inicia el juego sin conectarse al servidor",
+    "reconnection_policy": "Política de reconexión",
+    "policies": {
+      "auto": {
+        "label": "Automática",
+        "description": "Reconecta automáticamente cuando se pierde la conexión"
+      },
+      "manual": {
+        "label": "Manual",
+        "description": "Requiere una acción del usuario para reconectar"
+      },
+      "always": {
+        "label": "Siempre",
+        "description": "Sigue intentando reconectar indefinidamente"
+      }
+    }
+  },
+  "hud": {
+    "score": "PUNTAJE",
+    "level": "NIVEL",
+    "lines": "LÍNEAS",
+    "next": "SIGUIENTE",
+    "hold": "RESERVA"
+  }
+}

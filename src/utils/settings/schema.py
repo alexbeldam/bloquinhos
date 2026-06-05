@@ -10,6 +10,12 @@ import pygame
 from .serialization import key_name_to_code
 
 
+def _get_default_locale() -> str:
+    from utils.localization import detect_system_locale, resolve_preferred_locale
+
+    return resolve_preferred_locale(detect_system_locale())
+
+
 class SettingType(str, Enum):
     BOOL = "bool"
     INT = "int"
@@ -61,8 +67,7 @@ def build_schema() -> SchemaNode:
             "animations": SettingField(SettingType.BOOL, True),
         },
         "localization": {
-            "language": SettingField(SettingType.STRING, "en"),
-            "region": SettingField(SettingType.STRING, "US"),
+            "locale": SettingField(SettingType.STRING, _get_default_locale()),
         },
         "network": {
             "start_offline": SettingField(SettingType.BOOL, False),

@@ -81,6 +81,7 @@ class ScoringConfig:
 @dataclass(frozen=True)
 class PathConfig:
     ASSETS_DIR: str = "assets"
+    LOCALES_DIR: str = "locales"
     DATA_DIR: str = "data"
     ENV_FILE: str = ".env"
     SAVE_FILE: str = ".user_data.bin"

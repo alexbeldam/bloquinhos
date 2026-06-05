@@ -1,0 +1,167 @@
+{
+  "meta": {
+    "display_name": "Português",
+    "separators": {
+      "decimal": ",",
+      "thousands": "."
+    }
+  },
+  "app": {
+    "name": "Bloquinhos"
+  },
+  "loading": {
+    "phases": {
+      "services": "Aquecendo os motores...",
+      "preferences": "Aplicando preferências do jogador...",
+      "network": "Estabelecendo conexão...",
+      "game": "Preparando a primeira peça...",
+      "screens": "Montando o campo de jogo...",
+      "identity": "Verificando identidade do jogador...",
+      "tabs": "Preparando a central de controle...",
+      "assets": "Colorindo os blocos..."
+    },
+    "error": {
+      "title": "Falha no carregamento",
+      "quit": "Pressione ESC para sair"
+    },
+    "continue": "Pressione qualquer tecla para continuar"
+  },
+  "menu": {
+    "play": "Jogar",
+    "settings": "Configurações",
+    "quit": "Sair"
+  },
+  "pause": {
+    "resume": "Continuar",
+    "settings": "Configurações",
+    "main_menu": "Menu Principal"
+  },
+  "game_over": {
+    "title": "FIM DE JOGO",
+    "new_high_score": "Novo Recorde!",
+    "previous_high_score": "Recorde Anterior:",
+    "high_score": "Recorde:",
+    "statistics": "Estatísticas",
+    "stats": {
+      "level": "Nível: %{value}",
+      "lines": "Linhas: %{value}",
+      "singles": "Singles: %{value}",
+      "doubles": "Doubles: %{value}",
+      "triples": "Triples: %{value}",
+      "tetris": "Tetris: %{value}"
+    },
+    "rank_position": "Rank #%{rank} no Leaderboard!",
+    "unknown_error": "Erro desconhecido"
+  },
+  "ranking": {
+    "empty": "Ainda sem registros",
+    "local_best": "SEU MELHOR",
+    "unknown_player": "Jogador desconhecido",
+    "offline": {
+      "title": "Sem conexão com o servidor",
+      "subtitle": "Ranking indisponível"
+    }
+  },
+  "identity": {
+    "title": {
+      "default": "Nome do Jogador",
+      "conflict": "Escolha um Novo Nome",
+      "corrupted": "Recrie o Nome do Jogador"
+    },
+    "help": {
+      "default": "3-15: letras, números e _",
+      "conflict": "Seu nome offline já está em uso online.",
+      "corrupted": "Os dados locais de identidade não puderam ser lidos."
+    },
+    "error": {
+      "invalid_name": "Use 3-15 letras, números ou underscore. O nome deve ser único."
+    },
+    "instruction": "Clique no campo para editar - Enter confirma"
+  },
+  "sync": {
+    "syncing": "Sincronizando...",
+    "success": "Sincronizado",
+    "error": "Erro ao sincronizar"
+  },
+  "network": {
+    "tooltip": {
+      "reconnect": "Reconectar (R)",
+      "reconnecting": "Reconectando..."
+    }
+  },
+  "settings": {
+    "empty": {
+      "title": "Nenhuma Configuração Disponível",
+      "description": "Nenhuma aba de configuração foi registrada"
+    },
+    "reset": {
+      "all": "Restaurar Todas Configurações",
+      "confirm": "Clique novamente para restaurar todas configurações",
+      "section": "Restaurar Esta Seção"
+    },
+    "tabs": {
+      "audio": "Áudio",
+      "controls": "Controles",
+      "graphics": "Vídeo",
+      "network": "Rede",
+      "localization": "Idioma"
+    }
+  },
+  "audio": {
+    "master_volume": "Volume Geral",
+    "music_volume": "Volume da Música",
+    "sfx_volume": "Volume de Efeitos"
+  },
+  "controls": {
+    "actions": {
+      "left": "Mover para Esquerda",
+      "right": "Mover para Direita",
+      "soft_drop": "Queda Suave",
+      "hard_drop": "Queda Rápida",
+      "rotate": "Rotacionar",
+      "hold": "Segurar",
+      "pause": "Pausar"
+    },
+    "binding": {
+      "unbound": "Sem tecla",
+      "press_key": "Pressione uma tecla...",
+      "help": "Clique para remapear, pressione uma tecla. Botão direito cancela.",
+      "prompt": "Pressione qualquer tecla para remapear. Clique direito para cancelar.",
+      "conflict": "Tecla já vinculada a %{action}. Escolha outra.",
+      "updated": "Atalho atualizado.",
+      "failed": "Não foi possível atualizar o atalho.",
+      "canceled": "Alteração de atalho cancelada."
+    }
+  },
+  "graphics": {
+    "draw_grid": "Desenhar Grade",
+    "draw_ghost": "Desenhar Fantasma",
+    "animations": "Animações"
+  },
+  "network_settings": {
+    "start_offline": "Iniciar Offline",
+    "start_offline_help": "Inicia o jogo sem conectar ao servidor",
+    "reconnection_policy": "Política de Reconexão",
+    "policies": {
+      "auto": {
+        "label": "Automática",
+        "description": "Reconecta automaticamente quando a conexão cai"
+      },
+      "manual": {
+        "label": "Manual",
+        "description": "Exige ação do usuário para reconectar"
+      },
+      "always": {
+        "label": "Sempre",
+        "description": "Continua tentando reconectar indefinidamente"
+      }
+    }
+  },
+  "hud": {
+    "score": "PONTOS",
+    "level": "NÍVEL",
+    "lines": "LINHAS",
+    "next": "PRÓXIMO",
+    "hold": "RESERVA"
+  }
+}
