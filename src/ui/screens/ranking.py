@@ -231,7 +231,7 @@ class RankingScreen(Screen):
         rank = record.rank
         
         record_text = f"{name}: {score_text}"
-        if rank:
+        if rank is not None:
             record_text += f" (Rank #{rank})"
         
         self._draw_text(

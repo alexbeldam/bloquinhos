@@ -139,14 +139,18 @@ class GameOverScreen(Screen):
             return
 
         if self._leaderboard_manager is not None:
-            self._rank_position = self._leaderboard_manager.get_user_rank(name, force_refresh=True)
+            snapshot = self._leaderboard_manager.get_snapshot(name, force_refresh=True)
+            self._rank_position = snapshot.local_record.rank if snapshot.local_record else None
 
     def _submit_score_for_rank(self, name: str) -> None:
         if self._leaderboard_manager is None:
             return
+        
         session = self.game_screen.session
         self._leaderboard_manager.submit_score(name, session.score, session.total_lines, session.level)
-        self._rank_position = self._leaderboard_manager.get_user_rank(name)
+        
+        snapshot = self._leaderboard_manager.get_snapshot(name)
+        self._rank_position = snapshot.local_record.rank if snapshot.local_record else None
 
     def render(self, surface: pygame.Surface) -> None:
         self.game_screen.render(surface)

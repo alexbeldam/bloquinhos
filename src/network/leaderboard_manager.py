@@ -83,7 +83,7 @@ class LeaderboardManager:
             log.error("Failed to fetch leaderboard", exc_info=True)
             return None
 
-    def get_user_rank(self, name: str, force_refresh: bool = False) -> Optional[int]:
+    def _get_user_rank(self, name: str, force_refresh: bool = False) -> Optional[int]:
         cached = self._cached_user_ranks.get(name)
         if (
             not force_refresh
@@ -148,7 +148,7 @@ class LeaderboardManager:
         lookup_name = user_name or (local_record.name if local_record is not None else None)
 
         user_rank = (
-            self.get_user_rank(lookup_name, force_refresh=force_refresh)
+            self._get_user_rank(lookup_name, force_refresh=force_refresh)
             if lookup_name is not None
             else None
         )
