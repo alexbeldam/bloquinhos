@@ -53,9 +53,6 @@ class RankingScreen(Screen):
         return None
 
     def update(self, _delta_time: float) -> Optional[str]:
-        if self.audio_manager:
-            self.audio_manager.play_bgm("menu")
-
         current_time = time.time()
         force_refresh = self._refresh_requested
 
