@@ -45,6 +45,9 @@ class Board:
 
         return False
     
+    def get_full_row_indices(self) -> list[int]:
+        return [y for y in range(self.height) if self._is_full_row(self.grid[y])]
+
     def clear_full_rows(self) -> int:
         remaining_rows = [row for row in self.grid if not self._is_full_row(row)]
         cleared_count = self.height - len(remaining_rows)
