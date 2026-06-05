@@ -9,7 +9,7 @@ from ui.screen import Screen
 
 if TYPE_CHECKING:
     from network.connection_manager import NetworkManager, ConnectionStatusSnapshot
-    from network.leaderboard_manager import LeaderboardManager
+    from network.leaderboard_manager import LeaderboardEntry, LeaderboardManager, LeaderboardSnapshot, UserRecord
     from ui.audio import AudioManager
 
 
@@ -22,9 +22,8 @@ class RankingScreen(Screen):
     ) -> None:
         super().__init__(assets, audio_manager)
         self.leaderboard_manager = leaderboard_manager
-        self._last_fetch_time = 0.0
-        self._cached_entries = None
-        self._cached_local_record = None
+        self._cached_snapshot: Optional["LeaderboardSnapshot"] = None
+        self._last_snapshot_fetch_time = 0.0
         self._listener_registered = False
         self._refresh_requested = False
 
@@ -43,7 +42,7 @@ class RankingScreen(Screen):
             if event.type == pygame.QUIT:
                 return SETTINGS.SCREEN_NAMES.QUIT
             if self._handle_network_status_event(event):
-                self._last_fetch_time = 0.0
+                self._refresh_requested = True
                 continue
             if event.type == pygame.KEYDOWN and event.key in (
                 pygame.K_ESCAPE,
@@ -54,13 +53,32 @@ class RankingScreen(Screen):
         return None
 
     def update(self, _delta_time: float) -> Optional[str]:
+        if self.audio_manager:
+            self.audio_manager.play_bgm("menu")
+
         current_time = time.time()
-        if self._refresh_requested or current_time - self._last_fetch_time >= SETTINGS.NETWORK.LEADERBOARD_CACHE_DURATION:
+        force_refresh = self._refresh_requested
+
+        if force_refresh:
             self._refresh_requested = False
-            self._last_fetch_time = current_time
-            self._cached_entries = None
-            self._cached_local_record = None
-            self._fetch_data()
+            self._last_snapshot_fetch_time = 0.0
+
+        if (
+            self.leaderboard_manager is not None
+            and (
+                self._cached_snapshot is None
+                or current_time - self._last_snapshot_fetch_time >= SETTINGS.NETWORK.LEADERBOARD_CACHE_DURATION
+            )
+        ):
+            cached_user_name = None
+            if self._cached_snapshot is not None and self._cached_snapshot.local_record is not None:
+                cached_user_name = self._cached_snapshot.local_record.name
+
+            self._cached_snapshot = self.leaderboard_manager.get_snapshot(
+                user_name=cached_user_name,
+                force_refresh=force_refresh,
+            )
+            self._last_snapshot_fetch_time = current_time
         
         return None
 
@@ -77,49 +95,39 @@ class RankingScreen(Screen):
         
         center_x = surface.get_width() // 2
         content_y = 150
-        
-        if self.leaderboard_manager and self.leaderboard_manager.network.is_online:
-            if self._cached_entries:
-                self._render_rankings(surface, self._cached_entries, center_x, content_y)
+
+        snapshot = self._cached_snapshot if self.leaderboard_manager else None
+        entries = snapshot.top_entries if snapshot is not None else None
+        local_record = snapshot.local_record if snapshot is not None else None
+
+        if self.leaderboard_manager:
+            if entries is None:
+                self._render_unavailable_message(surface, center_x, content_y)
+                content_y += 180
+            elif entries:
+                self._render_rankings(surface, entries, center_x, content_y)
                 content_y += 280
             else:
-                self._draw_text(
-                    surface,
-                    "Ainda sem registros",
-                    SETTINGS.UI_TYPOGRAPHY.LARGE,
-                    SETTINGS.UI_THEME.PURPLE,
-                    (center_x, content_y + 80),
-                )
+                self._render_no_records_message(surface, center_x, content_y)
                 content_y += 200
         else:
-            self._render_offline_message(surface, center_x, content_y)
+            self._render_unavailable_message(surface, center_x, content_y)
             content_y += 180
         
-        if self._cached_local_record:
+        if local_record is not None:
             self._render_local_record(
                 surface,
-                self._cached_local_record,
+                local_record,
                 center_x,
                 content_y
             )
         
         self._render_network_status(surface)
 
-    def _fetch_data(self) -> None:
-        if not self.leaderboard_manager:
-            return
-        
-        if self.leaderboard_manager.network.is_online:
-            self._cached_entries = self.leaderboard_manager.get_top_5()
-        else:
-            self._cached_entries = None
-        
-        self._cached_local_record = self.leaderboard_manager.get_local_record()
-
     def _render_rankings(
         self,
         surface: pygame.Surface,
-        entries,
+        entries: List["LeaderboardEntry"],
         center_x: int,
         start_y: int,
     ) -> None:
@@ -166,7 +174,7 @@ class RankingScreen(Screen):
             
             entry_y += item_spacing
 
-    def _render_offline_message(
+    def _render_unavailable_message(
         self,
         surface: pygame.Surface,
         center_x: int,
@@ -188,10 +196,24 @@ class RankingScreen(Screen):
             (center_x, start_y + 100),
         )
 
+    def _render_no_records_message(
+        self,
+        surface: pygame.Surface,
+        center_x: int,
+        start_y: int,
+    ) -> None:
+        self._draw_text(
+            surface,
+            "Ainda sem registros",
+            SETTINGS.UI_TYPOGRAPHY.LARGE,
+            SETTINGS.UI_THEME.PURPLE,
+            (center_x, start_y + 80),
+        )
+
     def _render_local_record(
         self,
         surface: pygame.Surface,
-        record: dict,
+        record: "UserRecord",
         center_x: int,
         start_y: int,
     ) -> None:
@@ -203,16 +225,13 @@ class RankingScreen(Screen):
             (center_x, start_y),
         )
         
-        name = record.get("name", "Desconhecido")
-        score = record.get("score", 0)
+        name = record.name
+        score = record.score
         score_text = self._format_score(score)
-        
-        rank = None
-        if self.leaderboard_manager and self.leaderboard_manager.network.is_online:
-            rank = self.leaderboard_manager.get_user_rank(name)
+        rank = record.rank
         
         record_text = f"{name}: {score_text}"
-        if rank:
+        if rank is not None:
             record_text += f" (Rank #{rank})"
         
         self._draw_text(
