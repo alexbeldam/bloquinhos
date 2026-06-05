@@ -29,6 +29,10 @@ class GameSession:
         self._gravity_controller = gravity_controller
         self._score = 0
         self._state = GameState.RUNNING
+        self._singles = 0
+        self._doubles = 0
+        self._triples = 0
+        self._tetris = 0
         self._level_up_handlers: list[LevelUpHandler] = []
 
         self.game_controller.on_line_clear(self._on_line_clear)
@@ -51,6 +55,22 @@ class GameSession:
         return self._level_manager.total_lines
 
     @property
+    def singles(self) -> int:
+        return self._singles
+
+    @property
+    def doubles(self) -> int:
+        return self._doubles
+
+    @property
+    def triples(self) -> int:
+        return self._triples
+
+    @property
+    def tetris(self) -> int:
+        return self._tetris
+
+    @property
     def state(self) -> GameState:
         return self._state
 
@@ -70,6 +90,10 @@ class GameSession:
         self._level_manager.reset()
         self._state = GameState.RUNNING
         self.game_controller.reset()
+        self._singles = 0
+        self._doubles = 0
+        self._triples = 0
+        self._tetris = 0
         self._sync_gravity_interval()
 
     def end_game(self) -> None:
@@ -86,6 +110,15 @@ class GameSession:
         )
         self._score += points_earned
         log.debug(f"Score updated: +{points_earned} points (total: {self._score})")
+
+        if lines_cleared == 1:
+            self._singles += 1
+        elif lines_cleared == 2:
+            self._doubles += 1
+        elif lines_cleared == 3:
+            self._triples += 1
+        elif lines_cleared == 4:
+            self._tetris += 1
         
         level_changed = self._level_manager.add_lines(lines_cleared)
 

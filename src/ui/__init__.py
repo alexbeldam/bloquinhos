@@ -37,6 +37,13 @@ from ui.tabs import (
     SettingsTab,
     SettingsTabRegistry,
 )
+from ui.transitions import (
+    Direction,
+    FadeTransition,
+    SlideTransition,
+    TransitionEffect,
+    determine_transition,
+)
 
 __all__ = [
     'AssetLoader',
@@ -65,4 +72,9 @@ __all__ = [
     'GraphicsTab',
     'LocalizationTab',
     'NetworkTab',
+    'TransitionEffect',
+    'FadeTransition',
+    'SlideTransition',
+    'Direction',
+    'determine_transition',
 ]

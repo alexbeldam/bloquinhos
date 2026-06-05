@@ -239,6 +239,11 @@ class ScreenNames:
     QUIT: str = "quit"
 
 @dataclass(frozen=True)
+class UIConfig:
+    TRANSITION_DURATION: float = 0.3
+    TRANSITION_ENABLED: bool = True
+
+@dataclass(frozen=True)
 class Settings:
     GRID: GridConfig = field(default_factory=GridConfig)
     DISPLAY: DisplayConfig = field(default_factory=DisplayConfig)
@@ -260,5 +265,6 @@ class Settings:
     SCREEN_NAMES: ScreenNames = field(default_factory=ScreenNames)
     SECURITY: SecurityConfig = field(default_factory=SecurityConfig)
     APP_NAME: str = "Bloquinhos"
+    UI: UIConfig = field(default_factory=UIConfig)
 
 SETTINGS = Settings()
