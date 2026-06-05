@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import json
 import re
+import threading
 from pathlib import Path
 from typing import Any, Callable, Iterable
 
@@ -293,62 +294,72 @@ def resolve_preferred_locale(
 
 
 _manager: LocalizationManager | None = None
+_manager_lock = threading.RLock()
 
 
 def set_localization_manager(manager: LocalizationManager) -> None:
     global _manager
-    _manager = manager
+    with _manager_lock:
+        _manager = manager
 
 
 def get_localization_manager() -> LocalizationManager | None:
-    return _manager
+    with _manager_lock:
+        return _manager
 
 
 def tr(key: str, **kwargs: Any) -> str:
-    if _manager is None:
-        return key
-    return _manager.translate(key, **kwargs)
+    with _manager_lock:
+        if _manager is None:
+            return key
+        return _manager.translate(key, **kwargs)
 
 
 def set_locale(locale_code: str) -> str:
-    if _manager is None:
-        return DEFAULT_LOCALE
-    return _manager.set_locale(locale_code)
+    with _manager_lock:
+        if _manager is None:
+            return DEFAULT_LOCALE
+        return _manager.set_locale(locale_code)
 
 
 def get_locale() -> str:
-    if _manager is None:
-        return DEFAULT_LOCALE
-    return _manager.get_locale()
+    with _manager_lock:
+        if _manager is None:
+            return DEFAULT_LOCALE
+        return _manager.get_locale()
 
 
 def get_available_locales() -> tuple[tuple[str, LocaleMeta], ...]:
-    if _manager is None:
-        return ((
-            DEFAULT_LOCALE,
-            LocaleMeta(
-                display_name="English",
-                decimal_separator=".",
-                thousands_separator=",",
-            ),
-        ),)
-    return _manager.available_locales()
+    with _manager_lock:
+        if _manager is None:
+            return ((
+                DEFAULT_LOCALE,
+                LocaleMeta(
+                    display_name="English",
+                    decimal_separator=".",
+                    thousands_separator=",",
+                ),
+            ),)
+        return _manager.available_locales()
 
 
 def format_int(value: int | float) -> str:
-    if _manager is None:
-        return str(int(value))
-    return _manager.formatter.format_int(value)
+    with _manager_lock:
+        if _manager is None:
+            return str(int(value))
+        return _manager.formatter.format_int(value)
 
 
 def format_float(value: float, precision: int = 2) -> str:
-    if _manager is None:
-        return f"{float(value):.{precision}f}"
-    return _manager.formatter.format_float(value, precision)
+    with _manager_lock:
+        if _manager is None:
+            return f"{float(value):.{precision}f}"
+        return _manager.formatter.format_float(value, precision)
 
 
 def format_percent(value: float, precision: int = 0, is_fraction: bool = True) -> str:
-    if _manager is None:
-        percentage = value * 100.0 if is_fraction else value
-        return f"{percentage:.{precision}f}%"
-    return _manager.formatter.format_percent(value, precision, is_fraction)
+    with _manager_lock:
+        if _manager is None:
+            percentage = value * 100.0 if is_fraction else value
+            return f"{percentage:.{precision}f}%"
+        return _manager.formatter.format_percent(value, precision, is_fraction)
