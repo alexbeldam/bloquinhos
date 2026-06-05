@@ -6,6 +6,13 @@ import pygame
 from engine import GameController, GameSession, GameState
 from settings import SETTINGS
 from ui.assets import AssetManager
+from ui.effects import (
+    EffectManager,
+    LevelUpNotification,
+    LineClearFlash,
+    ScreenShake,
+    TetrisCombo,
+)
 from ui.renderer import GameRenderer
 from ui.screen import Screen
 
@@ -34,6 +41,44 @@ class GameScreen(Screen):
         
         if self.audio_manager:
             self.audio_manager.register_events(self.game_controller)
+    
+    def _get_effect_manager(self) -> EffectManager:
+        """Get the EffectManager from the renderer, if available."""
+        if self.renderer is not None:
+            return self.renderer.effect_manager
+        return EffectManager()
+
+    def _register_effect_events(self) -> None:
+        def on_line_clear(lines: int) -> None:
+            if not self._effects_enabled():
+                return
+            full_rows = list(self.game_controller.last_cleared_rows)
+            if full_rows:
+                self._get_effect_manager().add_effect(LineClearFlash(full_rows))
+            if lines >= 4:
+                self._get_effect_manager().add_effect(TetrisCombo())
+        
+        def on_level_up(new_level: int) -> None:
+            if not self._effects_enabled():
+                return
+            self._get_effect_manager().add_effect(LevelUpNotification(new_level))
+        
+        def on_hard_drop() -> None:
+            if not self._effects_enabled():
+                return
+            self._get_effect_manager().add_effect(ScreenShake())
+        
+        self.game_controller.on_line_clear(on_line_clear)
+        self.session.on_level_up(on_level_up)
+        self.game_controller.on_hard_drop(on_hard_drop)
+    
+    def _effects_enabled(self) -> bool:
+        if self.settings_manager is None:
+            return True
+        try:
+            return self.settings_manager.get_bool("graphics.animations")
+        except (KeyError, TypeError, ValueError):
+            return True
 
     def handle_events(self, events: List[pygame.event.Event]) -> Optional[str]:
         controls = self._get_controls()
@@ -89,6 +134,9 @@ class GameScreen(Screen):
                 self.audio_manager.play_bgm(self.current_track)
             self.game_controller.update(delta_time)
         
+        if self.renderer is not None:
+            self.renderer.effect_manager.update(delta_time)
+        
         return None
 
     def render(self, surface: pygame.Surface) -> None:
@@ -100,6 +148,9 @@ class GameScreen(Screen):
                 self.session,
                 self.settings_manager,
             )
+            self._register_effect_events()
+        else:
+            self.renderer.screen = surface
 
         self.renderer.render()
 

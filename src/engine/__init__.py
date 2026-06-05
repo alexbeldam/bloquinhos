@@ -8,10 +8,14 @@ from .physics import GravityController
 from .progression import LevelManager
 from .scoring import ScoreCalculator
 from .events import (
+    EventType,
     LinesClearedHandler,
     PieceLockedHandler,
     GameOverHandler,
     NextPieceChangedHandler,
+    HoldHandler,
+    HardDropHandler,
+    LevelUpHandler,
 )
 
 __all__ = [
@@ -30,8 +34,12 @@ __all__ = [
     'GravityController',
     'LevelManager',
     'ScoreCalculator',
+    'EventType',
     'LinesClearedHandler',
     'PieceLockedHandler',
     'GameOverHandler',
     'NextPieceChangedHandler',
+    'HoldHandler',
+    'HardDropHandler',
+    'LevelUpHandler',
 ]

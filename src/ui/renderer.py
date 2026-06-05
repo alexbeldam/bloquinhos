@@ -6,6 +6,7 @@ from engine import Board, GameController, GameSession, Tetromino, Tile
 from engine.tile import Tetromino as TetrominoType
 from settings import SETTINGS
 from ui.assets import AssetManager
+from ui.effects import EffectManager, ScreenShake
 from ui.styles import GAME_STYLE
 
 if TYPE_CHECKING:
@@ -29,8 +30,36 @@ class GameRenderer:
         self.controller = controller
         self.session = session
         self.settings_manager = settings_manager
+        self.effect_manager = EffectManager()
 
     def render(self) -> None:
+        shake_offset_x, shake_offset_y = self._get_shake_offset()
+
+        if shake_offset_x or shake_offset_y:
+            self._render_with_shake(shake_offset_x, shake_offset_y)
+        else:
+            self._render_game_area()
+            self.effect_manager.render(self.screen)
+            self._render_sidebar()
+
+    def _get_shake_offset(self) -> Tuple[int, int]:
+        for effect in self.effect_manager.get_active_effects():
+            if isinstance(effect, ScreenShake):
+                return effect.offset_x, effect.offset_y
+        return 0, 0
+
+    def _render_with_shake(self, offset_x: int, offset_y: int) -> None:
+        original_surface = self.screen
+        buffer = original_surface.copy()
+        self.screen = buffer
+        self._render_game_area()
+        self.effect_manager.render(buffer)
+        self._render_sidebar()
+        self.screen = original_surface
+        original_surface.fill((0, 0, 0))
+        original_surface.blit(buffer, (offset_x, offset_y))
+
+    def _render_game_area(self) -> None:
         self.screen.fill((10, 14, 22))
         self._render_board()
         if self._setting_enabled("graphics.draw_ghost", True):
@@ -38,7 +67,6 @@ class GameRenderer:
         self._render_active_piece()
         if self._setting_enabled("graphics.draw_grid", True):
             self._render_grid_lines()
-        self._render_sidebar()
 
     def _setting_enabled(self, path: str, fallback: bool) -> bool:
         if self.settings_manager is None:
@@ -253,7 +281,7 @@ class GameRenderer:
         )
 
         ghost.fall(self.controller.board)
-        
+
         if ghost.y == piece.y:
             return None
 
