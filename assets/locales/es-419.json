@@ -30,7 +30,22 @@
     "play": "Jugar",
     "ranking": "Clasificación",
     "settings": "Configuración",
+    "credits": "Créditos",
     "quit": "Salir"
+  },
+  "credits": {
+    "title": "CRÉDITOS",
+    "roles": {
+      "developers": "Desarrolladores",
+      "typography": "Tipografía",
+      "art_assets": "Arte"
+    },
+    "font_asset": {
+      "subtext": "por Ivano Palmentieri (somepx)"
+    },
+    "icon_asset": {
+      "subtext": "por Nikoichu"
+    }
   },
   "pause": {
     "resume": "Continuar",

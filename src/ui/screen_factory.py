@@ -5,6 +5,7 @@ from service_container import ServiceContainer
 from settings import SETTINGS
 from ui.screen import Screen
 from ui.screens import (
+    CreditsScreen,
     GameOverScreen,
     GameScreen,
     IdentityEntryScreen,
@@ -114,6 +115,7 @@ class ScreenFactory:
                 audio_manager=services.audio_manager,
             ),
             SETTINGS.SCREEN_NAMES.SETTINGS: settings_screen,
+            SETTINGS.SCREEN_NAMES.CREDITS: CreditsScreen(assets=None, audio_manager=services.audio_manager),
         }
 
         for screen_name in (

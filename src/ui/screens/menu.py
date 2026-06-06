@@ -17,6 +17,7 @@ class MenuScreen(Screen):
         SETTINGS.SCREEN_NAMES.GAME,
         SETTINGS.SCREEN_NAMES.RANKING,
         SETTINGS.SCREEN_NAMES.SETTINGS,
+        SETTINGS.SCREEN_NAMES.CREDITS,
         SETTINGS.SCREEN_NAMES.QUIT,
     )
 
@@ -35,6 +36,7 @@ class MenuScreen(Screen):
             tr("menu.play"),
             tr("menu.ranking"),
             tr("menu.settings"),
+            tr("menu.credits"),
             tr("menu.quit"),
         )
         return tuple(zip(labels, self.OPTION_TARGETS, strict=False))

@@ -29,7 +29,22 @@
   "menu": {
     "play": "Jogar",
     "settings": "Configurações",
+    "credits": "Créditos",
     "quit": "Sair"
+  },
+  "credits": {
+    "title": "CRÉDITOS",
+    "roles": {
+      "developers": "Desenvolvedores",
+      "typography": "Tipografia",
+      "art_assets": "Artes"
+    },
+    "font_asset": {
+      "subtext": "por Ivano Palmentieri (somepx)"
+    },
+    "icon_asset": {
+      "subtext": "por Nikoichu"
+    }
   },
   "pause": {
     "resume": "Continuar",
