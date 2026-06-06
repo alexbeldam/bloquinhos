@@ -125,6 +125,8 @@ class GameScreen(Screen):
                 self.game_controller.hard_drop()
             elif event.key == hold_key:
                 self.game_controller.hold_piece()
+                if self.audio_manager:
+                    self.audio_manager.play_sfx("hold")
         return None
 
     def on_enter(self) -> None:
