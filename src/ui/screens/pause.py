@@ -86,13 +86,8 @@ class PauseScreen(Screen):
         return None
 
     def on_enter(self) -> None:
-        """Called when entering pause screen."""
         if self.audio_manager:
             self.audio_manager.play_sfx("open")
-
-    def on_exit(self) -> None:
-        """Called when leaving pause screen."""
-        pass
 
     def render(self, surface: pygame.Surface) -> None:
         self.game_screen.render(surface)

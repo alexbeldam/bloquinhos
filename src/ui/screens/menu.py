@@ -76,10 +76,6 @@ class MenuScreen(Screen):
         if self.audio_manager:
             self.audio_manager.play_bgm("menu")
 
-    def on_exit(self) -> None:
-        """Called when leaving the menu screen."""
-        pass
-
     def update(self, _delta_time: float) -> Optional[str]:
         return None
 

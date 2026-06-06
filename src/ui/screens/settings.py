@@ -216,13 +216,8 @@ class SettingsScreen(Screen):
             active_tab.set_reset_button_hovered((-1, -1))
 
     def on_enter(self) -> None:
-        """Called when entering settings screen."""
         if self.audio_manager:
             self.audio_manager.play_sfx("open")
-
-    def on_exit(self) -> None:
-        """Called when leaving settings screen."""
-        pass
 
     def update(self, _delta_time: float) -> Optional[str]:
         if self._reset_all_armed_until_ms > 0 and pygame.time.get_ticks() > self._reset_all_armed_until_ms:

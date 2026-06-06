@@ -157,12 +157,6 @@ class GameOverScreen(Screen):
         snapshot = self._leaderboard_manager.get_snapshot(name)
         self._rank_position = snapshot.local_record.rank if snapshot.local_record else None
 
-    def on_enter(self) -> None:
-        return None
-
-    def on_exit(self) -> None:
-        pass
-
     def render(self, surface: pygame.Surface) -> None:
         self.game_screen.render(surface)
 

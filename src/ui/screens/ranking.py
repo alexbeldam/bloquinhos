@@ -39,10 +39,6 @@ class RankingScreen(Screen):
         if self.audio_manager:
             self.audio_manager.play_sfx("open")
 
-    def on_exit(self) -> None:
-        """Called when leaving ranking screen."""
-        pass
-
     def _on_status_changed(self, snapshot: "ConnectionStatusSnapshot") -> None:
         if snapshot.is_online:
             self._refresh_requested = True
