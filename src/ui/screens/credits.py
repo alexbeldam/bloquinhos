@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 from typing import List, Optional, Sequence, Tuple
-import webbrowser
 import pygame
 
 from settings import SETTINGS
 from ui.screen import Screen
 from ui.styles import CREDITS_STYLE
+from utils.browser import open_url
 from utils.localization import tr
 
 
@@ -82,7 +82,7 @@ class CreditsScreen(Screen):
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 for hitbox, url in self._clickable_hitboxes:
                     if hitbox.collidepoint(event.pos):
-                        webbrowser.open(url)
+                        open_url(url)
                         return None
                         
         return None
