@@ -1,11 +1,14 @@
 import math
 from enum import Enum
-from typing import Callable, Optional
+from typing import Callable, Optional, TYPE_CHECKING
 
 import pygame
 
 from settings import SETTINGS
 from utils.localization import tr
+
+if TYPE_CHECKING:
+    from ui.assets import AssetManager
 
 
 class SyncIndicatorStatus(Enum):
@@ -72,6 +75,7 @@ class SyncIndicator:
         surface: pygame.Surface,
         position: tuple[int, int],
         width: int = 260,
+        assets: Optional["AssetManager"] = None
     ) -> None:
         if not self.is_visible():
             return
@@ -96,23 +100,42 @@ class SyncIndicator:
             border_radius=8,
         )
 
-        icon_color = self._get_icon_color()
-        self._draw_icon(surface, x - 75, y, icon_color)
+        self._draw_icon(surface, x - 75, y, assets)
 
         font = self._font_renderer(SETTINGS.UI_TYPOGRAPHY.SMALL)
         message_surface = font.render(self._message, True, self._get_text_color())
         message_rect = message_surface.get_rect(center=(x + 30, y))
         surface.blit(message_surface, message_rect)
 
-    def _draw_icon(self, surface: pygame.Surface, x: int, y: int, color: tuple) -> None:
+    def _try_load_icon(self, icon_name: str, assets: "AssetManager") -> Optional[pygame.Surface]:
+        try:
+            return assets.get_image(icon_name)
+        except (KeyError, FileNotFoundError):
+            return None
+
+    def _draw_icon(
+        self, 
+        surface: pygame.Surface, 
+        x: int, 
+        y: int, 
+        assets: Optional["AssetManager"]
+    ) -> None:
+        if not assets:
+            return
+
+        icon_name = self._get_icon_name()
+        icon = self._try_load_icon(icon_name, assets)
+
+        icon_scaled = pygame.transform.scale(icon, (24, 24))
+
         if self._status == SyncIndicatorStatus.SYNCING:
-            self._draw_spinner(surface, x, y, color)
-        elif self._status == SyncIndicatorStatus.SUCCESS:
-            self._draw_checkmark(surface, x, y, color)
-        elif self._status == SyncIndicatorStatus.OFFLINE:
-            self._draw_offline_icon(surface, x, y, color)
-        elif self._status == SyncIndicatorStatus.ERROR:
-            self._draw_error_icon(surface, x, y, color)
+            angle = -(self._animation_time * 360) % 360
+            rotated_icon = pygame.transform.rotate(icon_scaled, angle)
+            icon_rect = rotated_icon.get_rect(center=(x, y))
+            surface.blit(rotated_icon, icon_rect)
+        else:
+            icon_rect = icon_scaled.get_rect(center=(x, y))
+            surface.blit(icon_scaled, icon_rect)
 
     def _draw_spinner(
         self,
@@ -187,8 +210,18 @@ class SyncIndicator:
             case _:
                 return SETTINGS.UI_THEME.TEXT_MUTED
 
-    def _get_icon_color(self) -> tuple:
-        return self._get_border_color()
+    def _get_icon_name(self) -> str:
+        match self._status:
+            case SyncIndicatorStatus.SYNCING:
+                return "retry"
+            case SyncIndicatorStatus.SUCCESS:
+                return "check"
+            case SyncIndicatorStatus.OFFLINE:
+                return "signal-disabled"
+            case SyncIndicatorStatus.ERROR:
+                return "cancel"
+            case _:
+                return ""
 
     def _get_text_color(self) -> tuple:
         match self._status:

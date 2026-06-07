@@ -1,3 +1,4 @@
+from ui.screens.credits import CreditsScreen
 from ui.screens.game import GameScreen
 from ui.screens.game_over import GameOverScreen
 from ui.screens.identity_entry import IdentityEntryScreen
@@ -10,6 +11,7 @@ from ui.screens.ranking import RankingScreen
 from ui.screens.settings import SettingsScreen
 
 __all__ = [
+    "CreditsScreen",
     "GameScreen",
     "GameOverScreen",
     "IdentityEntryScreen",

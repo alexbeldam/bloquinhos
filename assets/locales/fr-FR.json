@@ -30,7 +30,22 @@
     "play": "Jouer",
     "ranking": "Classement",
     "settings": "Paramètres",
+    "credits": "Crédits",
     "quit": "Quitter"
+  },
+  "credits": {
+    "title": "CRÉDITS",
+    "roles": {
+      "developers": "Développeurs",
+      "typography": "Typographie",
+      "art_assets": "Graphismes"
+    },
+    "font_asset": {
+      "subtext": "par Ivano Palmentieri (somepx)"
+    },
+    "icon_asset": {
+      "subtext": "par Nikoichu"
+    }
   },
   "pause": {
     "resume": "Reprendre",

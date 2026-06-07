@@ -5,6 +5,7 @@ This module provides utility functions and classes for path management,
 environment configuration, and logging.
 """
 
+from .browser import open_url
 from .path_manager import PathManager
 from .env_manager import load_env_vars, get_env
 from .logger import log, update_log_level
@@ -25,6 +26,7 @@ from .localization import (
 from .settings_manager import SettingsManager
 
 __all__ = [
+	'open_url',
 	'PathManager',
 	'load_env_vars',
 	'get_env',

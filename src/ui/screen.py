@@ -77,7 +77,9 @@ class Screen(ABC):
         center: Tuple[int, int],
         max_width: int,
         line_spacing: int = 5,
-    ) -> None:
+        align: str = "center",
+        valign: str = "center",
+    ) -> int:
         font = self._font(size)
         words = text.split(' ')
         lines = []
@@ -99,13 +101,27 @@ class Screen(ABC):
         
         line_height = font.get_height() + line_spacing
         total_height = len(lines) * line_height - line_spacing
-        start_y = center[1] - total_height // 2
+        
+        if valign == "center":
+            start_y = center[1] - total_height // 2
+        else:
+            start_y = center[1]
         
         for i, line in enumerate(lines):
             rendered = self._render_text_surface(line, size, color)
-            line_rect = rendered.get_rect(center=(center[0], start_y + i * line_height))
+            line_y = start_y + i * line_height
+            
+            if align == "left":
+                line_rect = rendered.get_rect(left=center[0], top=line_y)
+            elif align == "right":
+                line_rect = rendered.get_rect(right=center[0], top=line_y)
+            else:
+                line_rect = rendered.get_rect(center=(center[0], line_y + rendered.get_height() // 2))
+                
             surface.blit(rendered, line_rect)
-    
+            
+        return start_y + total_height
+
     def _try_load_image(self, image_name: str) -> Optional[pygame.Surface]:
         if self.assets is not None:
             try:

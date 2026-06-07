@@ -237,6 +237,7 @@ class ScreenNames:
     PAUSE: str = "pause"
     RANKING: str = "ranking"
     SETTINGS: str = "settings"
+    CREDITS: str = "credits"
     QUIT: str = "quit"
 
 @dataclass(frozen=True)

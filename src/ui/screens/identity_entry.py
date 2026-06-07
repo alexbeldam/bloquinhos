@@ -175,7 +175,7 @@ class IdentityEntryScreen(Screen):
         )
         
         if self._registering:
-            self._sync_indicator.render(surface, (center_x, surface.get_height() - 50))
+            self._sync_indicator.render(surface, (center_x, surface.get_height() - 50), assets=self.assets)
         
         self._render_network_status(surface)
 

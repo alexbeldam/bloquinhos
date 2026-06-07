@@ -30,7 +30,36 @@
     "play": "Play",
     "ranking": "Ranking",
     "settings": "Settings",
+    "credits": "Credits",
     "quit": "Quit"
+  },
+  "credits": {
+    "title": "CREDITS",
+    "roles": {
+      "developers": "Developers",
+      "typography": "Typography",
+      "art_assets": "Art Assets"
+    },
+    "alex": {
+      "name": "Alex Beldam",
+      "subtext": "github: alexbeldam",
+      "url": "https://github.com/alexbeldam"
+    },
+    "bernardo": {
+      "name": "Bernardo Sabino",
+      "subtext": "github: bernardo-sabino",
+      "url": "https://github.com/bernardo-sabino"
+    },
+    "font_asset": {
+      "name": "Ruler Font",
+      "subtext": "by Ivano Palmentieri (somepx)",
+      "url": "https://somepx.itch.io/free-font-ruler"
+    },
+    "icon_asset": {
+      "name": "1-Bit Pixel Icons",
+      "subtext": "by Nikoichu",
+      "url": "https://nikoichu.itch.io/pixel-icons"
+    }
   },
   "pause": {
     "title": "PAUSE",
