@@ -383,4 +383,4 @@ class GameOverScreen(Screen):
 
                 surface.blit(icon_scaled, (bx, by))
 
-        self._sync_indicator.render(surface, (cx, 40))
+        self._sync_indicator.render(surface, (cx, 40), assets=self.assets)
