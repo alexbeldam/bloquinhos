@@ -26,7 +26,7 @@ from .localization import (
 from .settings_manager import SettingsManager
 
 __all__ = [
-    'open_url',
+	'open_url',
 	'PathManager',
 	'load_env_vars',
 	'get_env',
