@@ -26,7 +26,7 @@ class GameInitializer:
         def on_line_cleared(lines: int) -> None:
             log.info(f"Cleared {lines} line(s)")
         
-        def on_piece_locked(piece: TetrominoType) -> None:
+        def on_piece_locked(piece: TetrominoType, hard_drop: bool = False) -> None:
             pass
         
         def on_game_over() -> None:

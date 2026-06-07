@@ -14,7 +14,7 @@ class EventType(Enum):
     LEVEL_UP = auto()
 
 LinesClearedHandler = Callable[[int], None]
-PieceLockedHandler = Callable[[TetrominoType], None]
+PieceLockedHandler = Callable[[TetrominoType, bool], None]
 GameOverHandler = Callable[[], None]
 NextPieceChangedHandler = Callable[[TetrominoType], None]
 HoldHandler = Callable[[TetrominoType], None]

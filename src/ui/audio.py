@@ -95,12 +95,15 @@ class AudioManager:
         self.sfx_muted = muted
 
     def register_events(self, controller: GameController) -> None:
-        def handle_piece_locked(piece) -> None:
+        def handle_piece_locked(piece, hard_drop: bool) -> None:
             if not getattr(controller, "is_game_over", False):
-                self.play_sfx("blockfall")
+                if hard_drop:
+                    self.play_sfx("harddrop")
+                else:
+                    self.play_sfx("softfall")
 
         controller.on_piece_locked(handle_piece_locked)
-        
+
         def handle_line_clear(lines: int) -> None:
             self.play_sfx("rc_complete")
                 

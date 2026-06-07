@@ -26,9 +26,10 @@ class GameController:
         self.is_game_over: bool = False
         self.gravity_timer: float = 0.0
         self.gravity_interval: float = 1.0
-        
+
         self._piece_bag: List[TetrominoType] = []
         self._hold_used_this_cycle: bool = False
+        self._recent_hard_drop: bool = False
         self.last_cleared_rows: List[int] = []
         self._event_handlers: Dict[EventType, List] = {
             EventType.LINE_CLEAR: [],
@@ -95,11 +96,12 @@ class GameController:
     def hard_drop(self) -> int:
         if self.is_game_over or self.current_piece is None:
             return 0
-        
+
+        self._recent_hard_drop = True
         distance = self.current_piece.fall(self.board)
         self._lock_piece()
         self._emit_event(EventType.HARD_DROP)
-        
+
         return distance
 
     def reset(self) -> None:
@@ -172,12 +174,15 @@ class GameController:
         if self.current_piece is None:
             return
 
+        hard_drop = self._recent_hard_drop
+
         self.board.fix_block(self.current_piece)
         self._hold_used_this_cycle = False
-        
-        self._emit_event(EventType.PIECE_LOCKED, self.current_piece.piece)
-        
+
+        self._emit_event(EventType.PIECE_LOCKED, self.current_piece.piece, hard_drop)
+
         self.last_cleared_rows = self.board.get_full_row_indices()
+        self._recent_hard_drop = False
         cleared_lines = len(self.last_cleared_rows)
         if cleared_lines > 0:
             self.board.clear_full_rows()

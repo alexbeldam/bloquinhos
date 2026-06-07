@@ -106,27 +106,27 @@ class GameScreen(Screen):
             if self.session.state != GameState.RUNNING:
                 continue
             if event.key == left_key:
-                self.game_controller.move_left()
-                if self.audio_manager:
-                    self.audio_manager.play_sfx("position")
+                if self.game_controller.move_left():
+                    if self.audio_manager:
+                        self.audio_manager.play_sfx("position")
             elif event.key == right_key:
-                self.game_controller.move_right()
-                if self.audio_manager:
-                    self.audio_manager.play_sfx("position")
+                if self.game_controller.move_right():
+                    if self.audio_manager:
+                        self.audio_manager.play_sfx("position")
             elif event.key == soft_drop_key:
-                self.game_controller.move_down()
-                if self.audio_manager:
-                    self.audio_manager.play_sfx("position")
+                if self.game_controller.move_down():
+                    if self.audio_manager:
+                        self.audio_manager.play_sfx("position")
             elif event.key == rotate_key:
-                self.game_controller.rotate()
-                if self.audio_manager:
-                    self.audio_manager.play_sfx("rotate")
+                if self.game_controller.rotate():
+                    if self.audio_manager:
+                        self.audio_manager.play_sfx("rotate")
             elif event.key == hard_drop_key:
                 self.game_controller.hard_drop()
             elif event.key == hold_key:
-                self.game_controller.hold_piece()
-                if self.audio_manager:
-                    self.audio_manager.play_sfx("hold")
+                if self.game_controller.hold_piece():
+                    if self.audio_manager:
+                        self.audio_manager.play_sfx("hold")
         return None
 
     def on_enter(self) -> None:
