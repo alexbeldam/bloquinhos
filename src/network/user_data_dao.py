@@ -112,9 +112,14 @@ class UserDataDAO:
         try:
             os.makedirs(os.path.dirname(self._save_path), exist_ok=True)
             encrypted_data = self._vault.encrypt(json.dumps(data))
+
+            self._unharden_file()
+
             with open(self._save_path, "wb") as file:
                 file.write(encrypted_data)
+
             self._harden_file()
+            
             log.info("User data saved successfully")
             return True
         except Exception:
@@ -150,6 +155,15 @@ class UserDataDAO:
                 ctypes.windll.kernel32.SetFileAttributesW(self._save_path, 2)
         except Exception:
             log.warning("Could not harden user data file permissions", exc_info=True)
+
+    def _unharden_file(self) -> None:
+        try:
+            if os.name == "nt" and os.path.exists(self._save_path):
+                import ctypes
+
+                ctypes.windll.kernel32.SetFileAttributesW(self._save_path, 128)
+        except Exception:
+            log.warning("Could not unharden user data file permissions", exc_info=True)
 
     @staticmethod
     def _utc_now() -> str:
