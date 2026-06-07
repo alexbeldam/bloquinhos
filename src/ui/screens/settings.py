@@ -114,6 +114,8 @@ class SettingsScreen(Screen):
                     continue
 
                 if event.key == pygame.K_ESCAPE:
+                    if self.audio_manager:
+                        self.audio_manager.play_sfx("cancel")
                     return self.return_screen_provider()
                 if event.key in (pygame.K_UP, pygame.K_w):
                     self._select_adjacent_tab(-1)
@@ -212,6 +214,10 @@ class SettingsScreen(Screen):
             active_tab.handle_mouse_motion(adjusted_pos)
         elif active_tab is not None:
             active_tab.set_reset_button_hovered((-1, -1))
+
+    def on_enter(self) -> None:
+        if self.audio_manager:
+            self.audio_manager.play_sfx("open")
 
     def update(self, _delta_time: float) -> Optional[str]:
         if self._reset_all_armed_until_ms > 0 and pygame.time.get_ticks() > self._reset_all_armed_until_ms:

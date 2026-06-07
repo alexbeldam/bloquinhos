@@ -35,12 +35,15 @@ class GameScreen(Screen):
         self.session = session
         self.renderer: Optional[GameRenderer] = None
         self.settings_manager = settings_manager
-        
-        self.ingame_tracks = ["score1", "score2", "score3"]
-        self.current_track = random.choice(self.ingame_tracks)
+        self.ingame_tracks = self._build_ingame_playlist()
+        self.current_track = random.choice(self.ingame_tracks) if self.ingame_tracks else "score1"
         
         if self.audio_manager:
             self.audio_manager.register_events(self.game_controller)
+    
+    def _build_ingame_playlist(self) -> list:
+        base_tracks = ["score1", "score2", "score3", "score4"]
+        return base_tracks
     
     def _get_effect_manager(self) -> EffectManager:
         if self.renderer is not None:
@@ -58,6 +61,8 @@ class GameScreen(Screen):
                 self._get_effect_manager().add_effect(TetrisCombo())
         
         def on_level_up(new_level: int) -> None:
+            if self.audio_manager:
+                self.audio_manager.play_sfx("levelup")
             if not self._effects_enabled():
                 return
             self._get_effect_manager().add_effect(LevelUpNotification(new_level))
@@ -101,25 +106,27 @@ class GameScreen(Screen):
             if self.session.state != GameState.RUNNING:
                 continue
             if event.key == left_key:
-                self.game_controller.move_left()
-                if self.audio_manager:
-                    self.audio_manager.play_sfx("position")
+                if self.game_controller.move_left():
+                    if self.audio_manager:
+                        self.audio_manager.play_sfx("position")
             elif event.key == right_key:
-                self.game_controller.move_right()
-                if self.audio_manager:
-                    self.audio_manager.play_sfx("position")
+                if self.game_controller.move_right():
+                    if self.audio_manager:
+                        self.audio_manager.play_sfx("position")
             elif event.key == soft_drop_key:
-                self.game_controller.move_down()
-                if self.audio_manager:
-                    self.audio_manager.play_sfx("position")
+                if self.game_controller.move_down():
+                    if self.audio_manager:
+                        self.audio_manager.play_sfx("position")
             elif event.key == rotate_key:
-                self.game_controller.rotate()
-                if self.audio_manager:
-                    self.audio_manager.play_sfx("rotate")
+                if self.game_controller.rotate():
+                    if self.audio_manager:
+                        self.audio_manager.play_sfx("rotate")
             elif event.key == hard_drop_key:
                 self.game_controller.hard_drop()
             elif event.key == hold_key:
-                self.game_controller.hold_piece()
+                if self.game_controller.hold_piece():
+                    if self.audio_manager:
+                        self.audio_manager.play_sfx("hold")
         return None
 
     def on_enter(self) -> None:

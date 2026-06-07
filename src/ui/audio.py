@@ -55,12 +55,10 @@ class AudioManager:
 
         try:
             sound = self.asset_loader.get_sfx(name)
-            vol = self.master_volume * self.sfx_volume
-            if sound.get_volume() != vol:
-                sound.set_volume(vol)
+            sound.set_volume(self.master_volume * self.sfx_volume)
             sound.play()
         except (KeyError, FileNotFoundError, pygame.error):
-            pass
+            log.debug(f"SFX '{name}' not found")
 
     def set_master_volume(self, volume: float) -> None:
         self.master_volume = max(0.0, min(1.0, volume))
@@ -97,12 +95,15 @@ class AudioManager:
         self.sfx_muted = muted
 
     def register_events(self, controller: GameController) -> None:
-        def handle_piece_locked(piece) -> None:
+        def handle_piece_locked(piece, hard_drop: bool) -> None:
             if not getattr(controller, "is_game_over", False):
-                self.play_sfx("blockfall")
+                if hard_drop:
+                    self.play_sfx("harddrop")
+                else:
+                    self.play_sfx("softfall")
 
         controller.on_piece_locked(handle_piece_locked)
-        
+
         def handle_line_clear(lines: int) -> None:
             self.play_sfx("rc_complete")
                 

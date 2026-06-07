@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import math
+
 import pygame
 
 from settings import SETTINGS
@@ -9,12 +11,13 @@ from ui.effects.base import Effect
 class LevelUpNotification(Effect):
     def __init__(self, new_level: int) -> None:
         self._new_level = new_level
-        self._duration = 1.5
+        self._duration = 2.0
         self._elapsed = 0.0
         self._completed = False
 
         self._slide_in = 0.3
-        self._pause = 0.7
+        self._pause = 0.4
+        self._blink = 0.8
         self._fade_out = 0.5
 
     def update(self, delta_time: float) -> bool:
@@ -41,8 +44,13 @@ class LevelUpNotification(Effect):
             offset_y = int((t - 1) * 60)
         elif self._elapsed < self._slide_in + self._pause:
             offset_y = 0
+        elif self._elapsed < self._slide_in + self._pause + self._blink:
+            blink_t = (self._elapsed - self._slide_in - self._pause) / self._blink
+            blink_alpha = int((math.sin(blink_t * math.pi * 6) * 0.5 + 0.5) * 255)
+            alpha = min(alpha, blink_alpha)
+            offset_y = 0
         else:
-            fade_t = (self._elapsed - self._slide_in - self._pause) / self._fade_out
+            fade_t = (self._elapsed - self._slide_in - self._pause - self._blink) / self._fade_out
             alpha = max(0, int((1.0 - fade_t) * 255))
 
         if alpha <= 0:

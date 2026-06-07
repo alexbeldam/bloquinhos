@@ -29,6 +29,8 @@ class MenuScreen(Screen):
             selected_color=SETTINGS.UI_THEME.YELLOW,
             unselected_color=SETTINGS.UI_THEME.PURPLE,
             font_size=SETTINGS.UI_TYPOGRAPHY.TITLE,
+            on_navigate=self._on_menu_navigate,
+            on_select=self._on_menu_select,
         )
 
     def _build_options(self) -> Sequence[Tuple[str, str]]:
@@ -43,6 +45,16 @@ class MenuScreen(Screen):
 
     def _sync_menu_options(self) -> None:
         self.menu.options = self._build_options()
+
+    def _on_menu_navigate(self) -> None:
+        """Triggered when menu selection changes."""
+        if self.audio_manager:
+            self.audio_manager.play_sfx("nav")
+
+    def _on_menu_select(self) -> None:
+        """Triggered when menu item is selected."""
+        if self.audio_manager:
+            self.audio_manager.play_sfx("select")
 
     def handle_events(self, events: List[pygame.event.Event]) -> Optional[str]:
         self._sync_menu_options()
